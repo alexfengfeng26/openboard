@@ -1,0 +1,12 @@
+# 数据目录
+# 忽略生成的 Markdown 文件
+/data/*.md
+
+# 忽略锁文件目录
+/data/.lock/
+
+# 忽略备份的 JSON 文件
+/data/db.json.bak
+
+# 保留迁移标记文件（但不要跟踪内容）
+/.migration-flag

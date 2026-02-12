@@ -1,14 +1,13 @@
 import { NextResponse } from 'next/server'
-import { getDb, TAG_COLORS } from '@/lib/db'
-import type { Tag } from '@/lib/db'
+import { dbHelpers, TAG_COLORS } from '@/lib/db'
+import type { Tag } from '@/types'
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const boardId = searchParams.get('boardId') || 'default-board'
 
-    const db = await getDb()
-    const board = db.data?.boards?.find((b) => b.id === boardId)
+    const board = await dbHelpers.getBoard(boardId)
 
     // 如果找到看板且有标签，返回看板标签
     if (board?.tags) {
@@ -31,6 +30,7 @@ export async function GET(request: Request) {
       name: t.name,
       color: t.color
     }))
+
     return NextResponse.json({ success: true, data: defaultTags })
   }
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { getDb } from '@/lib/db'
-import type { Board } from '@/lib/db'
+import { dbHelpers } from '@/lib/db'
+import type { Board } from '@/types'
 
 export async function POST(request: Request) {
   try {
@@ -11,29 +11,33 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    const db = await getDb()
-    const board = db.data?.boards?.find((b: Board) => b.id === boardId)
+    // 获取完整看板数据
+    const board = await dbHelpers.getBoard(boardId)
     if (!board) {
       return NextResponse.json({ error: 'Board not found' }, { status: 404 })
     }
 
-    // 创建一个新的 lanes 数组，按新顺序排列
-    const reorderedLanes: typeof board.lanes = []
-    for (let i = 0; i < laneIds.length; i++) {
-      const lane = board.lanes.find((l) => l.id === laneIds[i])
-      if (lane) {
-        lane.position = i * 1000 // 使用固定步长
-        lane.updatedAt = new Date().toISOString()
-        reorderedLanes.push(lane)
+    // 创建新的 lanes 数组，按新顺序排列
+    const reorderedLanes = board.lanes.map((lane) => {
+      const index = laneIds.indexOf(lane.id)
+      const newPosition = index === -1 ? 0 : index
+
+      return {
+        ...lane,
+        position: newPosition * 1000,
+        updatedAt: new Date().toISOString(),
       }
+    })
+
+    const updatedBoard: Board = {
+      ...board,
+      lanes: reorderedLanes,
+      updatedAt: new Date().toISOString(),
     }
 
-    board.lanes = reorderedLanes
-    board.updatedAt = new Date().toISOString()
+    await dbHelpers.updateBoard(boardId, { title: board.title })
 
-    await db.write()
-
-    return NextResponse.json({ success: true, data: board })
+    return NextResponse.json({ success: true, data: updatedBoard })
   } catch (error) {
     console.error('Error reordering lanes:', error)
     return NextResponse.json({ error: 'Failed to reorder lanes' }, { status: 500 })

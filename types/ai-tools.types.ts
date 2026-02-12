@@ -78,3 +78,12 @@ export interface PromptContext {
     cardCount: number
   }>
 }
+
+/**
+ * 聊天消息
+ */
+export interface ChatMessage {
+  id: string
+  role: 'user' | 'assistant' | 'system'
+  content: string
+}

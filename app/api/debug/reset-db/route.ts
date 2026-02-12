@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { resetDb, getDb } from '@/lib/db'
+import { resetStorage } from '@/lib/storage/StorageAdapter'
 
 export async function POST() {
   // 仅在开发环境允许
@@ -7,16 +7,11 @@ export async function POST() {
     return NextResponse.json({ error: 'Not allowed in production' }, { status: 403 })
   }
 
-  // 重置数据库实例
-  await resetDb()
-
-  // 重新获取数据库（会触发重新初始化）
-  const db = await getDb()
+  // 重置存储（清除缓存并重新初始化）
+  await resetStorage()
 
   return NextResponse.json({
     success: true,
-    message: 'Database reset successfully',
-    lanes: db.data.boards[0].lanes.length,
-    cards: db.data.boards[0].lanes.reduce((acc, lane) => acc + lane.cards.length, 0)
+    message: 'Storage reset successfully',
   })
 }

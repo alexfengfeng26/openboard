@@ -9,7 +9,8 @@ import { toastError, toastInfo, toastSuccess, toastWarning } from '@/components/
 import { ToolCallConfirmation } from './ToolCallConfirmation'
 import { OperationLogPanel } from './OperationLogPanel'
 import { PromptBuilder, FallbackToolParser } from '@/lib/ai-tools'
-import type { ToolCallRequest, OperationLogEntry, PromptContext } from '@/types/ai-tools.types'
+import { parseCardDraftItemsFromAiContent } from '@/lib/ai/card-draft-parser'
+import type { ToolCallRequest, OperationLogEntry, PromptContext, ChatMessage } from '@/types/ai-tools.types'
 import type { CardDraft } from '@/lib/ai-tools/parser/card-draft-types'
 
 type DraftParseResult =
@@ -422,14 +423,15 @@ export function DeepSeekChatPanel({
     try {
       const result = await generateDraftsFromText(source.content)
       setDraftRaw(result.raw)
-      setDraftRepairedRaw(result.ok ? result.repairedRaw ?? null : result.repairedRaw ?? null)
+      setDraftRepairedRaw(result.repairedRaw ?? null)
       if (result.ok) {
         openDraftQueue(result.drafts)
         if (result.drafts.length > 1) {
           toastInfo(`已生成 ${result.drafts.length} 张卡片草稿`)
         }
       } else {
-        setDraftError(result.error)
+        const error = (result as DraftParseResult & { ok: false; error: string }).error
+        setDraftError(error)
         openDraftQueue([
           {
             laneId: defaultLaneId,
@@ -458,9 +460,10 @@ export function DeepSeekChatPanel({
     try {
       const result = await generateDraftsFromText(source.content)
       setDraftRaw(result.raw)
-      setDraftRepairedRaw(result.ok ? result.repairedRaw ?? null : result.repairedRaw ?? null)
+      setDraftRepairedRaw(result.repairedRaw ?? null)
       if (!result.ok) {
-        throw new Error(result.error)
+        const error = (result as DraftParseResult & { ok: false; error: string }).error
+        throw new Error(error)
       }
       const { successCount, failCount } = await createCardsFromDrafts(result.drafts)
       if (failCount === 0) {

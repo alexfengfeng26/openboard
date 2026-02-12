@@ -27,3 +27,11 @@ export interface CreateBoardInput {
 export interface UpdateBoardInput {
   title?: string
 }
+
+/**
+ * 原始数据库结构（用于兼容性）
+ * @deprecated 新的 Markdown 存储不再使用此结构
+ */
+export interface Data {
+  boards: Board[]
+}
