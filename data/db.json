@@ -1,0 +1,427 @@
+{
+  "boards": [
+    {
+      "id": "default-board",
+      "title": "我的看板",
+      "createdAt": "2026-02-11T07:06:35.423Z",
+      "updatedAt": "2026-02-12T05:25:11.028Z",
+      "tags": [
+        {
+          "id": "tag-0",
+          "name": "紧急",
+          "color": "#ef4444"
+        },
+        {
+          "id": "tag-1",
+          "name": "功能",
+          "color": "#3b82f6"
+        },
+        {
+          "id": "tag-2",
+          "name": "Bug",
+          "color": "#f59e0b"
+        },
+        {
+          "id": "tag-3",
+          "name": "优化",
+          "color": "#10b981"
+        },
+        {
+          "id": "tag-4",
+          "name": "文档",
+          "color": "#8b5cf6"
+        },
+        {
+          "id": "tag-5",
+          "name": "设计",
+          "color": "#ec4899"
+        }
+      ],
+      "lanes": [
+        {
+          "id": "lane-todo",
+          "boardId": "default-board",
+          "title": "待办",
+          "position": 0,
+          "createdAt": "2026-02-11T07:06:35.423Z",
+          "updatedAt": "2026-02-12T05:25:11.028Z",
+          "cards": [
+            {
+              "id": "card-3",
+              "laneId": "lane-todo",
+              "title": "开发中",
+              "description": "正在积极开发的功能",
+              "position": 2,
+              "createdAt": "2026-02-11T07:06:35.423Z",
+              "updatedAt": "2026-02-11T08:29:55.944Z"
+            },
+            {
+              "id": "card-1770806962038",
+              "laneId": "lane-todo",
+              "title": "搭建管理后台，支持商品上架与订单处理",
+              "description": "1. 创建管理员后台登录与主界面。\n2. 开发商品管理模块，支持增删改查商品信息。\n3. 开发订单管理模块，支持查看订单列表与状态更新。",
+              "position": 10,
+              "createdAt": "2026-02-11T10:49:22.038Z",
+              "updatedAt": "2026-02-11T10:49:22.038Z",
+              "tags": []
+            },
+            {
+              "id": "card-1770871933623",
+              "laneId": "lane-todo",
+              "title": "AI 创建卡片功能优化",
+              "description": "1) 在下方描述需求\n2) 等 AI 回复后点「创建为卡片」\n3) 需要改标题/描述再点「编辑后创建」",
+              "position": 4,
+              "createdAt": "2026-02-12T04:52:13.623Z",
+              "updatedAt": "2026-02-12T04:52:13.623Z",
+              "tags": []
+            }
+          ]
+        },
+        {
+          "id": "lane-inprogress",
+          "boardId": "default-board",
+          "title": "进行中",
+          "position": 1,
+          "createdAt": "2026-02-11T07:06:35.423Z",
+          "updatedAt": "2026-02-11T10:02:24.429Z",
+          "cards": [
+            {
+              "id": "card-1770799321983",
+              "laneId": "lane-inprogress",
+              "title": "gemini介绍",
+              "description": "你可以直接描述想做的事，或让我基于当前卡片生成新的卡片草稿。",
+              "position": 2,
+              "createdAt": "2026-02-11T08:42:01.983Z",
+              "updatedAt": "2026-02-11T09:07:44.046Z",
+              "tags": []
+            },
+            {
+              "id": "card-1770802146058",
+              "laneId": "lane-inprogress",
+              "title": "66",
+              "description": "6666",
+              "position": 3,
+              "createdAt": "2026-02-11T09:29:06.058Z",
+              "updatedAt": "2026-02-11T09:29:06.058Z",
+              "tags": [
+                {
+                  "id": "tag-0",
+                  "name": "紧急",
+                  "color": "#ef4444"
+                },
+                {
+                  "id": "tag-1",
+                  "name": "功能",
+                  "color": "#3b82f6"
+                },
+                {
+                  "id": "tag-3",
+                  "name": "优化",
+                  "color": "#10b981"
+                },
+                {
+                  "id": "tag-4",
+                  "name": "文档",
+                  "color": "#8b5cf6"
+                }
+              ]
+            },
+            {
+              "id": "card-1770799150145",
+              "laneId": "lane-inprogress",
+              "title": "撰写 DeepSeek 介绍文档",
+              "description": "1. **核心定位**：说明 DeepSeek 是由深度求索公司开发的 AI 大语言模型助手。\n2. **关键特性**：\n    *   免费使用，拥有 128K 上下文。\n    *   支持文件上传（图像、txt、pdf、ppt、word、excel），可读取并处理其中的文字信息。\n    *   支持联网搜索（需手动在 Web/App 中点开联网搜索按键）。\n    *   纯文本模型，专注于文字处理与对话。\n3. **获取方式**：可通过官方应用商店下载 App 或直接在网页端使用。\n4. **服务声明**：提醒用户其知识截止于 2024年7月，并建议核对重要信息。",
+              "position": 2,
+              "createdAt": "2026-02-11T08:39:10.145Z",
+              "updatedAt": "2026-02-12T04:08:02.975Z",
+              "tags": []
+            }
+          ]
+        },
+        {
+          "id": "lane-done",
+          "boardId": "default-board",
+          "title": "已完成2",
+          "position": 2,
+          "createdAt": "2026-02-11T07:06:35.423Z",
+          "updatedAt": "2026-02-11T10:43:15.097Z",
+          "cards": [
+            {
+              "id": "card-1770799202495",
+              "laneId": "lane-done",
+              "title": "撰写 Google Gemini 介绍文档",
+              "description": "1. **核心定位**：说明 Gemini 是 Google 开发的多模态 AI 模型系列。\n2. **模型系列**：介绍 Gemini Ultra、Pro、Nano 等不同版本及其定位。\n3. **关键特性**：\n    *   原生多模态能力，能无缝理解和处理文本、代码、图像、音频、视频。\n    *   深度集成于 Google 生态（如 Workspace、搜索）。\n    *   支持代码生成、逻辑推理、创意协作等多种任务。\n4. **获取方式**：可通过 Gemini Advanced 订阅、Google AI Studio、Vertex AI 或部分功能集成在 Bard/搜索中体验。\n5. **对比与定位**：简要说明其与 OpenAI GPT 系列等模型的区别和优势。",
+              "position": 0,
+              "createdAt": "2026-02-11T08:40:02.495Z",
+              "updatedAt": "2026-02-11T15:33:16.026Z",
+              "tags": [
+                {
+                  "id": "tag-3",
+                  "name": "优化",
+                  "color": "#10b981"
+                },
+                {
+                  "id": "tag-4",
+                  "name": "文档",
+                  "color": "#8b5cf6"
+                },
+                {
+                  "id": "tag-5",
+                  "name": "设计",
+                  "color": "#ec4899"
+                }
+              ]
+            },
+            {
+              "id": "card-1770799844291",
+              "laneId": "lane-done",
+              "title": "重构 API 参数一致性",
+              "description": "检查并统一项目中各接口的请求/响应参数命名风格（如驼峰/下划线）、必填项规则和错误码格式，提升前后端协作效率。",
+              "position": 1,
+              "createdAt": "2026-02-11T08:50:44.291Z",
+              "updatedAt": "2026-02-12T04:08:04.512Z",
+              "tags": []
+            }
+          ]
+        },
+        {
+          "id": "lane-1770806867123",
+          "boardId": "default-board",
+          "title": "归档",
+          "position": 3,
+          "cards": [
+            {
+              "id": "card-2",
+              "laneId": "lane-1770806867123",
+              "title": "拖放功能演示",
+              "description": "尝试拖动这个卡片",
+              "position": 0,
+              "createdAt": "2026-02-11T07:06:35.423Z",
+              "updatedAt": "2026-02-11T15:33:03.586Z",
+              "tags": [
+                {
+                  "id": "tag-0",
+                  "name": "紧急",
+                  "color": "#ef4444"
+                }
+              ]
+            },
+            {
+              "id": "card-1770801323725",
+              "laneId": "lane-1770806867123",
+              "title": "开发点餐小程序",
+              "description": "启动点餐小程序的开发项目，需明确功能需求、技术选型和开发排期。",
+              "position": 1,
+              "createdAt": "2026-02-11T09:15:23.725Z",
+              "updatedAt": "2026-02-11T15:33:11.367Z",
+              "tags": []
+            }
+          ],
+          "createdAt": "2026-02-11T10:47:47.123Z",
+          "updatedAt": "2026-02-11T10:47:47.123Z"
+        }
+      ]
+    },
+    {
+      "id": "board-1770802888495",
+      "title": "小红书运营",
+      "createdAt": "2026-02-11T09:41:28.495Z",
+      "updatedAt": "2026-02-11T09:41:28.495Z",
+      "tags": [
+        {
+          "id": "tag-0-1770802888495",
+          "name": "紧急",
+          "color": "#ef4444"
+        },
+        {
+          "id": "tag-1-1770802888495",
+          "name": "功能",
+          "color": "#3b82f6"
+        },
+        {
+          "id": "tag-2-1770802888495",
+          "name": "Bug",
+          "color": "#f59e0b"
+        },
+        {
+          "id": "tag-3-1770802888495",
+          "name": "优化",
+          "color": "#10b981"
+        },
+        {
+          "id": "tag-4-1770802888495",
+          "name": "文档",
+          "color": "#8b5cf6"
+        },
+        {
+          "id": "tag-5-1770802888495",
+          "name": "设计",
+          "color": "#ec4899"
+        }
+      ],
+      "lanes": [
+        {
+          "id": "lane-1770802888495-0",
+          "boardId": "board-1770802888495",
+          "title": "待办",
+          "position": 0,
+          "cards": [],
+          "createdAt": "2026-02-11T09:41:28.495Z",
+          "updatedAt": "2026-02-11T09:41:28.495Z"
+        },
+        {
+          "id": "lane-1770802888495-1",
+          "boardId": "board-1770802888495",
+          "title": "进行中",
+          "position": 1,
+          "cards": [],
+          "createdAt": "2026-02-11T09:41:28.495Z",
+          "updatedAt": "2026-02-11T09:41:28.495Z"
+        },
+        {
+          "id": "lane-1770802888495-2",
+          "boardId": "board-1770802888495",
+          "title": "已完成",
+          "position": 2,
+          "cards": [],
+          "createdAt": "2026-02-11T09:41:28.495Z",
+          "updatedAt": "2026-02-11T09:41:28.495Z"
+        }
+      ]
+    },
+    {
+      "id": "board-1770803073406",
+      "title": "Scrum 敏捷开发",
+      "createdAt": "2026-02-11T09:44:33.406Z",
+      "updatedAt": "2026-02-11T09:44:33.406Z",
+      "tags": [
+        {
+          "id": "tag-0-1770803073406",
+          "name": "紧急",
+          "color": "#ef4444"
+        },
+        {
+          "id": "tag-1-1770803073406",
+          "name": "功能",
+          "color": "#3b82f6"
+        },
+        {
+          "id": "tag-2-1770803073406",
+          "name": "Bug",
+          "color": "#f59e0b"
+        },
+        {
+          "id": "tag-3-1770803073406",
+          "name": "优化",
+          "color": "#10b981"
+        },
+        {
+          "id": "tag-4-1770803073406",
+          "name": "文档",
+          "color": "#8b5cf6"
+        },
+        {
+          "id": "tag-5-1770803073406",
+          "name": "设计",
+          "color": "#ec4899"
+        }
+      ],
+      "lanes": [
+        {
+          "id": "lane-1770803073406-0",
+          "boardId": "board-1770803073406",
+          "title": "待办",
+          "position": 0,
+          "cards": [],
+          "createdAt": "2026-02-11T09:44:33.406Z",
+          "updatedAt": "2026-02-11T09:44:33.406Z"
+        },
+        {
+          "id": "lane-1770803073406-1",
+          "boardId": "board-1770803073406",
+          "title": "进行中",
+          "position": 1,
+          "cards": [],
+          "createdAt": "2026-02-11T09:44:33.406Z",
+          "updatedAt": "2026-02-11T09:44:33.406Z"
+        },
+        {
+          "id": "lane-1770803073406-2",
+          "boardId": "board-1770803073406",
+          "title": "已完成",
+          "position": 2,
+          "cards": [],
+          "createdAt": "2026-02-11T09:44:33.406Z",
+          "updatedAt": "2026-02-11T09:44:33.406Z"
+        }
+      ]
+    },
+    {
+      "id": "board-1770803073415",
+      "title": "Bug 跟踪",
+      "createdAt": "2026-02-11T09:44:33.415Z",
+      "updatedAt": "2026-02-11T09:44:33.415Z",
+      "tags": [
+        {
+          "id": "tag-0-1770803073415",
+          "name": "紧急",
+          "color": "#ef4444"
+        },
+        {
+          "id": "tag-1-1770803073415",
+          "name": "功能",
+          "color": "#3b82f6"
+        },
+        {
+          "id": "tag-2-1770803073415",
+          "name": "Bug",
+          "color": "#f59e0b"
+        },
+        {
+          "id": "tag-3-1770803073415",
+          "name": "优化",
+          "color": "#10b981"
+        },
+        {
+          "id": "tag-4-1770803073415",
+          "name": "文档",
+          "color": "#8b5cf6"
+        },
+        {
+          "id": "tag-5-1770803073415",
+          "name": "设计",
+          "color": "#ec4899"
+        }
+      ],
+      "lanes": [
+        {
+          "id": "lane-1770803073415-0",
+          "boardId": "board-1770803073415",
+          "title": "待办",
+          "position": 0,
+          "cards": [],
+          "createdAt": "2026-02-11T09:44:33.415Z",
+          "updatedAt": "2026-02-11T09:44:33.415Z"
+        },
+        {
+          "id": "lane-1770803073415-1",
+          "boardId": "board-1770803073415",
+          "title": "进行中",
+          "position": 1,
+          "cards": [],
+          "createdAt": "2026-02-11T09:44:33.415Z",
+          "updatedAt": "2026-02-11T09:44:33.415Z"
+        },
+        {
+          "id": "lane-1770803073415-2",
+          "boardId": "board-1770803073415",
+          "title": "已完成",
+          "position": 2,
+          "cards": [],
+          "createdAt": "2026-02-11T09:44:33.415Z",
+          "updatedAt": "2026-02-11T09:44:33.415Z"
+        }
+      ]
+    }
+  ]
+}

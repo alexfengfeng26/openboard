@@ -1,0 +1,25 @@
+[  104211ms] [WARNING] Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}. @ http://localhost:3005/_next/static/chunks/f27f0_next_dist_0e9c33c4._.js:2297
+[  104212ms] [WARNING] Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}. @ http://localhost:3005/_next/static/chunks/f27f0_next_dist_0e9c33c4._.js:2297
+[  109937ms] [WARNING] Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}. @ http://localhost:3005/_next/static/chunks/f27f0_next_dist_0e9c33c4._.js:2297
+[  109939ms] [WARNING] Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}. @ http://localhost:3005/_next/static/chunks/f27f0_next_dist_0e9c33c4._.js:2297
+[  219531ms] [WARNING] Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}. @ http://localhost:3005/_next/static/chunks/f27f0_next_dist_0e9c33c4._.js:2297
+[  219533ms] [WARNING] Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}. @ http://localhost:3005/_next/static/chunks/f27f0_next_dist_0e9c33c4._.js:2297
+[  225963ms] [WARNING] Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}. @ http://localhost:3005/_next/static/chunks/f27f0_next_dist_0e9c33c4._.js:2297
+[  225966ms] [WARNING] Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}. @ http://localhost:3005/_next/static/chunks/f27f0_next_dist_0e9c33c4._.js:2297
+[  318794ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3005/api/boards:0
+[  425701ms] [WARNING] Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}. @ http://localhost:3005/_next/static/chunks/f27f0_next_dist_0e9c33c4._.js:2297
+[  425702ms] [WARNING] Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}. @ http://localhost:3005/_next/static/chunks/f27f0_next_dist_0e9c33c4._.js:2297
+[  430247ms] [WARNING] Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}. @ http://localhost:3005/_next/static/chunks/f27f0_next_dist_0e9c33c4._.js:2297
+[  430248ms] [WARNING] Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}. @ http://localhost:3005/_next/static/chunks/f27f0_next_dist_0e9c33c4._.js:2297
+[  430274ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3005/api/tags:0
+[  430275ms] [ERROR] Error fetching tags: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON @ http://localhost:3005/_next/static/chunks/f27f0_next_dist_0e9c33c4._.js:3127
+[  430295ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3005/api/tags:0
+[  430296ms] [ERROR] Error fetching tags: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON @ http://localhost:3005/_next/static/chunks/f27f0_next_dist_0e9c33c4._.js:3127
+[  432530ms] [WARNING] Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}. @ http://localhost:3005/_next/static/chunks/f27f0_next_dist_0e9c33c4._.js:2297
+[  432532ms] [WARNING] Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}. @ http://localhost:3005/_next/static/chunks/f27f0_next_dist_0e9c33c4._.js:2297
+[  432544ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3005/api/boards:0
+[  434878ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3005/api/boards:0
+[  454649ms] [WARNING] Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}. @ http://localhost:3005/_next/static/chunks/f27f0_next_dist_0e9c33c4._.js:2297
+[  454651ms] [WARNING] Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}. @ http://localhost:3005/_next/static/chunks/f27f0_next_dist_0e9c33c4._.js:2297
+[  454662ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3005/api/boards:0
+[  457953ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3005/api/boards:0

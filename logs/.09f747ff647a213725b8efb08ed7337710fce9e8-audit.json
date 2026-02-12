@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "D:\\claude\\kanban-board\\logs\\.09f747ff647a213725b8efb08ed7337710fce9e8-audit.json",
+    "files": [
+        {
+            "date": 1770795330161,
+            "name": "D:\\claude\\kanban-board\\logs\\mcp-puppeteer-2026-02-11.log",
+            "hash": "7816ee3296d363bfaf0506a02f10367ba84a4dfa1b730dd73209a0d05e3610b3"
+        }
+    ],
+    "hashType": "sha256"
+}
