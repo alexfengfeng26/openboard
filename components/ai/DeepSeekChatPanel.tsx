@@ -5,6 +5,7 @@ import type { Card, Lane } from '@/lib/db'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
+import { toastError, toastInfo, toastSuccess, toastWarning } from '@/components/ui/toast'
 import { ToolCallConfirmation } from './ToolCallConfirmation'
 import { OperationLogPanel } from './OperationLogPanel'
 import { PromptBuilder, FallbackToolParser } from '@/lib/ai-tools'
@@ -143,6 +144,27 @@ export function DeepSeekChatPanel({
   }
 
   async function createCardFromDraft(nextDraft: CardDraft) {
+    const logId = createId()
+    const timestamp = new Date().toISOString()
+    const params: Record<string, unknown> = {
+      boardId,
+      laneId: nextDraft.laneId,
+      title: nextDraft.title.trim(),
+      description: nextDraft.description?.trim() || undefined,
+    }
+ 
+    setOperationLogs((prev) => [
+      {
+        id: logId,
+        timestamp,
+        status: 'confirmed',
+        confirmedBy: 'user',
+        toolName: 'create_card',
+        params,
+      },
+      ...prev,
+    ])
+ 
     console.log('[createCardFromDraft] 开始创建卡片:', nextDraft)
     const response = await fetch('/api/cards', {
       method: 'POST',
@@ -160,11 +182,25 @@ export function DeepSeekChatPanel({
 
     if (!response.ok || !data?.success) {
       const message = typeof data?.error === 'string' ? data.error : '创建卡片失败'
+      setOperationLogs((prev) =>
+        prev.map((l) =>
+          l.id === logId
+            ? { ...l, status: 'failed', error: message, timestamp: new Date().toISOString() }
+            : l
+        )
+      )
       console.error('[createCardFromDraft] 创建失败:', message)
       throw new Error(message)
     }
 
     console.log('[createCardFromDraft] 创建成功，调用 onCardCreated')
+    setOperationLogs((prev) =>
+      prev.map((l) =>
+        l.id === logId
+          ? { ...l, status: 'executed', result: data.data, timestamp: new Date().toISOString() }
+          : l
+      )
+    )
     onCardCreated(nextDraft.laneId, data.data as Card)
   }
 
@@ -198,6 +234,8 @@ export function DeepSeekChatPanel({
     if (failCount > 0) {
       console.error('[createCardsFromDrafts] 失败的卡片:', results.filter((r) => !r.success))
     }
+ 
+    return { results, successCount, failCount }
   }
 
   function itemsToDrafts(items: Array<{ title: string; description?: string }>) {
@@ -314,8 +352,6 @@ export function DeepSeekChatPanel({
         messages: nextMessages.map((m) => ({ role: m.role, content: m.content })),
       })
 
-      setMessages((prev) => [...prev, { id: createId(), role: 'assistant', content: aiContent }])
-
       // 检测工具调用 - 统一使用降级解析器
       FallbackToolParser.setDefaultLaneId(defaultLaneId)
       const parseResult = FallbackToolParser.parse(aiContent)
@@ -333,6 +369,7 @@ export function DeepSeekChatPanel({
           params: call.params
         }))
         setOperationLogs(prev => [...newLogs, ...prev])
+        toastInfo(`已生成 ${toolCalls.length} 个操作，等待确认`)
       } else if (parseResult.type === 'draft' && parseResult.data.length > 0) {
         // 解析为草稿，打开编辑界面
         const drafts = parseResult.data as CardDraft[]
@@ -344,25 +381,23 @@ export function DeepSeekChatPanel({
           setDraftIndex(0)
 
           // 立即创建单张卡片
-          handleCreateSingleDraft(drafts[0])
-
-          setMessages((prev) => [...prev, {
-            id: createId(),
-            role: 'assistant',
-            content: `已生成 1 张卡片草稿：${drafts[0].title}`
-          }])
+          try {
+            await createCardFromDraft(drafts[0])
+            toastSuccess(`卡片已创建：${drafts[0].title.trim()}`)
+          } catch (e) {
+            const message = e instanceof Error ? e.message : '创建失败'
+            setDraftError(message)
+            toastError(`创建失败：${message}`)
+          }
         } else {
           // 多张草稿，打开编辑队列
           setDraftQueue(drafts)
           setDraftIndex(0)
           setDraft(drafts[0] || null)
-
-          setMessages((prev) => [...prev, {
-            id: createId(),
-            role: 'assistant',
-            content: `已生成 ${drafts.length} 张卡片草稿，可逐张编辑创建或选择全部创建。`
-          }])
+          toastInfo(`已生成 ${drafts.length} 张卡片草稿`)
         }
+      } else {
+        setMessages((prev) => [...prev, { id: createId(), role: 'assistant', content: aiContent }])
       }
     } catch (e) {
       const message = e instanceof Error ? e.message : 'AI 请求失败'
@@ -391,7 +426,7 @@ export function DeepSeekChatPanel({
       if (result.ok) {
         openDraftQueue(result.drafts)
         if (result.drafts.length > 1) {
-          setMessages((prev) => [...prev, { id: createId(), role: 'assistant', content: `已生成 ${result.drafts.length} 张卡片草稿，可逐张编辑创建或选择全部创建。` }])
+          toastInfo(`已生成 ${result.drafts.length} 张卡片草稿`)
         }
       } else {
         setDraftError(result.error)
@@ -427,14 +462,13 @@ export function DeepSeekChatPanel({
       if (!result.ok) {
         throw new Error(result.error)
       }
-      await createCardsFromDrafts(result.drafts)
-      if (result.drafts.length === 1) {
-        setMessages((prev) => [...prev, { id: createId(), role: 'assistant', content: `已创建卡片：${result.drafts[0].title.trim()}` }])
+      const { successCount, failCount } = await createCardsFromDrafts(result.drafts)
+      if (failCount === 0) {
+        toastSuccess(`已创建 ${successCount} 张卡片`)
+      } else if (successCount > 0) {
+        toastWarning(`已创建 ${successCount} 张，失败 ${failCount} 张`)
       } else {
-        const titles = result.drafts.map((d) => d.title.trim()).filter(Boolean)
-        const preview = titles.slice(0, 3).join('、')
-        const suffix = titles.length > 3 ? ` 等 ${titles.length} 张` : ''
-        setMessages((prev) => [...prev, { id: createId(), role: 'assistant', content: `已创建 ${titles.length} 张卡片：${preview}${suffix}` }])
+        toastError(`创建失败：${failCount} 张`)
       }
       setDraftSourceId(null)
     } catch (e) {
@@ -461,7 +495,7 @@ export function DeepSeekChatPanel({
     try {
       const currentTitle = draft.title.trim()
       await createCardFromDraft(draft)
-      setMessages((prev) => [...prev, { id: createId(), role: 'assistant', content: `已创建卡片：${currentTitle}` }])
+      toastSuccess(`卡片已创建：${currentTitle}`)
 
       if (draftQueue && draftQueue.length > 1) {
         const nextQueue = draftQueue.filter((_, i) => i !== draftIndex)
@@ -494,11 +528,14 @@ export function DeepSeekChatPanel({
     setDraftError(null)
 
     try {
-      await createCardsFromDrafts(drafts)
-      const titles = drafts.map((d) => d.title.trim()).filter(Boolean)
-      const preview = titles.slice(0, 3).join('、')
-      const suffix = titles.length > 3 ? ` 等 ${titles.length} 张` : ''
-      setMessages((prev) => [...prev, { id: createId(), role: 'assistant', content: `已创建 ${titles.length} 张卡片：${preview}${suffix}` }])
+      const { successCount, failCount } = await createCardsFromDrafts(drafts)
+      if (failCount === 0) {
+        toastSuccess(`已创建 ${successCount} 张卡片`)
+      } else if (successCount > 0) {
+        toastWarning(`已创建 ${successCount} 张，失败 ${failCount} 张`)
+      } else {
+        toastError(`创建失败：${failCount} 张`)
+      }
       closeDraftPanel()
       setDraftSourceId(null)
     } catch (e) {
@@ -516,6 +553,13 @@ export function DeepSeekChatPanel({
     setIsExecuting(true)
 
     try {
+      setOperationLogs((prev) =>
+        prev.map((log) =>
+          log.status === 'pending'
+            ? { ...log, status: 'confirmed', confirmedBy: 'user', timestamp: new Date().toISOString() }
+            : log
+        )
+      )
       const response = await fetch('/api/ai/tools/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -549,15 +593,15 @@ export function DeepSeekChatPanel({
         return updated
       })
 
-      // 添加执行结果消息
       const successCount = results.filter((r: any) => r.success).length
       const failCount = results.filter((r: any) => !r.success).length
-
-      let resultMessage = `执行完成：成功 ${successCount} 个`
-      if (failCount > 0) {
-        resultMessage += `，失败 ${failCount} 个`
+      if (failCount === 0) {
+        toastSuccess(`执行完成：成功 ${successCount} 个`)
+      } else if (successCount > 0) {
+        toastWarning(`执行完成：成功 ${successCount} 个，失败 ${failCount} 个`)
+      } else {
+        toastError(`执行失败：${failCount} 个`)
       }
-      setMessages((prev) => [...prev, { id: createId(), role: 'assistant', content: resultMessage }])
 
       setPendingToolCalls(null)
 
@@ -566,6 +610,7 @@ export function DeepSeekChatPanel({
       }
     } catch (e) {
       const message = e instanceof Error ? e.message : '执行失败'
+      toastError(`执行失败：${message}`)
 
       // 更新日志为失败状态
       setOperationLogs(prev => prev.map(log =>
@@ -573,8 +618,6 @@ export function DeepSeekChatPanel({
           ? { ...log, status: 'failed', error: message, timestamp: new Date().toISOString() }
           : log
       ))
-
-      setMessages((prev) => [...prev, { id: createId(), role: 'assistant', content: `执行失败：${message}` }])
     } finally {
       setIsExecuting(false)
     }
@@ -591,7 +634,7 @@ export function DeepSeekChatPanel({
     ))
 
     setPendingToolCalls(null)
-    setMessages((prev) => [...prev, { id: createId(), role: 'assistant', content: '已取消操作' }])
+    toastInfo('已取消操作')
   }
 
   function clearLogs() {

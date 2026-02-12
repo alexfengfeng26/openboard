@@ -4,7 +4,7 @@
       "id": "default-board",
       "title": "我的看板",
       "createdAt": "2026-02-11T07:06:35.423Z",
-      "updatedAt": "2026-02-12T05:25:11.028Z",
+      "updatedAt": "2026-02-12T06:33:32.063Z",
       "tags": [
         {
           "id": "tag-0",
@@ -44,7 +44,7 @@
           "title": "待办",
           "position": 0,
           "createdAt": "2026-02-11T07:06:35.423Z",
-          "updatedAt": "2026-02-12T05:25:11.028Z",
+          "updatedAt": "2026-02-12T06:33:32.063Z",
           "cards": [
             {
               "id": "card-3",
@@ -66,13 +66,72 @@
               "tags": []
             },
             {
-              "id": "card-1770871933623",
+              "id": "card-e3a50890-a7d3-41d1-aaa8-74ec4b05db45",
               "laneId": "lane-todo",
-              "title": "AI 创建卡片功能优化",
-              "description": "1) 在下方描述需求\n2) 等 AI 回复后点「创建为卡片」\n3) 需要改标题/描述再点「编辑后创建」",
+              "title": "Claude 需求分析",
+              "description": "分析用户提到的 'claude' 具体指什么需求，明确范围和目标",
+              "position": 2,
+              "createdAt": "2026-02-12T06:27:56.642Z",
+              "updatedAt": "2026-02-12T06:27:56.642Z",
+              "tags": []
+            },
+            {
+              "id": "card-57b4a970-5274-444c-b4bb-8928fa7d47dd",
+              "laneId": "lane-todo",
+              "title": "Claude 功能设计",
+              "description": "基于需求分析结果，设计具体的功能模块和实现方案",
+              "position": 3,
+              "createdAt": "2026-02-12T06:27:56.647Z",
+              "updatedAt": "2026-02-12T06:27:56.647Z",
+              "tags": []
+            },
+            {
+              "id": "card-4d51a7e4-585c-4507-92dc-c6bb525515e2",
+              "laneId": "lane-todo",
+              "title": "Claude 开发计划",
+              "description": "制定开发时间表、分配任务和确定验收标准",
               "position": 4,
-              "createdAt": "2026-02-12T04:52:13.623Z",
-              "updatedAt": "2026-02-12T04:52:13.623Z",
+              "createdAt": "2026-02-12T06:27:56.650Z",
+              "updatedAt": "2026-02-12T06:27:56.650Z",
+              "tags": []
+            },
+            {
+              "id": "card-3dcdf6e5-c790-4b3a-8844-f768983a7d49",
+              "laneId": "lane-todo",
+              "title": "删除包含 claude 的卡片",
+              "description": "识别并删除所有标题或描述中包含 'claude' 的卡片",
+              "position": 5,
+              "createdAt": "2026-02-12T06:28:29.133Z",
+              "updatedAt": "2026-02-12T06:28:29.133Z",
+              "tags": []
+            },
+            {
+              "id": "card-d164f01d-5e2b-43c4-900a-5fe6dea5f8db",
+              "laneId": "lane-todo",
+              "title": "清理 claude 相关卡片",
+              "description": "检查所有列表，移除 claude 相关的卡片",
+              "position": 6,
+              "createdAt": "2026-02-12T06:28:29.140Z",
+              "updatedAt": "2026-02-12T06:28:29.140Z",
+              "tags": []
+            },
+            {
+              "id": "card-6e39026f-b194-4fad-90cf-75db14b4a238",
+              "laneId": "lane-todo",
+              "title": "卡片内容过滤 - claude",
+              "description": "执行卡片清理操作，删除 claude 关键词相关的卡片",
+              "position": 7,
+              "createdAt": "2026-02-12T06:28:29.251Z",
+              "updatedAt": "2026-02-12T06:28:29.251Z",
+              "tags": []
+            },
+            {
+              "id": "card-b1c77947-bb01-44bf-b5e4-274d9431c99a",
+              "laneId": "lane-todo",
+              "title": "起号",
+              "position": 8,
+              "createdAt": "2026-02-12T06:33:32.063Z",
+              "updatedAt": "2026-02-12T06:33:32.063Z",
               "tags": []
             }
           ]
@@ -226,7 +285,7 @@
       "id": "board-1770802888495",
       "title": "小红书运营",
       "createdAt": "2026-02-11T09:41:28.495Z",
-      "updatedAt": "2026-02-11T09:41:28.495Z",
+      "updatedAt": "2026-02-12T06:33:00.056Z",
       "tags": [
         {
           "id": "tag-0-1770802888495",
@@ -265,9 +324,20 @@
           "boardId": "board-1770802888495",
           "title": "待办",
           "position": 0,
-          "cards": [],
+          "cards": [
+            {
+              "id": "card-a832f3cf-86b0-4a43-944e-309b7e14bc60",
+              "laneId": "lane-1770802888495-0",
+              "title": "起号",
+              "description": "",
+              "position": 0,
+              "createdAt": "2026-02-12T06:33:00.056Z",
+              "updatedAt": "2026-02-12T06:33:00.056Z",
+              "tags": []
+            }
+          ],
           "createdAt": "2026-02-11T09:41:28.495Z",
-          "updatedAt": "2026-02-11T09:41:28.495Z"
+          "updatedAt": "2026-02-12T06:33:00.056Z"
         },
         {
           "id": "lane-1770802888495-1",
@@ -360,7 +430,7 @@
       "id": "board-1770803073415",
       "title": "Bug 跟踪",
       "createdAt": "2026-02-11T09:44:33.415Z",
-      "updatedAt": "2026-02-11T09:44:33.415Z",
+      "updatedAt": "2026-02-12T06:32:26.388Z",
       "tags": [
         {
           "id": "tag-0-1770803073415",
@@ -399,9 +469,19 @@
           "boardId": "board-1770803073415",
           "title": "待办",
           "position": 0,
-          "cards": [],
+          "cards": [
+            {
+              "id": "card-68b4eb3a-7cbf-4d49-9816-be2d5aeddf7f",
+              "laneId": "lane-1770803073415-0",
+              "title": "测试",
+              "position": 0,
+              "createdAt": "2026-02-12T06:32:26.388Z",
+              "updatedAt": "2026-02-12T06:32:26.388Z",
+              "tags": []
+            }
+          ],
           "createdAt": "2026-02-11T09:44:33.415Z",
-          "updatedAt": "2026-02-11T09:44:33.415Z"
+          "updatedAt": "2026-02-12T06:32:26.388Z"
         },
         {
           "id": "lane-1770803073415-1",
@@ -420,6 +500,82 @@
           "cards": [],
           "createdAt": "2026-02-11T09:44:33.415Z",
           "updatedAt": "2026-02-11T09:44:33.415Z"
+        },
+        {
+          "id": "lane-41588e18-e799-47f3-8a1d-facaf6c71968",
+          "boardId": "board-1770803073415",
+          "title": "归档",
+          "position": 3,
+          "cards": [],
+          "createdAt": "2026-02-12T06:29:45.861Z",
+          "updatedAt": "2026-02-12T06:29:45.861Z"
+        }
+      ]
+    },
+    {
+      "id": "board-86393532-9f9f-41a1-94a0-e0b0786850b4",
+      "title": "公众号运营",
+      "createdAt": "2026-02-12T06:30:23.948Z",
+      "updatedAt": "2026-02-12T06:30:23.948Z",
+      "tags": [
+        {
+          "id": "tag-813d4b3e-c4f9-4f3e-923c-3f99d8d8e1c2",
+          "name": "紧急",
+          "color": "#ef4444"
+        },
+        {
+          "id": "tag-169dce0e-28d3-42d9-96ac-2e0848092687",
+          "name": "功能",
+          "color": "#3b82f6"
+        },
+        {
+          "id": "tag-129f68f6-81d1-4a77-8385-88a8888c2abe",
+          "name": "Bug",
+          "color": "#f59e0b"
+        },
+        {
+          "id": "tag-5262a2d5-1d0a-43aa-870e-ae6ee60db489",
+          "name": "优化",
+          "color": "#10b981"
+        },
+        {
+          "id": "tag-e551ead0-e468-4451-8732-177969198695",
+          "name": "文档",
+          "color": "#8b5cf6"
+        },
+        {
+          "id": "tag-8ea1ba98-1098-4abb-a335-dfcbf91c2bd2",
+          "name": "设计",
+          "color": "#ec4899"
+        }
+      ],
+      "lanes": [
+        {
+          "id": "lane-edb1aebc-23e4-46f0-afcb-b64ba16c7635",
+          "boardId": "board-86393532-9f9f-41a1-94a0-e0b0786850b4",
+          "title": "待办",
+          "position": 0,
+          "cards": [],
+          "createdAt": "2026-02-12T06:30:23.948Z",
+          "updatedAt": "2026-02-12T06:30:23.948Z"
+        },
+        {
+          "id": "lane-a2438dd0-2c50-4b54-adbd-ac10d479d4ad",
+          "boardId": "board-86393532-9f9f-41a1-94a0-e0b0786850b4",
+          "title": "进行中",
+          "position": 1,
+          "cards": [],
+          "createdAt": "2026-02-12T06:30:23.948Z",
+          "updatedAt": "2026-02-12T06:30:23.948Z"
+        },
+        {
+          "id": "lane-5a9a0dcd-985e-469f-bd4f-a0181f58bd4b",
+          "boardId": "board-86393532-9f9f-41a1-94a0-e0b0786850b4",
+          "title": "已完成",
+          "position": 2,
+          "cards": [],
+          "createdAt": "2026-02-12T06:30:23.948Z",
+          "updatedAt": "2026-02-12T06:30:23.948Z"
         }
       ]
     }

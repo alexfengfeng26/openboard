@@ -96,15 +96,23 @@ function boardClientReducer(state: BoardClientState, action: BoardClientAction):
         },
       }
     case 'DELETE_CARD':
-      return {
-        ...state,
-        board: {
-          ...state.board,
-          lanes: state.board.lanes.map((lane) => ({
-            ...lane,
-            cards: lane.cards.filter((c) => c.id !== action.payload.id),
-          })),
-        },
+      {
+        const laneId = action.payload.laneId
+        const cardId = action.payload.id
+        return {
+          ...state,
+          board: {
+            ...state.board,
+            lanes: state.board.lanes.map((lane) => {
+              if (lane.id !== laneId) return lane
+              const index = lane.cards.findIndex((c) => c.id === cardId)
+              if (index === -1) return lane
+              const nextCards = [...lane.cards]
+              nextCards.splice(index, 1)
+              return { ...lane, cards: nextCards }
+            }),
+          },
+        }
       }
     case 'ADD_LANE':
       return {

@@ -3,6 +3,30 @@ import { JSONFile } from 'lowdb/node'
 import { fileURLToPath } from 'url'
 import path from 'path'
 
+function createEntityId(prefix: string): string {
+  const uuid = typeof globalThis.crypto?.randomUUID === 'function' ? globalThis.crypto.randomUUID() : null
+  if (uuid) return `${prefix}-${uuid}`
+  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`
+}
+
+function ensureUniqueCardIds(data: Data): boolean {
+  const seen = new Set<string>()
+  let changed = false
+  for (const board of data.boards) {
+    for (const lane of board.lanes) {
+      for (const card of lane.cards) {
+        if (typeof card.id !== 'string' || card.id.trim().length === 0 || seen.has(card.id)) {
+          card.id = createEntityId('card')
+          card.updatedAt = new Date().toISOString()
+          changed = true
+        }
+        seen.add(card.id)
+      }
+    }
+  }
+  return changed
+}
+
 // 数据模型类型定义
 export interface Tag {
   id: string
@@ -249,6 +273,10 @@ async function createDb() {
     db.data = defaultData
     await db.write()
   }
+ 
+  if (db.data && ensureUniqueCardIds(db.data)) {
+    await db.write()
+  }
 
   return db
 }
@@ -293,17 +321,17 @@ export const dbHelpers = {
   async createBoard(title: string): Promise<Board> {
     const db = await getDb()
     const now = new Date().toISOString()
-    const boardId = `board-${Date.now()}`
+    const boardId = createEntityId('board')
 
     const newBoard: Board = {
       id: boardId,
       title,
       createdAt: now,
       updatedAt: now,
-      tags: TAG_COLORS.map((t, i) => ({ id: `tag-${i}-${Date.now()}`, name: t.name, color: t.color })),
+      tags: TAG_COLORS.map((t) => ({ id: createEntityId('tag'), name: t.name, color: t.color })),
       lanes: [
         {
-          id: `lane-${Date.now()}-0`,
+          id: createEntityId('lane'),
           boardId,
           title: '待办',
           position: 0,
@@ -312,7 +340,7 @@ export const dbHelpers = {
           updatedAt: now,
         },
         {
-          id: `lane-${Date.now()}-1`,
+          id: createEntityId('lane'),
           boardId,
           title: '进行中',
           position: 1,
@@ -321,7 +349,7 @@ export const dbHelpers = {
           updatedAt: now,
         },
         {
-          id: `lane-${Date.now()}-2`,
+          id: createEntityId('lane'),
           boardId,
           title: '已完成',
           position: 2,
@@ -420,7 +448,7 @@ export const dbHelpers = {
     if (!lane) throw new Error('Lane not found')
 
     const newCard: Card = {
-      id: `card-${Date.now()}`,
+      id: createEntityId('card'),
       laneId,
       title,
       description,
@@ -445,7 +473,7 @@ export const dbHelpers = {
     if (!board) throw new Error('Board not found')
 
     const newLane: Lane = {
-      id: `lane-${Date.now()}`,
+      id: createEntityId('lane'),
       boardId: board.id,
       title,
       position: board.lanes.length,
