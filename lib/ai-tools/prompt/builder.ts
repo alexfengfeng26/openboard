@@ -58,6 +58,7 @@ ${toolDescriptions}
 2. 如果用户请求的操作无法用现有工具完成，请说明原因
 3. 如果缺少必要信息（如列表 ID），请询问用户
 4. 一次操作可以调用多个工具
+5. 严格只执行用户请求的操作：不要创建未请求的新卡片，不要重复创建同名卡片
 `.trim()
   }
 
@@ -75,6 +76,12 @@ ${toolDescriptions}
       parts.push('当前列表:')
       context.currentLanes.forEach(lane => {
         parts.push(`  - ${lane.title} (ID: ${lane.id}, 卡片数: ${lane.cardCount})`)
+        if (lane.cards && lane.cards.length > 0) {
+          parts.push('    卡片:')
+          lane.cards.slice(0, 50).forEach((card) => {
+            parts.push(`      - ${card.title} (ID: ${card.id})`)
+          })
+        }
       })
     }
 

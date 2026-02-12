@@ -358,7 +358,7 @@ export class StorageAdapter {
    */
   async updateCard(boardId: string, cardId: string, data: { title?: string; description?: string; tags?: Tag[] }): Promise<void> {
     const board = await this.getBoard(boardId)
-    if (!board) return
+    if (!board) throw new Error('Board not found')
 
     const now = new Date().toISOString()
 
@@ -388,6 +388,8 @@ export class StorageAdapter {
         return
       }
     }
+
+    throw new Error('Card not found')
   }
 
   /**
@@ -395,27 +397,25 @@ export class StorageAdapter {
    */
   async deleteCard(boardId: string, cardId: string): Promise<void> {
     const board = await this.getBoard(boardId)
-    if (!board) return
+    if (!board) throw new Error('Board not found')
 
     const now = new Date().toISOString()
     let cardDeleted = false
 
-    const updatedLanes: Lane[] = []
-
-    for (const lane of board.lanes) {
-      if (lane.id.includes(cardId)) {
-        updatedLanes.push({
-          ...lane,
-          cards: lane.cards.filter((c) => c.id !== cardId),
-          updatedAt: now,
-        })
-        cardDeleted = true
-      } else {
-        updatedLanes.push(lane)
+    const updatedLanes: Lane[] = board.lanes.map((lane) => {
+      const hasCard = lane.cards.some((c) => c.id === cardId)
+      if (!hasCard) return lane
+      cardDeleted = true
+      return {
+        ...lane,
+        cards: lane.cards.filter((c) => c.id !== cardId),
+        updatedAt: now,
       }
-    }
+    })
 
-    if (!cardDeleted) return
+    if (!cardDeleted) {
+      throw new Error('Card not found')
+    }
 
     const updatedBoard: Board = {
       ...board,
@@ -432,7 +432,7 @@ export class StorageAdapter {
    */
   async moveCard(boardId: string, cardId: string, toLaneId: string, newPosition: number): Promise<void> {
     const board = await this.getBoard(boardId)
-    if (!board) return
+    if (!board) throw new Error('Board not found')
 
     const now = new Date().toISOString()
     let cardToMove: Card | null = null
@@ -448,7 +448,7 @@ export class StorageAdapter {
       }
     }
 
-    if (!cardToMove || !sourceLaneId) return
+    if (!cardToMove || !sourceLaneId) throw new Error('Card not found')
 
     // 从源列表移除
     const updatedLanes: Lane[] = []
@@ -476,6 +476,10 @@ export class StorageAdapter {
       } else {
         updatedLanes.push(lane)
       }
+    }
+
+    if (!updatedLanes.some((l) => l.id === toLaneId)) {
+      throw new Error('Lane not found')
     }
 
     const updatedBoard: Board = {

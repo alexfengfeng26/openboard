@@ -76,6 +76,10 @@ export interface PromptContext {
     id: string
     title: string
     cardCount: number
+    cards?: Array<{
+      id: string
+      title: string
+    }>
   }>
 }
 

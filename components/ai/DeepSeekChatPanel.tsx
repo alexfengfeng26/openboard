@@ -63,6 +63,7 @@ export function DeepSeekChatPanel({
 
   // Tool call states
   const [pendingToolCalls, setPendingToolCalls] = useState<ToolCallRequest[] | null>(null)
+  const [pendingToolLogIds, setPendingToolLogIds] = useState<string[] | null>(null)
   const [operationLogs, setOperationLogs] = useState<OperationLogEntry[]>([])
   const [showLogPanel, setShowLogPanel] = useState(false)
   const [isExecuting, setIsExecuting] = useState(false)
@@ -74,6 +75,78 @@ export function DeepSeekChatPanel({
     for (const lane of lanes) map.set(lane.id, lane)
     return map
   }, [lanes])
+
+  const existingCardTitles = useMemo(() => {
+    const set = new Set<string>()
+    for (const lane of lanes) {
+      for (const card of lane.cards || []) {
+        if (typeof card.title === 'string' && card.title.trim()) {
+          set.add(card.title.trim().toLowerCase())
+        }
+      }
+    }
+    return set
+  }, [lanes])
+
+  const cardById = useMemo(() => {
+    const map = new Map<string, { title: string; description?: string; laneId: string }>()
+    for (const lane of lanes) {
+      for (const card of lane.cards || []) {
+        map.set(card.id, { title: card.title, description: card.description || undefined, laneId: card.laneId })
+      }
+    }
+    return map
+  }, [lanes])
+
+  function sanitizeToolCalls(rawCalls: ToolCallRequest[]): ToolCallRequest[] {
+    const calls = Array.isArray(rawCalls) ? rawCalls : []
+    const hasNonCreate = calls.some((c) => c.toolName !== 'create_card')
+    const deleteCardIds = new Set(
+      calls
+        .filter((c) => c.toolName === 'delete_card')
+        .map((c) => (c.params as any)?.cardId)
+        .filter((id) => typeof id === 'string') as string[]
+    )
+    const seenCreateTitles = new Set<string>()
+
+    return calls.filter((c) => {
+      if (c.toolName === 'create_card') {
+        const title = typeof (c.params as any)?.title === 'string' ? ((c.params as any).title as string).trim() : ''
+        const key = title.toLowerCase()
+        if (!title) return false
+        if (seenCreateTitles.has(key)) return false
+        seenCreateTitles.add(key)
+        if (hasNonCreate && existingCardTitles.has(key)) return false
+        return true
+      }
+
+      if (c.toolName === 'update_card') {
+        const cardId = typeof (c.params as any)?.cardId === 'string' ? ((c.params as any).cardId as string) : ''
+        if (!cardId) return true
+        if (deleteCardIds.has(cardId)) return false
+        const existing = cardById.get(cardId)
+        if (!existing) return true
+        const title = typeof (c.params as any)?.title === 'string' ? ((c.params as any).title as string).trim() : undefined
+        const description = typeof (c.params as any)?.description === 'string' ? ((c.params as any).description as string) : undefined
+        const titleChanged = typeof title === 'string' && title.length > 0 && title !== existing.title
+        const descChanged = typeof description === 'string' && description !== (existing.description || '')
+        return titleChanged || descChanged
+      }
+
+      if (c.toolName === 'move_card') {
+        const cardId = typeof (c.params as any)?.cardId === 'string' ? ((c.params as any).cardId as string) : ''
+        if (!cardId) return true
+        if (deleteCardIds.has(cardId)) return false
+        const existing = cardById.get(cardId)
+        if (!existing) return true
+        const toLaneId = typeof (c.params as any)?.toLaneId === 'string' ? ((c.params as any).toLaneId as string) : ''
+        if (!toLaneId) return true
+        return toLaneId !== existing.laneId
+      }
+
+      return true
+    })
+  }
 
   async function callChatApi(payload: unknown): Promise<string> {
     const response = await fetch('/api/ai/chat', {
@@ -98,7 +171,12 @@ export function DeepSeekChatPanel({
   function buildSystemContext() {
     const context: PromptContext = {
       currentBoard: boardId ? { id: boardId, title: '当前看板' } : undefined,
-      currentLanes: lanes.map(l => ({ id: l.id, title: l.title, cardCount: l.cards?.length || 0 }))
+      currentLanes: lanes.map((l) => ({
+        id: l.id,
+        title: l.title,
+        cardCount: l.cards?.length || 0,
+        cards: (l.cards || []).slice(0, 50).map((c) => ({ id: c.id, title: c.title })),
+      })),
     }
 
     return PromptBuilder.buildToolSystemPrompt(context)
@@ -153,7 +231,7 @@ export function DeepSeekChatPanel({
       title: nextDraft.title.trim(),
       description: nextDraft.description?.trim() || undefined,
     }
- 
+
     setOperationLogs((prev) => [
       {
         id: logId,
@@ -165,7 +243,7 @@ export function DeepSeekChatPanel({
       },
       ...prev,
     ])
- 
+
     console.log('[createCardFromDraft] 开始创建卡片:', nextDraft)
     const response = await fetch('/api/cards', {
       method: 'POST',
@@ -235,7 +313,7 @@ export function DeepSeekChatPanel({
     if (failCount > 0) {
       console.error('[createCardsFromDrafts] 失败的卡片:', results.filter((r) => !r.success))
     }
- 
+
     return { results, successCount, failCount }
   }
 
@@ -359,18 +437,29 @@ export function DeepSeekChatPanel({
 
       if (parseResult.type === 'tool_calls' && parseResult.data.length > 0) {
         // 工具调用成功，显示确认对话框
-        const toolCalls = parseResult.data as ToolCallRequest[]
+        const toolCalls = sanitizeToolCalls(parseResult.data as ToolCallRequest[])
+        const removedCount = (parseResult.data as ToolCallRequest[]).length - toolCalls.length
         setPendingToolCalls(toolCalls)
         // 添加到日志（等待确认状态）
-        const newLogs: OperationLogEntry[] = toolCalls.map(call => ({
-          id: createId(),
-          timestamp: new Date().toISOString(),
-          status: 'pending' as const,
-          toolName: call.toolName,
-          params: call.params
-        }))
+        const newLogIds: string[] = []
+        const newLogs: OperationLogEntry[] = toolCalls.map((call) => {
+          const id = createId()
+          newLogIds.push(id)
+          return {
+            id,
+            timestamp: new Date().toISOString(),
+            status: 'pending' as const,
+            toolName: call.toolName,
+            params: call.params
+          }
+        })
+        setPendingToolLogIds(newLogIds)
         setOperationLogs(prev => [...newLogs, ...prev])
-        toastInfo(`已生成 ${toolCalls.length} 个操作，等待确认`)
+        if (removedCount > 0) {
+          toastWarning(`已忽略 ${removedCount} 个可疑/重复操作`)
+        } else {
+          toastInfo(`已生成 ${toolCalls.length} 个操作，等待确认`)
+        }
       } else if (parseResult.type === 'draft' && parseResult.data.length > 0) {
         // 解析为草稿，打开编辑界面
         const drafts = parseResult.data as CardDraft[]
@@ -556,13 +645,16 @@ export function DeepSeekChatPanel({
     setIsExecuting(true)
 
     try {
-      setOperationLogs((prev) =>
-        prev.map((log) =>
-          log.status === 'pending'
-            ? { ...log, status: 'confirmed', confirmedBy: 'user', timestamp: new Date().toISOString() }
-            : log
+      const affectedLogIds = pendingToolLogIds || []
+      if (affectedLogIds.length > 0) {
+        setOperationLogs((prev) =>
+          prev.map((log) =>
+            affectedLogIds.includes(log.id)
+              ? { ...log, status: 'confirmed', confirmedBy: 'user', timestamp: new Date().toISOString() }
+              : log
+          )
         )
-      )
+      }
       const response = await fetch('/api/ai/tools/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -579,21 +671,39 @@ export function DeepSeekChatPanel({
       const timestamp = new Date().toISOString()
 
       // 更新日志状态
-      setOperationLogs(prev => {
+      setOperationLogs((prev) => {
         const updated = [...prev]
-        for (let i = 0; i < results.length; i++) {
-          const resultIndex = updated.findIndex(l => l.status === 'pending' && l.toolName === results[i].toolName)
-          if (resultIndex !== -1) {
-            updated[resultIndex] = {
-              ...updated[resultIndex],
+        const ids = pendingToolLogIds || []
+        if (ids.length === results.length && ids.length > 0) {
+          const map = new Map(updated.map((l) => [l.id, l]))
+          for (let i = 0; i < results.length; i++) {
+            const id = ids[i]
+            const existing = map.get(id)
+            if (!existing) continue
+            map.set(id, {
+              ...existing,
               status: results[i].success ? 'executed' : 'failed',
               result: results[i].result,
               error: results[i].error,
-              timestamp
-            }
+              timestamp,
+            })
           }
+          return updated.map((l) => map.get(l.id) || l)
         }
-        return updated
+        let resultCursor = 0
+        return updated.map((log) => {
+          if (resultCursor >= results.length) return log
+          if (log.status !== 'confirmed' && log.status !== 'pending') return log
+          const r = results[resultCursor]
+          resultCursor++
+          return {
+            ...log,
+            status: r.success ? 'executed' : 'failed',
+            result: r.result,
+            error: r.error,
+            timestamp,
+          }
+        })
       })
 
       const successCount = results.filter((r: any) => r.success).length
@@ -607,6 +717,7 @@ export function DeepSeekChatPanel({
       }
 
       setPendingToolCalls(null)
+      setPendingToolLogIds(null)
 
       if (onBoardRefresh) {
         await onBoardRefresh()
@@ -616,27 +727,39 @@ export function DeepSeekChatPanel({
       toastError(`执行失败：${message}`)
 
       // 更新日志为失败状态
-      setOperationLogs(prev => prev.map(log =>
-        log.status === 'pending'
-          ? { ...log, status: 'failed', error: message, timestamp: new Date().toISOString() }
-          : log
-      ))
+      const affectedLogIds = pendingToolLogIds || []
+      if (affectedLogIds.length > 0) {
+        setOperationLogs((prev) =>
+          prev.map((log) =>
+            affectedLogIds.includes(log.id)
+              ? { ...log, status: 'failed', error: message, timestamp: new Date().toISOString() }
+              : log
+          )
+        )
+      }
     } finally {
       setIsExecuting(false)
     }
   }
 
+
   function handleCancelToolCalls() {
     if (!pendingToolCalls) return
 
     // 更新日志为取消状态
-    setOperationLogs(prev => prev.map(log =>
-      log.status === 'pending'
-        ? { ...log, status: 'cancelled', timestamp: new Date().toISOString() }
-        : log
-    ))
+    const affectedLogIds = pendingToolLogIds || []
+    if (affectedLogIds.length > 0) {
+      setOperationLogs((prev) =>
+        prev.map((log) =>
+          affectedLogIds.includes(log.id)
+            ? { ...log, status: 'cancelled', timestamp: new Date().toISOString() }
+            : log
+        )
+      )
+    }
 
     setPendingToolCalls(null)
+    setPendingToolLogIds(null)
     toastInfo('已取消操作')
   }
 
