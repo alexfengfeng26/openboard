@@ -2,7 +2,7 @@
 id: default-board
 title: 我的看板
 createdAt: '2026-02-11T07:06:35.423Z'
-updatedAt: '2026-02-12T10:17:26.534Z'
+updatedAt: '2026-02-12T10:25:32.150Z'
 tags:
   - id: tag-0
     name: 紧急
@@ -108,10 +108,10 @@ lanes:
           3. **获取方式**：可通过官方应用商店下载 App 或直接在网页端使用。
           4. **服务声明**：提醒用户其知识截止于 2024年7月，并建议核对重要信息。
   - id: lane-done
-    title: 已完成2
+    title: 已完成
     position: 2
     createdAt: '2026-02-11T07:06:35.423Z'
-    updatedAt: '2026-02-11T10:43:15.097Z'
+    updatedAt: '2026-02-12T10:25:32.150Z'
     cards:
       - id: card-1770799202495
         laneId: lane-done
@@ -237,7 +237,7 @@ lanes:
 4. **服务声明**：提醒用户其知识截止于 2024年7月，并建议核对重要信息。
 
 
-## 已完成2
+## 已完成
 
 ### 撰写 Google Gemini 介绍文档
 

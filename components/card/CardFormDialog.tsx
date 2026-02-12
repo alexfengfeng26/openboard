@@ -164,8 +164,8 @@ export function CardFormDialog({
   const submitButtonText = isSubmitting ? (isEditMode ? '保存中...' : '创建中...') : (isEditMode ? '保存' : '创建')
   const inputId = isEditMode ? 'edit-card-title' : 'card-title'
   const descriptionId = isEditMode ? 'edit-card-description' : 'card-description'
-  const dialogSizeClass = isEditMode ? 'sm:max-w-3xl min-h-[600px]' : 'sm:max-w-sm'
-  const descriptionRows = isEditMode ? 18 : 6
+  const dialogSizeClass = isEditMode ? undefined : 'sm:max-w-sm'
+  const descriptionRows = isEditMode ? 10 : 6
 
   if (isEditMode && !card) return null
 

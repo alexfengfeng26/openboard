@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { Card, Lane } from '@/lib/db'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -89,6 +90,7 @@ export function DeepSeekChatPanel({
   const [isSending, setIsSending] = useState(false)
   const [slashMenuDismissed, setSlashMenuDismissed] = useState(false)
   const [slashActiveIndex, setSlashActiveIndex] = useState(0)
+  const [slashMenuAnchor, setSlashMenuAnchor] = useState<{ left: number; width: number; bottom: number } | null>(null)
   const [draftSourceId, setDraftSourceId] = useState<string | null>(null)
   const [draft, setDraft] = useState<CardDraft | null>(null)
   const [draftQueue, setDraftQueue] = useState<CardDraft[] | null>(null)
@@ -188,11 +190,11 @@ export function DeepSeekChatPanel({
       const prefixes =
         parsed && typeof parsed === 'object'
           ? {
-              all: typeof parsed.prefixes?.all === 'string' ? parsed.prefixes.all : undefined,
-              card: typeof parsed.prefixes?.card === 'string' ? parsed.prefixes.card : undefined,
-              lane: typeof parsed.prefixes?.lane === 'string' ? parsed.prefixes.lane : undefined,
-              board: typeof parsed.prefixes?.board === 'string' ? parsed.prefixes.board : undefined,
-            }
+            all: typeof parsed.prefixes?.all === 'string' ? parsed.prefixes.all : undefined,
+            card: typeof parsed.prefixes?.card === 'string' ? parsed.prefixes.card : undefined,
+            lane: typeof parsed.prefixes?.lane === 'string' ? parsed.prefixes.lane : undefined,
+            board: typeof parsed.prefixes?.board === 'string' ? parsed.prefixes.board : undefined,
+          }
           : undefined
       const initial = ensureAiCommandsInLocalStorage({ prefixes })
       setAiCommands(initial)
@@ -220,12 +222,12 @@ export function DeepSeekChatPanel({
       return
     }
   }
- 
+
   function persistAiCommands(next: AiCommand[]) {
     setAiCommands(next)
     saveAiCommandsToLocalStorage(next)
   }
- 
+
   function downloadTextFile(filename: string, text: string, mimeType: string) {
     const blob = new Blob([text], { type: mimeType })
     const url = URL.createObjectURL(blob)
@@ -237,21 +239,21 @@ export function DeepSeekChatPanel({
     a.remove()
     URL.revokeObjectURL(url)
   }
- 
+
   function updateCommandDraft(index: number, patch: Partial<AiCommand>) {
     setCommandsDraft((prev) => {
       if (!prev) return prev
       return prev.map((c, i) => (i === index ? { ...c, ...patch } : c))
     })
   }
- 
+
   function removeCommandDraft(index: number) {
     setCommandsDraft((prev) => {
       if (!prev) return prev
       return prev.filter((_, i) => i !== index)
     })
   }
- 
+
   function addCommandDraft() {
     setCommandsDraft((prev) => {
       const next = Array.isArray(prev) ? [...prev] : []
@@ -280,7 +282,7 @@ export function DeepSeekChatPanel({
     if (toolTriggerConfig.showAssistantActionsInChat) return true
     return actionableAssistantMessageIdSet.has(messageId)
   }
- 
+
   const quickbarCommands = useMemo(() => {
     return aiCommands.filter(
       (c) =>
@@ -301,7 +303,7 @@ export function DeepSeekChatPanel({
     const visible = aiCommands.filter((c) => c.enabled && (c.placement === 'slash' || c.placement === 'both'))
     const tool = visible.filter((c) => c.kind === 'tool_prefix')
     const snippet = visible.filter((c) => c.kind === 'snippet')
- 
+
     return [...tool, ...snippet].map((c) => ({
       key: c.id,
       label: c.label || c.trigger,
@@ -323,6 +325,32 @@ export function DeepSeekChatPanel({
     setSlashActiveIndex(0)
   }, [slashMenuOpen, slashQuery])
 
+  useEffect(() => {
+    if (!slashMenuOpen) {
+      setSlashMenuAnchor(null)
+      return
+    }
+
+    const update = () => {
+      const el = inputRef.current
+      if (!el) return
+      const rect = el.getBoundingClientRect()
+      setSlashMenuAnchor({
+        left: rect.left,
+        width: rect.width,
+        bottom: window.innerHeight - rect.top + 8,
+      })
+    }
+
+    update()
+    window.addEventListener('resize', update)
+    window.addEventListener('scroll', update, true)
+    return () => {
+      window.removeEventListener('resize', update)
+      window.removeEventListener('scroll', update, true)
+    }
+  }, [slashMenuOpen, filteredSlashMenuItems.length])
+
   function handleInputChange(next: string) {
     setInput(next)
     setSlashMenuDismissed(false)
@@ -333,7 +361,38 @@ export function DeepSeekChatPanel({
     setSlashMenuDismissed(true)
     requestAnimationFrame(() => inputRef.current?.focus())
   }
- 
+
+  function handleSlashMenuKeyDown(e: React.KeyboardEvent) {
+    if (!slashMenuOpen) return false
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setSlashActiveIndex((prev) => Math.min(prev + 1, filteredSlashMenuItems.length - 1))
+      return true
+    }
+
+    if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setSlashActiveIndex((prev) => Math.max(prev - 1, 0))
+      return true
+    }
+
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      setSlashMenuDismissed(true)
+      return true
+    }
+
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      const item = filteredSlashMenuItems[slashActiveIndex]
+      if (item) applySlashMenuItem(item)
+      return true
+    }
+
+    return false
+  }
+
   function formatQuickbarLabel(label: string) {
     return label.replace(/^\/模板[:：]\s*/, '')
   }
@@ -1057,11 +1116,6 @@ export function DeepSeekChatPanel({
               {model === 'deepseek-reasoner' ? 'Reasoner' : 'Chat'}
             </Badge>
           </div>
-          {linkedCard ? (
-            <div className="mt-1 truncate text-xs text-muted-foreground">关联：{linkedCard.title}</div>
-          ) : (
-            <div className="mt-1 text-xs text-muted-foreground">【AI一键创建卡片】</div>
-          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -1481,18 +1535,27 @@ export function DeepSeekChatPanel({
             ))}
           </div>
         )}
-        <div className="relative flex items-end gap-2">
-          {slashMenuOpen && (
-            <div className="absolute bottom-full left-0 right-0 z-20 mb-2 overflow-hidden rounded-md border bg-background shadow-lg">
+        {slashMenuOpen &&
+          slashMenuAnchor &&
+          createPortal(
+            <div
+              style={{ position: 'fixed', left: slashMenuAnchor.left, width: slashMenuAnchor.width, bottom: slashMenuAnchor.bottom }}
+              className="z-[9999] overflow-hidden rounded-md border bg-background shadow-lg"
+              onKeyDown={(e) => {
+                handleSlashMenuKeyDown(e)
+              }}
+            >
               <div className="max-h-56 overflow-y-auto p-1">
                 {filteredSlashMenuItems.map((item, idx) => (
                   <button
                     key={item.key}
                     type="button"
+                    tabIndex={-1}
                     className={[
                       'w-full rounded-md px-2 py-1.5 text-left text-sm',
                       idx === slashActiveIndex ? 'bg-accent text-accent-foreground' : 'hover:bg-muted',
                     ].join(' ')}
+                    onMouseDown={(e) => e.preventDefault()}
                     onMouseEnter={() => setSlashActiveIndex(idx)}
                     onClick={() => applySlashMenuItem(item)}
                   >
@@ -1500,46 +1563,25 @@ export function DeepSeekChatPanel({
                       <div className="min-w-0 truncate font-medium">{item.label}</div>
                       <div className="text-[11px] text-muted-foreground">Enter</div>
                     </div>
-                    {item.description && <div className="mt-0.5 truncate text-[11px] text-muted-foreground">{item.description}</div>}
+                    {item.description && (
+                      <div className="mt-0.5 truncate text-[11px] text-muted-foreground">{item.description}</div>
+                    )}
                   </button>
                 ))}
               </div>
-            </div>
+            </div>,
+            document.body
           )}
+        <div className="relative flex items-end gap-2">
           <Textarea
             ref={inputRef}
             value={input}
             onChange={(e) => handleInputChange(e.target.value)}
             placeholder="输入你的问题…（Enter 发送，Shift+Enter 换行）"
             className="min-h-[44px] resize-none text-sm"
-            onKeyDown={(e) => {
-              if (slashMenuOpen) {
-                if (e.key === 'ArrowDown') {
-                  e.preventDefault()
-                  setSlashActiveIndex((prev) => Math.min(prev + 1, filteredSlashMenuItems.length - 1))
-                  return
-                }
-
-                if (e.key === 'ArrowUp') {
-                  e.preventDefault()
-                  setSlashActiveIndex((prev) => Math.max(prev - 1, 0))
-                  return
-                }
-
-                if (e.key === 'Escape') {
-                  e.preventDefault()
-                  setSlashMenuDismissed(true)
-                  return
-                }
-
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault()
-                  const item = filteredSlashMenuItems[slashActiveIndex]
-                  if (item) applySlashMenuItem(item)
-                  return
-                }
-              }
-
+            onKeyDownCapture={(e) => {
+              const handled = handleSlashMenuKeyDown(e)
+              if (handled) return
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault()
                 void handleSend()
