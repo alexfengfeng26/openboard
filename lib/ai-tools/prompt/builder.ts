@@ -8,8 +8,14 @@ export class PromptBuilder {
   /**
    * 构建工具调用系统提示词
    */
-  static buildToolSystemPrompt(context: PromptContext): string {
-    const tools = toolRegistry.getAll()
+  static buildToolSystemPrompt(
+    context: PromptContext,
+    options?: {
+      allowedToolNames?: string[]
+    }
+  ): string {
+    const allowedToolNames = options?.allowedToolNames
+    const tools = toolRegistry.getAll().filter((t) => !allowedToolNames || allowedToolNames.includes(t.name))
     const toolDescriptions = tools.map(t => t.getPromptDescription()).join('\n\n')
 
     const contextInfo = this.buildContextInfo(context)
@@ -59,6 +65,28 @@ ${toolDescriptions}
 3. 如果缺少必要信息（如列表 ID），请询问用户
 4. 一次操作可以调用多个工具
 5. 严格只执行用户请求的操作：不要创建未请求的新卡片，不要重复创建同名卡片
+`.trim()
+  }
+
+  static buildChatSystemPrompt(
+    context: PromptContext,
+    options?: {
+      toolTriggerHelp?: string
+    }
+  ): string {
+    const contextInfo = this.buildContextInfo(context)
+    const toolTriggerHelp = options?.toolTriggerHelp ? `\n\n## 操作触发\n${options.toolTriggerHelp}` : ''
+    return `
+你是一个看板系统的 AI 助手，优先用自然语言和用户交流，帮助用户梳理需求、总结、给出建议与方案。
+
+## 当前上下文
+${contextInfo}
+
+## 重要规则
+1. 默认不要输出工具调用 JSON（tool_calls），也不要假装执行了数据修改
+2. 只有当用户明确要你“执行看板操作”时，才使用工具调用格式
+3. 不确定时先用自然语言追问关键细节
+${toolTriggerHelp}
 `.trim()
   }
 

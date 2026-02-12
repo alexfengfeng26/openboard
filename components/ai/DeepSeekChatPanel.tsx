@@ -1,9 +1,10 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Card, Lane } from '@/lib/db'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { toastError, toastInfo, toastSuccess, toastWarning } from '@/components/ui/toast'
 import { ToolCallConfirmation } from './ToolCallConfirmation'
@@ -12,6 +13,8 @@ import { PromptBuilder, FallbackToolParser } from '@/lib/ai-tools'
 import { parseCardDraftItemsFromAiContent } from '@/lib/ai/card-draft-parser'
 import type { ToolCallRequest, OperationLogEntry, PromptContext, ChatMessage } from '@/types/ai-tools.types'
 import type { CardDraft } from '@/lib/ai-tools/parser/card-draft-types'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Settings } from 'lucide-react'
 
 type DraftParseResult =
   | { ok: true; drafts: CardDraft[]; raw: string; repairedRaw?: string }
@@ -27,6 +30,29 @@ const guideMessage =
   '2) 等 AI 回复后点「创建为卡片」\n' +
   '3) 需要改标题/描述再点「编辑后创建」\n\n' +
   '示例：帮我生成一个待办卡片：主题“优化拖拽体验”，给出标题和 3 条可执行描述。'
+
+type ToolTriggerScope = 'none' | 'all' | 'card' | 'lane' | 'board'
+
+type ToolTriggerConfig = {
+  gateByPrefix: boolean
+  showQuickTemplatesInChat: boolean
+  showAssistantActionsInChat: boolean
+  prefixes: {
+    all: string
+    card: string
+    lane: string
+    board: string
+  }
+}
+
+type SlashMenuItem = {
+  key: string
+  label: string
+  description?: string
+  insertText: string
+}
+
+const TOOL_TRIGGER_STORAGE_KEY = 'kanban.aiToolTriggerConfig.v1'
 
 export function DeepSeekChatPanel({
   lanes,
@@ -51,6 +77,8 @@ export function DeepSeekChatPanel({
   ])
   const [input, setInput] = useState('')
   const [isSending, setIsSending] = useState(false)
+  const [slashMenuDismissed, setSlashMenuDismissed] = useState(false)
+  const [slashActiveIndex, setSlashActiveIndex] = useState(0)
   const [draftSourceId, setDraftSourceId] = useState<string | null>(null)
   const [draft, setDraft] = useState<CardDraft | null>(null)
   const [draftQueue, setDraftQueue] = useState<CardDraft[] | null>(null)
@@ -69,6 +97,20 @@ export function DeepSeekChatPanel({
   const [isExecuting, setIsExecuting] = useState(false)
 
   const defaultLaneId = linkedCard?.laneId || lanes[0]?.id || ''
+  const [actionableAssistantMessageIds, setActionableAssistantMessageIds] = useState<string[]>([])
+  const [toolTriggerConfig, setToolTriggerConfig] = useState<ToolTriggerConfig>({
+    gateByPrefix: true,
+    showQuickTemplatesInChat: false,
+    showAssistantActionsInChat: false,
+    prefixes: {
+      all: '/kb',
+      card: '/card',
+      lane: '/lane',
+      board: '/board',
+    },
+  })
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [settingsDraft, setSettingsDraft] = useState<ToolTriggerConfig | null>(null)
 
   const laneById = useMemo(() => {
     const map = new Map<string, Lane>()
@@ -97,6 +139,185 @@ export function DeepSeekChatPanel({
     }
     return map
   }, [lanes])
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(TOOL_TRIGGER_STORAGE_KEY)
+      if (!raw) return
+      const parsed = JSON.parse(raw) as Partial<ToolTriggerConfig>
+      if (!parsed || typeof parsed !== 'object') return
+      setToolTriggerConfig((prev) => ({
+        gateByPrefix: typeof parsed.gateByPrefix === 'boolean' ? parsed.gateByPrefix : prev.gateByPrefix,
+        showQuickTemplatesInChat:
+          typeof parsed.showQuickTemplatesInChat === 'boolean'
+            ? parsed.showQuickTemplatesInChat
+            : prev.showQuickTemplatesInChat,
+        showAssistantActionsInChat:
+          typeof parsed.showAssistantActionsInChat === 'boolean'
+            ? parsed.showAssistantActionsInChat
+            : prev.showAssistantActionsInChat,
+        prefixes: {
+          all: typeof parsed.prefixes?.all === 'string' ? parsed.prefixes.all : prev.prefixes.all,
+          card: typeof parsed.prefixes?.card === 'string' ? parsed.prefixes.card : prev.prefixes.card,
+          lane: typeof parsed.prefixes?.lane === 'string' ? parsed.prefixes.lane : prev.prefixes.lane,
+          board: typeof parsed.prefixes?.board === 'string' ? parsed.prefixes.board : prev.prefixes.board,
+        },
+      }))
+    } catch {
+      return
+    }
+  }, [])
+
+  useEffect(() => {
+    if (settingsOpen) {
+      setSettingsDraft(toolTriggerConfig)
+    } else {
+      setSettingsDraft(null)
+    }
+  }, [settingsOpen, toolTriggerConfig])
+
+  function persistToolTriggerConfig(next: ToolTriggerConfig) {
+    setToolTriggerConfig(next)
+    try {
+      localStorage.setItem(TOOL_TRIGGER_STORAGE_KEY, JSON.stringify(next))
+    } catch {
+      return
+    }
+  }
+
+  const actionableAssistantMessageIdSet = useMemo(
+    () => new Set(actionableAssistantMessageIds),
+    [actionableAssistantMessageIds]
+  )
+
+  function shouldShowAssistantActions(messageId: string): boolean {
+    if (!toolTriggerConfig.gateByPrefix) return true
+    if (toolTriggerConfig.showAssistantActionsInChat) return true
+    return actionableAssistantMessageIdSet.has(messageId)
+  }
+
+  const quickTemplates = useMemo(
+    () => [
+      {
+        label: '生成待办任务',
+        text: '帮我生成一个待办卡片：主题“优化拖拽体验”，给出标题和 3 条可执行描述。',
+      },
+      {
+        label: '拆分为子任务',
+        text: '把下面需求拆成 3-5 张卡片（每张含标题 + 简短描述）：\n',
+      },
+      {
+        label: '总结为卡片',
+        text: '把下面内容总结成一张卡片（标题 + 简短描述）：\n',
+      },
+    ],
+    []
+  )
+
+  const slashQuery = useMemo(() => {
+    const text = input.trimStart()
+    if (!text.startsWith('/')) return null
+    if (/\s/.test(text.slice(1))) return null
+    return text
+  }, [input])
+
+  const slashMenuItems = useMemo((): SlashMenuItem[] => {
+    const prefixes = [
+      {
+        key: 'all',
+        label: toolTriggerConfig.prefixes.all.trim(),
+        description: '执行卡片/列表/看板操作',
+      },
+      {
+        key: 'card',
+        label: toolTriggerConfig.prefixes.card.trim(),
+        description: '仅卡片 CRUD',
+      },
+      {
+        key: 'lane',
+        label: toolTriggerConfig.prefixes.lane.trim(),
+        description: '仅列表 CRUD',
+      },
+      {
+        key: 'board',
+        label: toolTriggerConfig.prefixes.board.trim(),
+        description: '仅看板 CRUD',
+      },
+    ].filter((p) => p.label.length > 0)
+
+    const base: SlashMenuItem[] = prefixes.map((p) => ({
+      key: `prefix:${p.key}`,
+      label: p.label,
+      description: p.description,
+      insertText: `${p.label} `,
+    }))
+
+    const templates: SlashMenuItem[] = quickTemplates.map((t) => ({
+      key: `tpl:${t.label}`,
+      label: `/模板：${t.label}`,
+      description: '插入一段常用提问模板',
+      insertText: t.text,
+    }))
+
+    return [...base, ...templates]
+  }, [quickTemplates, toolTriggerConfig.prefixes])
+
+  const filteredSlashMenuItems = useMemo(() => {
+    if (!slashQuery) return []
+    const q = slashQuery.toLowerCase()
+    return slashMenuItems.filter((item) => item.label.toLowerCase().startsWith(q) || item.label.toLowerCase().includes(q))
+  }, [slashMenuItems, slashQuery])
+
+  const slashMenuOpen = !!slashQuery && !slashMenuDismissed && filteredSlashMenuItems.length > 0
+
+  useEffect(() => {
+    if (!slashMenuOpen) return
+    setSlashActiveIndex(0)
+  }, [slashMenuOpen, slashQuery])
+
+  function handleInputChange(next: string) {
+    setInput(next)
+    setSlashMenuDismissed(false)
+  }
+
+  function applySlashMenuItem(item: SlashMenuItem) {
+    setInput(item.insertText)
+    setSlashMenuDismissed(true)
+    requestAnimationFrame(() => inputRef.current?.focus())
+  }
+
+  function getAllowedToolNames(scope: ToolTriggerScope): string[] | undefined {
+    if (scope === 'card') return ['create_card', 'update_card', 'move_card', 'delete_card']
+    if (scope === 'lane') return ['create_lane', 'update_lane', 'delete_lane']
+    if (scope === 'board') return ['create_board', 'update_board', 'delete_board']
+    if (scope === 'all') return undefined
+    return []
+  }
+
+  function matchToolTrigger(raw: string): { scope: ToolTriggerScope; stripped: string } {
+    if (!toolTriggerConfig.gateByPrefix) return { scope: 'all', stripped: raw }
+
+    const text = raw.trimStart()
+    const candidates: Array<{ scope: Exclude<ToolTriggerScope, 'none'>; prefix: string }> = [
+      { scope: 'all', prefix: toolTriggerConfig.prefixes.all },
+      { scope: 'card', prefix: toolTriggerConfig.prefixes.card },
+      { scope: 'lane', prefix: toolTriggerConfig.prefixes.lane },
+      { scope: 'board', prefix: toolTriggerConfig.prefixes.board },
+    ]
+      .map((c) => ({ ...c, prefix: c.prefix.trim() }))
+      .filter((c) => c.prefix.length > 0)
+      .sort((a, b) => b.prefix.length - a.prefix.length)
+
+    for (const c of candidates) {
+      if (!text.startsWith(c.prefix)) continue
+      const nextChar = text.slice(c.prefix.length, c.prefix.length + 1)
+      if (nextChar && !/[\s:：]/.test(nextChar)) continue
+      const stripped = text.slice(c.prefix.length).replace(/^[:：]?\s*/, '')
+      return { scope: c.scope, stripped: stripped.trim() }
+    }
+
+    return { scope: 'none', stripped: raw }
+  }
 
   function sanitizeToolCalls(rawCalls: ToolCallRequest[]): ToolCallRequest[] {
     const calls = Array.isArray(rawCalls) ? rawCalls : []
@@ -179,26 +400,8 @@ export function DeepSeekChatPanel({
       })),
     }
 
-    return PromptBuilder.buildToolSystemPrompt(context)
+    return context
   }
-
-  const quickTemplates = useMemo(
-    () => [
-      {
-        label: '生成待办任务',
-        text: '帮我生成一个待办卡片：主题“优化拖拽体验”，给出标题和 3 条可执行描述。',
-      },
-      {
-        label: '拆分为子任务',
-        text: '把下面需求拆成 3-5 张卡片（每张含标题 + 简短描述）：\n',
-      },
-      {
-        label: '总结为卡片',
-        text: '把下面内容总结成一张卡片（标题 + 简短描述）：\n',
-      },
-    ],
-    []
-  )
 
   function applyTemplate(text: string) {
     setInput(text)
@@ -354,7 +557,7 @@ export function DeepSeekChatPanel({
 
     const content = await callChatApi({
       model,
-      system: buildSystemContext(),
+      system: PromptBuilder.buildChatSystemPrompt(buildSystemContext()),
       messages: [{ role: 'user', content: prompt }],
     })
 
@@ -381,7 +584,7 @@ export function DeepSeekChatPanel({
 
         const repaired = await callChatApi({
           model,
-          system: buildSystemContext(),
+          system: PromptBuilder.buildChatSystemPrompt(buildSystemContext()),
           messages: [{ role: 'user', content: repairPrompt }],
         })
 
@@ -408,8 +611,10 @@ export function DeepSeekChatPanel({
   }
 
   async function handleSend() {
-    const content = input.trim()
-    if (!content || isSending) return
+    const raw = input.trim()
+    if (!raw || isSending) return
+    const trigger = matchToolTrigger(raw)
+    const content = trigger.scope === 'none' ? raw : trigger.stripped || raw
 
     setDraft(null)
     setDraftQueue(null)
@@ -425,19 +630,41 @@ export function DeepSeekChatPanel({
     setIsSending(true)
 
     try {
+      const context = buildSystemContext()
+      const toolTriggerHelp = toolTriggerConfig.gateByPrefix
+        ? [
+          '如需执行看板操作，请在消息开头加触发前缀：',
+          toolTriggerConfig.prefixes.all.trim() ? `- 全部：${toolTriggerConfig.prefixes.all.trim()}` : null,
+          toolTriggerConfig.prefixes.card.trim() ? `- 仅卡片：${toolTriggerConfig.prefixes.card.trim()}` : null,
+          toolTriggerConfig.prefixes.lane.trim() ? `- 仅列表：${toolTriggerConfig.prefixes.lane.trim()}` : null,
+          toolTriggerConfig.prefixes.board.trim() ? `- 仅看板：${toolTriggerConfig.prefixes.board.trim()}` : null,
+        ]
+          .filter(Boolean)
+          .join('\n')
+        : undefined
+
       const aiContent = await callChatApi({
         model,
-        system: buildSystemContext(),
+        system:
+          trigger.scope === 'none'
+            ? PromptBuilder.buildChatSystemPrompt(context, { toolTriggerHelp })
+            : PromptBuilder.buildToolSystemPrompt(context, { allowedToolNames: getAllowedToolNames(trigger.scope) }),
         messages: nextMessages.map((m) => ({ role: m.role, content: m.content })),
       })
 
-      // 检测工具调用 - 统一使用降级解析器
+      if (trigger.scope === 'none') {
+        const id = createId()
+        setMessages((prev) => [...prev, { id, role: 'assistant', content: aiContent }])
+        return
+      }
+
       FallbackToolParser.setDefaultLaneId(defaultLaneId)
       const parseResult = FallbackToolParser.parse(aiContent)
 
       if (parseResult.type === 'tool_calls' && parseResult.data.length > 0) {
-        // 工具调用成功，显示确认对话框
-        const toolCalls = sanitizeToolCalls(parseResult.data as ToolCallRequest[])
+        const allowed = getAllowedToolNames(trigger.scope)
+        const sanitized = sanitizeToolCalls(parseResult.data as ToolCallRequest[])
+        const toolCalls = allowed && allowed.length > 0 ? sanitized.filter((c) => allowed.includes(c.toolName)) : sanitized
         const removedCount = (parseResult.data as ToolCallRequest[]).length - toolCalls.length
         setPendingToolCalls(toolCalls)
         // 添加到日志（等待确认状态）
@@ -487,7 +714,9 @@ export function DeepSeekChatPanel({
           toastInfo(`已生成 ${drafts.length} 张卡片草稿`)
         }
       } else {
-        setMessages((prev) => [...prev, { id: createId(), role: 'assistant', content: aiContent }])
+        const id = createId()
+        setMessages((prev) => [...prev, { id, role: 'assistant', content: aiContent }])
+        setActionableAssistantMessageIds((prev) => (prev.includes(id) ? prev : [...prev, id]))
       }
     } catch (e) {
       const message = e instanceof Error ? e.message : 'AI 请求失败'
@@ -793,6 +1022,128 @@ export function DeepSeekChatPanel({
             <option value="deepseek-chat">deepseek-chat</option>
             <option value="deepseek-reasoner">deepseek-reasoner</option>
           </select>
+          <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Settings className="h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>AI 操作触发设置</DialogTitle>
+                <DialogDescription>用前缀触发卡片/列表/看板的 CRUD，避免影响普通聊天。</DialogDescription>
+              </DialogHeader>
+
+              {settingsDraft && (
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4"
+                      checked={settingsDraft.gateByPrefix}
+                      onChange={(e) =>
+                        setSettingsDraft((prev) => (prev ? { ...prev, gateByPrefix: e.target.checked } : prev))
+                      }
+                    />
+                    仅当消息以触发前缀开头时才启用工具
+                  </label>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4"
+                      checked={settingsDraft.showQuickTemplatesInChat}
+                      onChange={(e) =>
+                        setSettingsDraft((prev) => (prev ? { ...prev, showQuickTemplatesInChat: e.target.checked } : prev))
+                      }
+                    />
+                    普通聊天中显示快捷模板按钮
+                  </label>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4"
+                      checked={settingsDraft.showAssistantActionsInChat}
+                      onChange={(e) =>
+                        setSettingsDraft((prev) =>
+                          prev ? { ...prev, showAssistantActionsInChat: e.target.checked } : prev
+                        )
+                      }
+                    />
+                    普通聊天中显示“创建为卡片/编辑后创建”
+                  </label>
+
+                  <div className="space-y-2">
+                    <div className="text-xs font-medium">触发前缀</div>
+                    <div className="grid gap-2">
+                      <div className="grid gap-1">
+                        <div className="text-xs text-muted-foreground">全部工具（卡片/列表/看板）</div>
+                        <Input
+                          value={settingsDraft.prefixes.all}
+                          onChange={(e) =>
+                            setSettingsDraft((prev) =>
+                              prev ? { ...prev, prefixes: { ...prev.prefixes, all: e.target.value } } : prev
+                            )
+                          }
+                          placeholder="/kb"
+                        />
+                      </div>
+                      <div className="grid gap-1">
+                        <div className="text-xs text-muted-foreground">仅卡片 CRUD</div>
+                        <Input
+                          value={settingsDraft.prefixes.card}
+                          onChange={(e) =>
+                            setSettingsDraft((prev) =>
+                              prev ? { ...prev, prefixes: { ...prev.prefixes, card: e.target.value } } : prev
+                            )
+                          }
+                          placeholder="/card"
+                        />
+                      </div>
+                      <div className="grid gap-1">
+                        <div className="text-xs text-muted-foreground">仅列表 CRUD</div>
+                        <Input
+                          value={settingsDraft.prefixes.lane}
+                          onChange={(e) =>
+                            setSettingsDraft((prev) =>
+                              prev ? { ...prev, prefixes: { ...prev.prefixes, lane: e.target.value } } : prev
+                            )
+                          }
+                          placeholder="/lane"
+                        />
+                      </div>
+                      <div className="grid gap-1">
+                        <div className="text-xs text-muted-foreground">仅看板 CRUD</div>
+                        <Input
+                          value={settingsDraft.prefixes.board}
+                          onChange={(e) =>
+                            setSettingsDraft((prev) =>
+                              prev ? { ...prev, prefixes: { ...prev.prefixes, board: e.target.value } } : prev
+                            )
+                          }
+                          placeholder="/board"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-1">
+                    <Button variant="outline" onClick={() => setSettingsOpen(false)}>
+                      取消
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        persistToolTriggerConfig(settingsDraft)
+                        setSettingsOpen(false)
+                        toastSuccess('已保存设置')
+                      }}
+                    >
+                      保存
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
           <Button
             variant="outline"
             size="sm"
@@ -811,6 +1162,7 @@ export function DeepSeekChatPanel({
                   content: guideMessage,
                 },
               ])
+              setActionableAssistantMessageIds([])
               closeDraftPanel()
               setDraftError(null)
               setDraftSourceId(null)
@@ -832,7 +1184,7 @@ export function DeepSeekChatPanel({
                 ].join(' ')}
               >
                 <div className="whitespace-pre-wrap">{m.content}</div>
-                {m.role === 'assistant' && (
+                {m.role === 'assistant' && shouldShowAssistantActions(m.id) && (
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     <Button size="sm" onClick={() => handleQuickCreate(m)} disabled={draftSubmitting}>
                       {draftSubmitting && draftSourceId === m.id ? '创建中...' : '创建为卡片'}
@@ -969,21 +1321,74 @@ export function DeepSeekChatPanel({
       )}
 
       <div className="border-t bg-background px-4 py-3">
-        <div className="mb-2 flex flex-wrap gap-2">
-          {quickTemplates.map((t) => (
-            <Button key={t.label} type="button" variant="outline" size="sm" onClick={() => applyTemplate(t.text)}>
-              {t.label}
-            </Button>
-          ))}
-        </div>
-        <div className="flex items-end gap-2">
+        {(!toolTriggerConfig.gateByPrefix || toolTriggerConfig.showQuickTemplatesInChat) && (
+          <div className="mb-2 flex flex-wrap gap-2">
+            {quickTemplates.map((t) => (
+              <Button key={t.label} type="button" variant="outline" size="sm" onClick={() => applyTemplate(t.text)}>
+                {t.label}
+              </Button>
+            ))}
+          </div>
+        )}
+        <div className="relative flex items-end gap-2">
+          {slashMenuOpen && (
+            <div className="absolute bottom-full left-0 right-0 z-20 mb-2 overflow-hidden rounded-md border bg-background shadow-lg">
+              <div className="max-h-56 overflow-y-auto p-1">
+                {filteredSlashMenuItems.map((item, idx) => (
+                  <button
+                    key={item.key}
+                    type="button"
+                    className={[
+                      'w-full rounded-md px-2 py-1.5 text-left text-sm',
+                      idx === slashActiveIndex ? 'bg-accent text-accent-foreground' : 'hover:bg-muted',
+                    ].join(' ')}
+                    onMouseEnter={() => setSlashActiveIndex(idx)}
+                    onClick={() => applySlashMenuItem(item)}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0 truncate font-medium">{item.label}</div>
+                      <div className="text-[11px] text-muted-foreground">Enter</div>
+                    </div>
+                    {item.description && <div className="mt-0.5 truncate text-[11px] text-muted-foreground">{item.description}</div>}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <Textarea
             ref={inputRef}
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => handleInputChange(e.target.value)}
             placeholder="输入你的问题…（Enter 发送，Shift+Enter 换行）"
             className="min-h-[44px] resize-none text-sm"
             onKeyDown={(e) => {
+              if (slashMenuOpen) {
+                if (e.key === 'ArrowDown') {
+                  e.preventDefault()
+                  setSlashActiveIndex((prev) => Math.min(prev + 1, filteredSlashMenuItems.length - 1))
+                  return
+                }
+
+                if (e.key === 'ArrowUp') {
+                  e.preventDefault()
+                  setSlashActiveIndex((prev) => Math.max(prev - 1, 0))
+                  return
+                }
+
+                if (e.key === 'Escape') {
+                  e.preventDefault()
+                  setSlashMenuDismissed(true)
+                  return
+                }
+
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  const item = filteredSlashMenuItems[slashActiveIndex]
+                  if (item) applySlashMenuItem(item)
+                  return
+                }
+              }
+
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault()
                 void handleSend()

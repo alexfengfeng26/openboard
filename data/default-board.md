@@ -2,7 +2,7 @@
 id: default-board
 title: 我的看板
 createdAt: '2026-02-11T07:06:35.423Z'
-updatedAt: '2026-02-12T08:55:22.749Z'
+updatedAt: '2026-02-12T09:37:24.024Z'
 tags:
   - id: tag-0
     name: 紧急
@@ -27,7 +27,7 @@ lanes:
     title: 待办
     position: 0
     createdAt: '2026-02-11T07:06:35.423Z'
-    updatedAt: '2026-02-12T08:55:22.749Z'
+    updatedAt: '2026-02-12T09:37:24.024Z'
     cards:
       - id: card-3
         laneId: lane-todo
