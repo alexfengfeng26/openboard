@@ -12,9 +12,19 @@ import { OperationLogPanel } from './OperationLogPanel'
 import { PromptBuilder, FallbackToolParser } from '@/lib/ai-tools'
 import { parseCardDraftItemsFromAiContent } from '@/lib/ai/card-draft-parser'
 import type { ToolCallRequest, OperationLogEntry, PromptContext, ChatMessage } from '@/types/ai-tools.types'
+import type { AiCommand } from '@/types/ai-commands.types'
 import type { CardDraft } from '@/lib/ai-tools/parser/card-draft-types'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Settings } from 'lucide-react'
+import {
+  createDefaultAiCommands,
+  ensureAiCommandsInLocalStorage,
+  exportAiCommandsToJsonText,
+  exportAiCommandsToMarkdownText,
+  normalizeAiCommands,
+  parseAiCommandsFromText,
+  saveAiCommandsToLocalStorage,
+} from '@/lib/ai/commands'
 
 type DraftParseResult =
   | { ok: true; drafts: CardDraft[]; raw: string; repairedRaw?: string }
@@ -88,6 +98,7 @@ export function DeepSeekChatPanel({
   const [draftRepairedRaw, setDraftRepairedRaw] = useState<string | null>(null)
   const [draftSubmitting, setDraftSubmitting] = useState(false)
   const inputRef = useRef<HTMLTextAreaElement | null>(null)
+  const commandImportInputRef = useRef<HTMLInputElement | null>(null)
 
   // Tool call states
   const [pendingToolCalls, setPendingToolCalls] = useState<ToolCallRequest[] | null>(null)
@@ -98,10 +109,11 @@ export function DeepSeekChatPanel({
 
   const defaultLaneId = linkedCard?.laneId || lanes[0]?.id || ''
   const [actionableAssistantMessageIds, setActionableAssistantMessageIds] = useState<string[]>([])
+  const [aiCommands, setAiCommands] = useState<AiCommand[]>([])
   const [toolTriggerConfig, setToolTriggerConfig] = useState<ToolTriggerConfig>({
     gateByPrefix: true,
     showQuickTemplatesInChat: false,
-    showAssistantActionsInChat: false,
+    showAssistantActionsInChat: true,
     prefixes: {
       all: '/kb',
       card: '/card',
@@ -111,6 +123,7 @@ export function DeepSeekChatPanel({
   })
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [settingsDraft, setSettingsDraft] = useState<ToolTriggerConfig | null>(null)
+  const [commandsDraft, setCommandsDraft] = useState<AiCommand[] | null>(null)
 
   const laneById = useMemo(() => {
     const map = new Map<string, Lane>()
@@ -169,12 +182,35 @@ export function DeepSeekChatPanel({
   }, [])
 
   useEffect(() => {
+    try {
+      const raw = localStorage.getItem(TOOL_TRIGGER_STORAGE_KEY)
+      const parsed = raw ? (JSON.parse(raw) as Partial<ToolTriggerConfig>) : null
+      const prefixes =
+        parsed && typeof parsed === 'object'
+          ? {
+              all: typeof parsed.prefixes?.all === 'string' ? parsed.prefixes.all : undefined,
+              card: typeof parsed.prefixes?.card === 'string' ? parsed.prefixes.card : undefined,
+              lane: typeof parsed.prefixes?.lane === 'string' ? parsed.prefixes.lane : undefined,
+              board: typeof parsed.prefixes?.board === 'string' ? parsed.prefixes.board : undefined,
+            }
+          : undefined
+      const initial = ensureAiCommandsInLocalStorage({ prefixes })
+      setAiCommands(initial)
+    } catch {
+      const initial = ensureAiCommandsInLocalStorage()
+      setAiCommands(initial)
+    }
+  }, [])
+
+  useEffect(() => {
     if (settingsOpen) {
       setSettingsDraft(toolTriggerConfig)
+      setCommandsDraft(aiCommands)
     } else {
       setSettingsDraft(null)
+      setCommandsDraft(null)
     }
-  }, [settingsOpen, toolTriggerConfig])
+  }, [settingsOpen, toolTriggerConfig, aiCommands])
 
   function persistToolTriggerConfig(next: ToolTriggerConfig) {
     setToolTriggerConfig(next)
@@ -183,6 +219,55 @@ export function DeepSeekChatPanel({
     } catch {
       return
     }
+  }
+ 
+  function persistAiCommands(next: AiCommand[]) {
+    setAiCommands(next)
+    saveAiCommandsToLocalStorage(next)
+  }
+ 
+  function downloadTextFile(filename: string, text: string, mimeType: string) {
+    const blob = new Blob([text], { type: mimeType })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+  }
+ 
+  function updateCommandDraft(index: number, patch: Partial<AiCommand>) {
+    setCommandsDraft((prev) => {
+      if (!prev) return prev
+      return prev.map((c, i) => (i === index ? { ...c, ...patch } : c))
+    })
+  }
+ 
+  function removeCommandDraft(index: number) {
+    setCommandsDraft((prev) => {
+      if (!prev) return prev
+      return prev.filter((_, i) => i !== index)
+    })
+  }
+ 
+  function addCommandDraft() {
+    setCommandsDraft((prev) => {
+      const next = Array.isArray(prev) ? [...prev] : []
+      const id = createId()
+      next.push({
+        id,
+        trigger: '/cmd',
+        kind: 'snippet',
+        label: '/cmd',
+        description: '',
+        insertText: '',
+        enabled: true,
+        placement: 'slash',
+      })
+      return next
+    })
   }
 
   const actionableAssistantMessageIdSet = useMemo(
@@ -195,24 +280,15 @@ export function DeepSeekChatPanel({
     if (toolTriggerConfig.showAssistantActionsInChat) return true
     return actionableAssistantMessageIdSet.has(messageId)
   }
-
-  const quickTemplates = useMemo(
-    () => [
-      {
-        label: '生成待办任务',
-        text: '帮我生成一个待办卡片：主题“优化拖拽体验”，给出标题和 3 条可执行描述。',
-      },
-      {
-        label: '拆分为子任务',
-        text: '把下面需求拆成 3-5 张卡片（每张含标题 + 简短描述）：\n',
-      },
-      {
-        label: '总结为卡片',
-        text: '把下面内容总结成一张卡片（标题 + 简短描述）：\n',
-      },
-    ],
-    []
-  )
+ 
+  const quickbarCommands = useMemo(() => {
+    return aiCommands.filter(
+      (c) =>
+        c.enabled &&
+        c.kind === 'snippet' &&
+        (c.placement === 'quickbar' || c.placement === 'both')
+    )
+  }, [aiCommands])
 
   const slashQuery = useMemo(() => {
     const text = input.trimStart()
@@ -222,45 +298,17 @@ export function DeepSeekChatPanel({
   }, [input])
 
   const slashMenuItems = useMemo((): SlashMenuItem[] => {
-    const prefixes = [
-      {
-        key: 'all',
-        label: toolTriggerConfig.prefixes.all.trim(),
-        description: '执行卡片/列表/看板操作',
-      },
-      {
-        key: 'card',
-        label: toolTriggerConfig.prefixes.card.trim(),
-        description: '仅卡片 CRUD',
-      },
-      {
-        key: 'lane',
-        label: toolTriggerConfig.prefixes.lane.trim(),
-        description: '仅列表 CRUD',
-      },
-      {
-        key: 'board',
-        label: toolTriggerConfig.prefixes.board.trim(),
-        description: '仅看板 CRUD',
-      },
-    ].filter((p) => p.label.length > 0)
-
-    const base: SlashMenuItem[] = prefixes.map((p) => ({
-      key: `prefix:${p.key}`,
-      label: p.label,
-      description: p.description,
-      insertText: `${p.label} `,
+    const visible = aiCommands.filter((c) => c.enabled && (c.placement === 'slash' || c.placement === 'both'))
+    const tool = visible.filter((c) => c.kind === 'tool_prefix')
+    const snippet = visible.filter((c) => c.kind === 'snippet')
+ 
+    return [...tool, ...snippet].map((c) => ({
+      key: c.id,
+      label: c.label || c.trigger,
+      description: c.description,
+      insertText: c.insertText,
     }))
-
-    const templates: SlashMenuItem[] = quickTemplates.map((t) => ({
-      key: `tpl:${t.label}`,
-      label: `/模板：${t.label}`,
-      description: '插入一段常用提问模板',
-      insertText: t.text,
-    }))
-
-    return [...base, ...templates]
-  }, [quickTemplates, toolTriggerConfig.prefixes])
+  }, [aiCommands])
 
   const filteredSlashMenuItems = useMemo(() => {
     if (!slashQuery) return []
@@ -285,6 +333,10 @@ export function DeepSeekChatPanel({
     setSlashMenuDismissed(true)
     requestAnimationFrame(() => inputRef.current?.focus())
   }
+ 
+  function formatQuickbarLabel(label: string) {
+    return label.replace(/^\/模板[:：]\s*/, '')
+  }
 
   function getAllowedToolNames(scope: ToolTriggerScope): string[] | undefined {
     if (scope === 'card') return ['create_card', 'update_card', 'move_card', 'delete_card']
@@ -298,13 +350,9 @@ export function DeepSeekChatPanel({
     if (!toolTriggerConfig.gateByPrefix) return { scope: 'all', stripped: raw }
 
     const text = raw.trimStart()
-    const candidates: Array<{ scope: Exclude<ToolTriggerScope, 'none'>; prefix: string }> = [
-      { scope: 'all', prefix: toolTriggerConfig.prefixes.all },
-      { scope: 'card', prefix: toolTriggerConfig.prefixes.card },
-      { scope: 'lane', prefix: toolTriggerConfig.prefixes.lane },
-      { scope: 'board', prefix: toolTriggerConfig.prefixes.board },
-    ]
-      .map((c) => ({ ...c, prefix: c.prefix.trim() }))
+    const candidates = aiCommands
+      .filter((c) => c.enabled && c.kind === 'tool_prefix' && typeof c.scope === 'string')
+      .map((c) => ({ scope: c.scope as Exclude<ToolTriggerScope, 'none'>, prefix: c.trigger.trim() }))
       .filter((c) => c.prefix.length > 0)
       .sort((a, b) => b.prefix.length - a.prefix.length)
 
@@ -634,10 +682,13 @@ export function DeepSeekChatPanel({
       const toolTriggerHelp = toolTriggerConfig.gateByPrefix
         ? [
           '如需执行看板操作，请在消息开头加触发前缀：',
-          toolTriggerConfig.prefixes.all.trim() ? `- 全部：${toolTriggerConfig.prefixes.all.trim()}` : null,
-          toolTriggerConfig.prefixes.card.trim() ? `- 仅卡片：${toolTriggerConfig.prefixes.card.trim()}` : null,
-          toolTriggerConfig.prefixes.lane.trim() ? `- 仅列表：${toolTriggerConfig.prefixes.lane.trim()}` : null,
-          toolTriggerConfig.prefixes.board.trim() ? `- 仅看板：${toolTriggerConfig.prefixes.board.trim()}` : null,
+          ...aiCommands
+            .filter((c) => c.enabled && c.kind === 'tool_prefix' && typeof c.scope === 'string' && c.trigger.trim())
+            .map((c) => {
+              const name =
+                c.scope === 'all' ? '全部' : c.scope === 'card' ? '仅卡片' : c.scope === 'lane' ? '仅列表' : '仅看板'
+              return `- ${name}：${c.trigger.trim()}`
+            }),
         ]
           .filter(Boolean)
           .join('\n')
@@ -1034,7 +1085,7 @@ export function DeepSeekChatPanel({
                 <DialogDescription>用前缀触发卡片/列表/看板的 CRUD，避免影响普通聊天。</DialogDescription>
               </DialogHeader>
 
-              {settingsDraft && (
+              {settingsDraft && commandsDraft && (
                 <div className="space-y-3">
                   <label className="flex items-center gap-2 text-sm">
                     <input
@@ -1073,56 +1124,145 @@ export function DeepSeekChatPanel({
                   </label>
 
                   <div className="space-y-2">
-                    <div className="text-xs font-medium">触发前缀</div>
-                    <div className="grid gap-2">
-                      <div className="grid gap-1">
-                        <div className="text-xs text-muted-foreground">全部工具（卡片/列表/看板）</div>
-                        <Input
-                          value={settingsDraft.prefixes.all}
-                          onChange={(e) =>
-                            setSettingsDraft((prev) =>
-                              prev ? { ...prev, prefixes: { ...prev.prefixes, all: e.target.value } } : prev
-                            )
-                          }
-                          placeholder="/kb"
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-xs font-medium">Commands</div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => downloadTextFile('ai-commands.json', exportAiCommandsToJsonText(commandsDraft), 'application/json')}
+                        >
+                          导出 JSON
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => downloadTextFile('ai-commands.md', exportAiCommandsToMarkdownText(commandsDraft), 'text/markdown')}
+                        >
+                          导出 MD
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => commandImportInputRef.current?.click()}
+                        >
+                          导入
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={addCommandDraft}>
+                          新增
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => setCommandsDraft(createDefaultAiCommands())}>
+                          重置
+                        </Button>
+                        <input
+                          ref={commandImportInputRef}
+                          type="file"
+                          accept=".json,.md,.txt,application/json,text/markdown,text/plain"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0]
+                            if (!file) return
+                            void (async () => {
+                              const text = await file.text()
+                              const parsed = parseAiCommandsFromText(text)
+                              if (!parsed || parsed.length === 0) {
+                                toastError('导入失败：未识别到 commands')
+                              } else {
+                                setCommandsDraft(parsed)
+                                toastSuccess(`已导入 ${parsed.length} 条 command`)
+                              }
+                              e.target.value = ''
+                            })()
+                          }}
                         />
                       </div>
-                      <div className="grid gap-1">
-                        <div className="text-xs text-muted-foreground">仅卡片 CRUD</div>
-                        <Input
-                          value={settingsDraft.prefixes.card}
-                          onChange={(e) =>
-                            setSettingsDraft((prev) =>
-                              prev ? { ...prev, prefixes: { ...prev.prefixes, card: e.target.value } } : prev
-                            )
-                          }
-                          placeholder="/card"
-                        />
-                      </div>
-                      <div className="grid gap-1">
-                        <div className="text-xs text-muted-foreground">仅列表 CRUD</div>
-                        <Input
-                          value={settingsDraft.prefixes.lane}
-                          onChange={(e) =>
-                            setSettingsDraft((prev) =>
-                              prev ? { ...prev, prefixes: { ...prev.prefixes, lane: e.target.value } } : prev
-                            )
-                          }
-                          placeholder="/lane"
-                        />
-                      </div>
-                      <div className="grid gap-1">
-                        <div className="text-xs text-muted-foreground">仅看板 CRUD</div>
-                        <Input
-                          value={settingsDraft.prefixes.board}
-                          onChange={(e) =>
-                            setSettingsDraft((prev) =>
-                              prev ? { ...prev, prefixes: { ...prev.prefixes, board: e.target.value } } : prev
-                            )
-                          }
-                          placeholder="/board"
-                        />
-                      </div>
+                    </div>
+
+                    <div className="max-h-80 space-y-2 overflow-y-auto rounded-md border p-2">
+                      {commandsDraft.map((c, idx) => (
+                        <div key={c.id} className="space-y-2 rounded-md border p-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <label className="flex items-center gap-2 text-sm">
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4"
+                                checked={c.enabled}
+                                onChange={(e) => updateCommandDraft(idx, { enabled: e.target.checked })}
+                              />
+                              启用
+                            </label>
+                            <div className="min-w-0 flex-1">
+                              <Input
+                                value={c.trigger}
+                                onChange={(e) => updateCommandDraft(idx, { trigger: e.target.value })}
+                                placeholder="/card"
+                              />
+                            </div>
+                            <select
+                              value={c.kind}
+                              onChange={(e) => {
+                                const kind = e.target.value as AiCommand['kind']
+                                updateCommandDraft(idx, {
+                                  kind,
+                                  scope: kind === 'tool_prefix' ? (c.scope || 'all') : undefined,
+                                  placement: kind === 'tool_prefix' ? 'slash' : c.placement,
+                                })
+                              }}
+                              className="h-9 rounded-md border bg-background px-2 text-sm"
+                            >
+                              <option value="tool_prefix">tool</option>
+                              <option value="snippet">snippet</option>
+                            </select>
+                            {c.kind === 'tool_prefix' && (
+                              <select
+                                value={c.scope || 'all'}
+                                onChange={(e) => updateCommandDraft(idx, { scope: e.target.value as any })}
+                                className="h-9 rounded-md border bg-background px-2 text-sm"
+                              >
+                                <option value="all">all</option>
+                                <option value="card">card</option>
+                                <option value="lane">lane</option>
+                                <option value="board">board</option>
+                              </select>
+                            )}
+                            <select
+                              value={c.placement}
+                              onChange={(e) => updateCommandDraft(idx, { placement: e.target.value as any })}
+                              className="h-9 rounded-md border bg-background px-2 text-sm"
+                            >
+                              <option value="slash">slash</option>
+                              <option value="quickbar">quickbar</option>
+                              <option value="both">both</option>
+                            </select>
+                            <Button variant="outline" size="sm" onClick={() => removeCommandDraft(idx)}>
+                              删除
+                            </Button>
+                          </div>
+
+                          <div className="grid gap-2 sm:grid-cols-2">
+                            <div className="grid gap-1">
+                              <div className="text-xs text-muted-foreground">菜单标题</div>
+                              <Input value={c.label} onChange={(e) => updateCommandDraft(idx, { label: e.target.value })} />
+                            </div>
+                            <div className="grid gap-1">
+                              <div className="text-xs text-muted-foreground">描述（可选）</div>
+                              <Input
+                                value={c.description || ''}
+                                onChange={(e) => updateCommandDraft(idx, { description: e.target.value })}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid gap-1">
+                            <div className="text-xs text-muted-foreground">插入内容</div>
+                            <Textarea
+                              value={c.insertText}
+                              onChange={(e) => updateCommandDraft(idx, { insertText: e.target.value })}
+                              className="min-h-[64px] resize-none text-sm"
+                            />
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
@@ -1132,6 +1272,11 @@ export function DeepSeekChatPanel({
                     </Button>
                     <Button
                       onClick={() => {
+                        const normalized = normalizeAiCommands(commandsDraft)
+                        if (normalized.length !== commandsDraft.length) {
+                          toastWarning('部分 command 被忽略：可能是重复触发词或缺少必要字段')
+                        }
+                        persistAiCommands(normalized)
                         persistToolTriggerConfig(settingsDraft)
                         setSettingsOpen(false)
                         toastSuccess('已保存设置')
@@ -1323,9 +1468,15 @@ export function DeepSeekChatPanel({
       <div className="border-t bg-background px-4 py-3">
         {(!toolTriggerConfig.gateByPrefix || toolTriggerConfig.showQuickTemplatesInChat) && (
           <div className="mb-2 flex flex-wrap gap-2">
-            {quickTemplates.map((t) => (
-              <Button key={t.label} type="button" variant="outline" size="sm" onClick={() => applyTemplate(t.text)}>
-                {t.label}
+            {quickbarCommands.map((c) => (
+              <Button
+                key={c.id}
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => applyTemplate(c.insertText)}
+              >
+                {formatQuickbarLabel(c.label)}
               </Button>
             ))}
           </div>
