@@ -1,7 +1,5 @@
 import type { AiCommand, AiCommandPlacement, AiCommandScope } from '@/types/ai-commands.types'
 
-export const AI_COMMANDS_STORAGE_KEY = 'kanban.aiCommands.v1'
-
 function createId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`
 }
@@ -131,33 +129,30 @@ function normalizePlacement(placement: unknown): AiCommandPlacement {
   return 'slash'
 }
 
+/**
+ * @deprecated 设置已迁移到服务端存储，使用 lib/hooks/useSettings.ts
+ * 这些函数保留用于向后兼容和工具函数
+ */
 export function loadAiCommandsFromLocalStorage(): AiCommand[] | null {
-  if (typeof window === 'undefined') return null
-  try {
-    const raw = window.localStorage.getItem(AI_COMMANDS_STORAGE_KEY)
-    if (!raw) return null
-    const parsed = JSON.parse(raw) as unknown
-    if (!Array.isArray(parsed)) return null
-    return normalizeAiCommands(parsed as AiCommand[])
-  } catch {
-    return null
-  }
+  // 已弃用：设置现在存储在服务端
+  return null
 }
 
-export function saveAiCommandsToLocalStorage(commands: AiCommand[]) {
-  if (typeof window === 'undefined') return
-  const normalized = normalizeAiCommands(commands)
-  window.localStorage.setItem(AI_COMMANDS_STORAGE_KEY, JSON.stringify(normalized))
+/**
+ * @deprecated 设置已迁移到服务端存储，使用 lib/hooks/useSettings.ts
+ */
+export function saveAiCommandsToLocalStorage(_commands: AiCommand[]) {
+  // 已弃用：设置现在存储在服务端
 }
 
+/**
+ * @deprecated 设置已迁移到服务端存储，使用 lib/hooks/useSettings.ts
+ */
 export function ensureAiCommandsInLocalStorage(options?: {
   prefixes?: Partial<Record<'all' | 'card' | 'lane' | 'board', string>>
 }): AiCommand[] {
-  const existing = loadAiCommandsFromLocalStorage()
-  if (existing && existing.length > 0) return existing
-  const defaults = createDefaultAiCommands({ prefixes: options?.prefixes })
-  saveAiCommandsToLocalStorage(defaults)
-  return defaults
+  // 返回默认命令，实际存储在服务端
+  return createDefaultAiCommands({ prefixes: options?.prefixes })
 }
 
 export function exportAiCommandsToJsonText(commands: AiCommand[]): string {

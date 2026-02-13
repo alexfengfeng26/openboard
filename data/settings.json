@@ -1,0 +1,109 @@
+{
+  "version": 1,
+  "ai": {
+    "defaultModel": "deepseek-chat",
+    "toolTrigger": {
+      "gateByPrefix": true,
+      "showQuickTemplatesInChat": false,
+      "showAssistantActionsInChat": true,
+      "prefixes": {
+        "all": "/kb",
+        "card": "/card",
+        "lane": "/lane",
+        "board": "/board"
+      }
+    },
+    "commands": [
+      {
+        "id": "1770963657023-1337608b1b1d",
+        "trigger": "/kb",
+        "kind": "tool_prefix",
+        "scope": "all",
+        "label": "/kb",
+        "description": "执行卡片/列表/看板操作",
+        "insertText": "/kb ",
+        "enabled": true,
+        "placement": "slash"
+      },
+      {
+        "id": "1770963657023-2c5573a26b287",
+        "trigger": "/card",
+        "kind": "tool_prefix",
+        "scope": "card",
+        "label": "/card",
+        "description": "仅卡片 CRUD",
+        "insertText": "/card ",
+        "enabled": true,
+        "placement": "slash"
+      },
+      {
+        "id": "1770963657023-7f21dc8087a02",
+        "trigger": "/lane",
+        "kind": "tool_prefix",
+        "scope": "lane",
+        "label": "/lane",
+        "description": "仅列表 CRUD",
+        "insertText": "/lane ",
+        "enabled": true,
+        "placement": "slash"
+      },
+      {
+        "id": "1770963657023-2143d8e46ebcc",
+        "trigger": "/board",
+        "kind": "tool_prefix",
+        "scope": "board",
+        "label": "/board",
+        "description": "仅看板 CRUD",
+        "insertText": "/board ",
+        "enabled": true,
+        "placement": "slash"
+      },
+      {
+        "id": "1770963657023-f30c895add44",
+        "trigger": "/模板：生成待办任务",
+        "kind": "snippet",
+        "label": "/模板：生成待办任务",
+        "description": "插入一段常用提问模板",
+        "insertText": "帮我生成一个待办卡片：主题“优化拖拽体验”，给出标题和 3 条可执行描述。",
+        "enabled": true,
+        "placement": "both"
+      },
+      {
+        "id": "1770963657023-9ab9bc91ed086",
+        "trigger": "/模板：拆分为子任务",
+        "kind": "snippet",
+        "label": "/模板：拆分为子任务",
+        "description": "插入一段常用提问模板",
+        "insertText": "把下面需求拆成 3-5 张卡片（每张含标题 + 简短描述）：\n",
+        "enabled": true,
+        "placement": "both"
+      },
+      {
+        "id": "1770963657023-c14bdd51fdb8c",
+        "trigger": "/模板：总结为卡片",
+        "kind": "snippet",
+        "label": "/模板：总结为卡片",
+        "description": "插入一段常用提问模板",
+        "insertText": "把下面内容总结成一张卡片（标题 + 简短描述）：\n",
+        "enabled": true,
+        "placement": "both"
+      },
+      {
+        "id": "1770963917988-78a02fe25922f",
+        "trigger": "/hello",
+        "kind": "snippet",
+        "label": "/hello",
+        "description": "",
+        "insertText": "helloworld",
+        "enabled": true,
+        "placement": "slash"
+      }
+    ]
+  },
+  "boardView": {
+    "cardDensity": "normal",
+    "showCardDescription": true,
+    "showTagColors": true
+  },
+  "updatedAt": "2026-02-13T06:25:40.292Z"
+}

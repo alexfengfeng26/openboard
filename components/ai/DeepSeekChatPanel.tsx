@@ -15,17 +15,17 @@ import { parseCardDraftItemsFromAiContent } from '@/lib/ai/card-draft-parser'
 import type { ToolCallRequest, OperationLogEntry, PromptContext, ChatMessage } from '@/types/ai-tools.types'
 import type { AiCommand } from '@/types/ai-commands.types'
 import type { CardDraft } from '@/lib/ai-tools/parser/card-draft-types'
+import type { AiToolTriggerConfig } from '@/types/settings.types'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Settings } from 'lucide-react'
 import {
   createDefaultAiCommands,
-  ensureAiCommandsInLocalStorage,
   exportAiCommandsToJsonText,
   exportAiCommandsToMarkdownText,
   normalizeAiCommands,
   parseAiCommandsFromText,
-  saveAiCommandsToLocalStorage,
 } from '@/lib/ai/commands'
+import { useAiSettings } from '@/lib/hooks/useSettings'
 
 type DraftParseResult =
   | { ok: true; drafts: CardDraft[]; raw: string; repairedRaw?: string }
@@ -44,17 +44,7 @@ const guideMessage =
 
 type ToolTriggerScope = 'none' | 'all' | 'card' | 'lane' | 'board'
 
-type ToolTriggerConfig = {
-  gateByPrefix: boolean
-  showQuickTemplatesInChat: boolean
-  showAssistantActionsInChat: boolean
-  prefixes: {
-    all: string
-    card: string
-    lane: string
-    board: string
-  }
-}
+type ToolTriggerConfig = AiToolTriggerConfig
 
 type SlashMenuItem = {
   key: string
@@ -62,8 +52,6 @@ type SlashMenuItem = {
   description?: string
   insertText: string
 }
-
-const TOOL_TRIGGER_STORAGE_KEY = 'kanban.aiToolTriggerConfig.v1'
 
 export function DeepSeekChatPanel({
   lanes,
@@ -78,6 +66,7 @@ export function DeepSeekChatPanel({
   onBoardRefresh?: () => void | Promise<void>
   boardId?: string
 }) {
+  const { aiSettings, loading: settingsLoading, updateAiSettings } = useAiSettings()
   const [model, setModel] = useState<'deepseek-chat' | 'deepseek-reasoner'>('deepseek-chat')
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -123,6 +112,7 @@ export function DeepSeekChatPanel({
       board: '/board',
     },
   })
+  const [commandsLoaded, setCommandsLoaded] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [settingsDraft, setSettingsDraft] = useState<ToolTriggerConfig | null>(null)
   const [commandsDraft, setCommandsDraft] = useState<AiCommand[] | null>(null)
@@ -155,77 +145,65 @@ export function DeepSeekChatPanel({
     return map
   }, [lanes])
 
+  // 从服务端设置加载配置
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(TOOL_TRIGGER_STORAGE_KEY)
-      if (!raw) return
-      const parsed = JSON.parse(raw) as Partial<ToolTriggerConfig>
-      if (!parsed || typeof parsed !== 'object') return
-      setToolTriggerConfig((prev) => ({
-        gateByPrefix: typeof parsed.gateByPrefix === 'boolean' ? parsed.gateByPrefix : prev.gateByPrefix,
-        showQuickTemplatesInChat:
-          typeof parsed.showQuickTemplatesInChat === 'boolean'
-            ? parsed.showQuickTemplatesInChat
-            : prev.showQuickTemplatesInChat,
-        showAssistantActionsInChat:
-          typeof parsed.showAssistantActionsInChat === 'boolean'
-            ? parsed.showAssistantActionsInChat
-            : prev.showAssistantActionsInChat,
-        prefixes: {
-          all: typeof parsed.prefixes?.all === 'string' ? parsed.prefixes.all : prev.prefixes.all,
-          card: typeof parsed.prefixes?.card === 'string' ? parsed.prefixes.card : prev.prefixes.card,
-          lane: typeof parsed.prefixes?.lane === 'string' ? parsed.prefixes.lane : prev.prefixes.lane,
-          board: typeof parsed.prefixes?.board === 'string' ? parsed.prefixes.board : prev.prefixes.board,
-        },
-      }))
-    } catch {
-      return
+    if (aiSettings?.toolTrigger) {
+      setToolTriggerConfig(aiSettings.toolTrigger)
     }
-  }, [])
+    if (aiSettings?.defaultModel) {
+      setModel(aiSettings.defaultModel)
+    }
+  }, [aiSettings?.toolTrigger, aiSettings?.defaultModel])
 
+  // 从服务端设置加载 AI 命令
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(TOOL_TRIGGER_STORAGE_KEY)
-      const parsed = raw ? (JSON.parse(raw) as Partial<ToolTriggerConfig>) : null
-      const prefixes =
-        parsed && typeof parsed === 'object'
-          ? {
-            all: typeof parsed.prefixes?.all === 'string' ? parsed.prefixes.all : undefined,
-            card: typeof parsed.prefixes?.card === 'string' ? parsed.prefixes.card : undefined,
-            lane: typeof parsed.prefixes?.lane === 'string' ? parsed.prefixes.lane : undefined,
-            board: typeof parsed.prefixes?.board === 'string' ? parsed.prefixes.board : undefined,
-          }
-          : undefined
-      const initial = ensureAiCommandsInLocalStorage({ prefixes })
-      setAiCommands(initial)
-    } catch {
-      const initial = ensureAiCommandsInLocalStorage()
-      setAiCommands(initial)
+    if (aiSettings?.commands && !commandsLoaded) {
+      const commands = aiSettings.commands.length > 0 
+        ? aiSettings.commands 
+        : createDefaultAiCommands({
+            prefixes: {
+              all: aiSettings.toolTrigger?.prefixes?.all,
+              card: aiSettings.toolTrigger?.prefixes?.card,
+              lane: aiSettings.toolTrigger?.prefixes?.lane,
+              board: aiSettings.toolTrigger?.prefixes?.board,
+            }
+          })
+      setAiCommands(commands)
+      setCommandsLoaded(true)
     }
-  }, [])
+  }, [aiSettings?.commands, aiSettings?.toolTrigger, commandsLoaded])
 
   useEffect(() => {
     if (settingsOpen) {
       setSettingsDraft(toolTriggerConfig)
-      setCommandsDraft(aiCommands)
+      // 确保命令已加载
+      if (aiSettings?.commands) {
+        setCommandsDraft(aiSettings.commands.length > 0 ? aiSettings.commands : aiCommands)
+      } else {
+        setCommandsDraft(aiCommands)
+      }
     } else {
       setSettingsDraft(null)
       setCommandsDraft(null)
     }
-  }, [settingsOpen, toolTriggerConfig, aiCommands])
+  }, [settingsOpen, toolTriggerConfig, aiCommands, aiSettings?.commands])
 
-  function persistToolTriggerConfig(next: ToolTriggerConfig) {
+  async function persistToolTriggerConfig(next: ToolTriggerConfig) {
     setToolTriggerConfig(next)
     try {
-      localStorage.setItem(TOOL_TRIGGER_STORAGE_KEY, JSON.stringify(next))
+      await updateAiSettings({ toolTrigger: next })
     } catch {
-      return
+      // 错误已在 hook 中处理
     }
   }
 
-  function persistAiCommands(next: AiCommand[]) {
+  async function persistAiCommands(next: AiCommand[]) {
     setAiCommands(next)
-    saveAiCommandsToLocalStorage(next)
+    try {
+      await updateAiSettings({ commands: next })
+    } catch {
+      // 错误已在 hook 中处理
+    }
   }
 
   function downloadTextFile(filename: string, text: string, mimeType: string) {
@@ -1121,7 +1099,15 @@ export function DeepSeekChatPanel({
         <div className="flex items-center gap-2">
           <select
             value={model}
-            onChange={(e) => setModel(e.target.value as 'deepseek-chat' | 'deepseek-reasoner')}
+            onChange={async (e) => {
+              const newModel = e.target.value as 'deepseek-chat' | 'deepseek-reasoner'
+              setModel(newModel)
+              try {
+                await updateAiSettings({ defaultModel: newModel })
+              } catch {
+                // 错误已在 hook 中处理
+              }
+            }}
             className="h-8 rounded-md border bg-background px-2 text-xs"
           >
             <option value="deepseek-chat">deepseek-chat</option>
@@ -1325,18 +1311,19 @@ export function DeepSeekChatPanel({
                       取消
                     </Button>
                     <Button
-                      onClick={() => {
+                      onClick={async () => {
                         const normalized = normalizeAiCommands(commandsDraft)
                         if (normalized.length !== commandsDraft.length) {
                           toastWarning('部分 command 被忽略：可能是重复触发词或缺少必要字段')
                         }
-                        persistAiCommands(normalized)
-                        persistToolTriggerConfig(settingsDraft)
+                        await persistAiCommands(normalized)
+                        await persistToolTriggerConfig(settingsDraft)
                         setSettingsOpen(false)
                         toastSuccess('已保存设置')
                       }}
+                      disabled={settingsLoading}
                     >
-                      保存
+                      {settingsLoading ? '保存中...' : '保存'}
                     </Button>
                   </div>
                 </div>
