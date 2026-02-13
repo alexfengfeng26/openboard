@@ -356,6 +356,13 @@ export function DeepSeekChatPanel({
       return true
     }
 
+    if (e.key === 'Tab') {
+      e.preventDefault()
+      const item = filteredSlashMenuItems[slashActiveIndex]
+      if (item) applySlashMenuItem(item)
+      return true
+    }
+
     if (e.key === 'Escape') {
       e.preventDefault()
       setSlashMenuDismissed(true)
