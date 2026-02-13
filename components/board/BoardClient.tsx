@@ -433,7 +433,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/25">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary">
                   <LayoutGrid className="h-4 w-4 text-white" />
                 </div>
                 <BoardSelector
@@ -452,7 +452,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                 className="md:hidden gap-1.5"
                 onClick={() => dispatch({ type: 'SET_SHOW_CHAT', payload: true })}
               >
-                <Sparkles className="h-3.5 w-3.5 text-indigo-500" />
+                <Sparkles className="h-3.5 w-3.5 text-primary" />
                 <span>AI 助手</span>
               </Button>
               <Button 
@@ -477,7 +477,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
             collisionDetection={closestCenter}
           >
             <SortableContext items={board.lanes.map((l) => l.id)} strategy={horizontalListSortingStrategy}>
-              <div className="flex h-full items-stretch gap-4">
+              <div className="flex h-full items-stretch gap-2">
                 {board.lanes.map((lane) => (
                   <LaneItem
                     key={lane.id}
@@ -502,11 +502,11 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                     'border-2 border-dashed border-slate-300/60',
                     'bg-slate-50/50 text-slate-500',
                     'transition-all duration-300',
-                    'hover:border-indigo-400/60 hover:bg-indigo-50/30 hover:text-indigo-600',
+                    'hover:border-primary/60 hover:bg-muted hover:text-primary',
                     'group'
                   )}
                 >
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 group-hover:bg-indigo-100 transition-colors mb-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 group-hover:bg-muted transition-colors mb-3">
                     <Plus className="h-6 w-6 group-hover:scale-110 transition-transform" />
                   </div>
                   <span className="text-sm font-medium">添加列表</span>
@@ -530,7 +530,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
       <aside className="hidden h-screen w-[420px] shrink-0 flex-col border-l border-slate-200/60 bg-white/60 backdrop-blur-xl md:flex shadow-xl shadow-slate-900/5">
         <div className="flex h-full flex-col">
           <div className="flex items-center gap-2 border-b border-slate-200/60 px-4 py-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
               <Sparkles className="h-4 w-4 text-white" />
             </div>
             <div>
@@ -555,7 +555,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
         <DialogContent className="w-[min(92vw,640px)] sm:rounded-2xl overflow-hidden">
           <DialogHeader className="px-4 pt-4 border-b border-slate-200/60">
             <div className="flex items-center gap-2 pb-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
                 <Sparkles className="h-4 w-4 text-white" />
               </div>
               <DialogTitle className="text-base">AI 助手</DialogTitle>

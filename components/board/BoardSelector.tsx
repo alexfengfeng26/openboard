@@ -85,18 +85,18 @@ export function BoardSelector({ boards, currentBoard, onBoardChange, onBoardsRef
           )}
         >
           <div className="text-left">
-            <h1 className="text-lg font-bold text-slate-800 group-hover:text-indigo-700 transition-colors">
+            <h1 className="text-lg font-bold text-slate-800 group-hover:text-primary">
               {currentBoard.title}
             </h1>
             <p className="text-xs text-slate-500 font-medium">
               {currentBoard.lanes.length} 个列表 · {totalCards} 个卡片
             </p>
           </div>
-          <ChevronDown 
+          <ChevronDown
             className={cn(
               'h-4 w-4 text-slate-400 transition-transform duration-200',
               isOpen && 'rotate-180'
-            )} 
+            )}
           />
         </button>
 
@@ -111,7 +111,7 @@ export function BoardSelector({ boards, currentBoard, onBoardChange, onBoardsRef
                   placeholder="搜索看板..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full h-9 pl-9 pr-3 rounded-xl text-sm bg-slate-100 border-transparent focus:bg-white focus:border-indigo-300 focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none"
+                  className="w-full h-9 pl-9 pr-3 rounded-xl text-sm bg-slate-100 border-transparent focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none"
                 />
               </div>
             </div>
@@ -129,31 +129,31 @@ export function BoardSelector({ boards, currentBoard, onBoardChange, onBoardsRef
                     key={board.id}
                     className={cn(
                       'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200',
-                      board.id === currentBoard.id 
-                        ? 'bg-indigo-50 text-indigo-900' 
+                      board.id === currentBoard.id
+                        ? 'bg-muted'
                         : 'hover:bg-slate-50'
                     )}
                     onMouseEnter={() => setHoveredBoardId(board.id)}
                     onMouseLeave={() => setHoveredBoardId(null)}
                   >
-                    <div 
+                    <div
                       className={cn(
                         'flex h-9 w-9 items-center justify-center rounded-lg shrink-0',
                         board.id === currentBoard.id
-                          ? 'bg-indigo-100 text-indigo-600'
+                          ? 'bg-secondary'
                           : 'bg-slate-100 text-slate-500'
                       )}
                     >
                       <LayoutDashboard className="h-4 w-4" />
                     </div>
-                    
+
                     <button
                       onClick={() => handleBoardSelect(board.id)}
                       className="flex-1 text-left min-w-0"
                     >
                       <div className={cn(
                         'text-sm font-semibold truncate',
-                        board.id === currentBoard.id ? 'text-indigo-900' : 'text-slate-700'
+                        board.id === currentBoard.id ? 'text-primary' : 'text-foreground'
                       )}>
                         {board.title}
                       </div>
@@ -192,10 +192,10 @@ export function BoardSelector({ boards, currentBoard, onBoardChange, onBoardsRef
                 className={cn(
                   'flex w-full items-center gap-3 rounded-xl px-3 py-2.5',
                   'text-slate-600 transition-all duration-200',
-                  'hover:bg-indigo-50 hover:text-indigo-700'
+                  'hover:bg-muted'
                 )}
               >
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary">
                   <Plus className="h-4 w-4" />
                 </div>
                 <span className="text-sm font-medium">创建新看板</span>

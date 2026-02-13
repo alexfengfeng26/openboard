@@ -1118,7 +1118,7 @@ export function DeepSeekChatPanel({
                 // 错误已在 hook 中处理
               }
             }}
-            className="h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-600 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
+            className="h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-600 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
           >
             <option value="deepseek-chat">deepseek-chat</option>
             <option value="deepseek-reasoner">deepseek-reasoner</option>
@@ -1377,7 +1377,7 @@ export function DeepSeekChatPanel({
                 className={cn(
                   'max-w-[90%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm',
                   m.role === 'user'
-                    ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-br-md'
+                    ? 'bg-gradient-to-r bg-primary text-white rounded-br-md'
                     : 'bg-white border border-slate-200/60 text-slate-700 rounded-bl-md'
                 )}
               >
@@ -1404,7 +1404,7 @@ export function DeepSeekChatPanel({
             <div className="flex items-center gap-2">
               <div className="text-xs font-bold text-slate-700">卡片草稿</div>
               {draftQueue && draftQueue.length > 1 && (
-                <div className="text-[11px] font-medium text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-full">
+                <div className="text-[11px] font-medium text-primary bg-muted px-2 py-0.5 rounded-full">
                   {draftIndex + 1}/{draftQueue.length}
                 </div>
               )}
@@ -1578,7 +1578,7 @@ export function DeepSeekChatPanel({
             value={input}
             onChange={(e) => handleInputChange(e.target.value)}
             placeholder="输入你的问题…（Enter 发送，Shift+Enter 换行）"
-            className="min-h-[52px] resize-none text-sm bg-white rounded-xl border-slate-200 focus:border-indigo-400"
+            className="min-h-[52px] resize-none text-sm bg-white rounded-xl border-slate-200 focus:border-primary"
             onKeyDownCapture={(e) => {
               const handled = handleSlashMenuKeyDown(e)
               if (handled) return
