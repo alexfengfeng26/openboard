@@ -136,11 +136,6 @@
         "id": "tag-design",
         "name": "设计",
         "color": "#ec4899"
-      },
-      {
-        "id": "tag-1770970187303-feayoq",
-        "name": "重点",
-        "color": "#ef4444"
       }
     ],
     "allowCustomTags": true,
@@ -165,5 +160,5 @@
       "#374151"
     ]
   },
-  "updatedAt": "2026-02-13T08:09:47.303Z"
+  "updatedAt": "2026-02-13T08:17:21.896Z"
 }

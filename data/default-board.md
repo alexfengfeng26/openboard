@@ -2,7 +2,7 @@
 id: default-board
 title: 我的看板
 createdAt: '2026-02-11T07:06:35.423Z'
-updatedAt: '2026-02-13T08:17:01.815Z'
+updatedAt: '2026-02-13T08:17:31.923Z'
 tags:
   - id: tag-0
     name: 紧急
@@ -124,14 +124,14 @@ lanes:
     title: 已完成
     position: 2
     createdAt: '2026-02-11T07:06:35.423Z'
-    updatedAt: '2026-02-13T08:17:01.815Z'
+    updatedAt: '2026-02-13T08:17:31.923Z'
     cards:
       - id: card-1770799202495
         laneId: lane-done
         title: 撰写 Google Gemini 介绍文档
         position: 0
         createdAt: '2026-02-11T08:40:02.495Z'
-        updatedAt: '2026-02-13T08:17:01.815Z'
+        updatedAt: '2026-02-13T08:17:31.923Z'
         description: >-
           1. **核心定位**：说明 Gemini 是 Google 开发的多模态 AI 模型系列。
 
@@ -155,9 +155,6 @@ lanes:
           - id: tag-5
             name: 设计
             color: '#ec4899'
-          - id: tag-1770970187303-feayoq
-            name: 重点
-            color: '#ef4444'
       - id: card-1770799844291
         laneId: lane-done
         title: 重构 API 参数一致性
@@ -279,7 +276,7 @@ lanes:
 4. **获取方式**：可通过 Gemini Advanced 订阅、Google AI Studio、Vertex AI 或部分功能集成在 Bard/搜索中体验。
 5. **对比与定位**：简要说明其与 OpenAI GPT 系列等模型的区别和优势。
 
-**标签**: 优化、文档、设计、重点
+**标签**: 优化、文档、设计
 
 ### 重构 API 参数一致性
 
