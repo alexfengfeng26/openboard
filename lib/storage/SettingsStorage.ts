@@ -5,8 +5,9 @@
 
 import { promises as fs } from 'fs'
 import path from 'path'
-import type { AppSettings, AiSettings, BoardViewSettings } from '@/types/settings.types'
-import { createDefaultSettings, SettingsStorageError } from '@/types/settings.types'
+import type { AppSettings, AiSettings, BoardViewSettings, TagsSettings } from '@/types/settings.types'
+import type { Tag } from '@/types/card.types'
+import { createDefaultSettings, createDefaultTags, SettingsStorageError } from '@/types/settings.types'
 import { createDefaultAiCommands, normalizeAiCommands } from '@/lib/ai/commands'
 
 /**
@@ -93,6 +94,22 @@ export class SettingsStorage {
   }
 
   /**
+   * 获取标签设置
+   */
+  async getTagsSettings(): Promise<TagsSettings> {
+    await this.ensureInitialized()
+    return this.cloneSettings(this.settings!.tags)
+  }
+
+  /**
+   * 获取所有全局标签
+   */
+  async getGlobalTags(): Promise<Tag[]> {
+    await this.ensureInitialized()
+    return this.cloneSettings(this.settings!.tags.globalTags)
+  }
+
+  /**
    * 更新完整设置
    */
   async updateSettings(settings: Partial<AppSettings>): Promise<AppSettings> {
@@ -153,6 +170,52 @@ export class SettingsStorage {
 
     await this.saveToFile()
     return this.cloneSettings(this.settings!.boardView)
+  }
+
+  /**
+   * 更新标签设置
+   */
+  async updateTagsSettings(tagsSettings: Partial<TagsSettings>): Promise<TagsSettings> {
+    await this.ensureInitialized()
+
+    this.settings!.tags = {
+      ...this.settings!.tags,
+      ...tagsSettings,
+    }
+    this.settings!.updatedAt = new Date().toISOString()
+
+    await this.saveToFile()
+    return this.cloneSettings(this.settings!.tags)
+  }
+
+  /**
+   * 更新全局标签
+   */
+  async updateGlobalTags(tags: Tag[]): Promise<TagsSettings> {
+    return this.updateTagsSettings({ globalTags: tags })
+  }
+
+  /**
+   * 添加全局标签
+   */
+  async addGlobalTag(tag: Tag): Promise<TagsSettings> {
+    await this.ensureInitialized()
+    const currentTags = this.settings!.tags.globalTags
+    // 检查是否已存在同名标签
+    if (currentTags.some(t => t.name === tag.name)) {
+      throw new SettingsStorageError(`标签 "${tag.name}" 已存在`)
+    }
+    const newTags = [...currentTags, tag]
+    return this.updateTagsSettings({ globalTags: newTags })
+  }
+
+  /**
+   * 删除全局标签
+   */
+  async removeGlobalTag(tagId: string): Promise<TagsSettings> {
+    await this.ensureInitialized()
+    const newTags = this.settings!.tags.globalTags.filter(t => t.id !== tagId)
+    return this.updateTagsSettings({ globalTags: newTags })
   }
 
   /**
@@ -249,6 +312,16 @@ export class SettingsStorage {
       boardView: {
         ...defaults.boardView,
         ...saved.boardView,
+      },
+      tags: {
+        ...defaults.tags,
+        ...saved.tags,
+        globalTags: saved.tags?.globalTags?.length 
+          ? saved.tags.globalTags 
+          : createDefaultTags(),
+        colorOptions: saved.tags?.colorOptions?.length
+          ? saved.tags.colorOptions
+          : defaults.tags.colorOptions,
       },
       updatedAt: new Date().toISOString(),
     }

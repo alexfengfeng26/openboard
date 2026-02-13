@@ -11,13 +11,14 @@ import { Textarea } from '@/components/ui/textarea'
 import { toastError, toastInfo, toastSuccess, toastWarning } from '@/components/ui/toast'
 import { ToolCallConfirmation } from './ToolCallConfirmation'
 import { OperationLogPanel } from './OperationLogPanel'
+import { TagSettingsPanel } from './TagSettingsPanel'
 import { PromptBuilder, FallbackToolParser } from '@/lib/ai-tools'
 import { parseCardDraftItemsFromAiContent } from '@/lib/ai/card-draft-parser'
 import type { ToolCallRequest, OperationLogEntry, PromptContext, ChatMessage } from '@/types/ai-tools.types'
 import type { AiCommand } from '@/types/ai-commands.types'
 import type { CardDraft } from '@/lib/ai-tools/parser/card-draft-types'
 import type { AiToolTriggerConfig } from '@/types/settings.types'
-import { Dialog, DialogContent, DialogBody, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogBody, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Settings } from 'lucide-react'
 import {
   createDefaultAiCommands,
@@ -115,6 +116,7 @@ export function DeepSeekChatPanel({
   })
   const [commandsLoaded, setCommandsLoaded] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [settingsActiveTab, setSettingsActiveTab] = useState<'trigger' | 'tags'>('trigger')
   const [settingsDraft, setSettingsDraft] = useState<ToolTriggerConfig | null>(null)
   const [commandsDraft, setCommandsDraft] = useState<AiCommand[] | null>(null)
 
@@ -1123,19 +1125,45 @@ export function DeepSeekChatPanel({
             <option value="deepseek-chat">deepseek-chat</option>
             <option value="deepseek-reasoner">deepseek-reasoner</option>
           </select>
-          <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+          <Dialog open={settingsOpen} onOpenChange={(open) => {
+            setSettingsOpen(open)
+            if (!open) setSettingsActiveTab('trigger')
+          }}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="rounded-lg">
                 <Settings className="h-4 w-4" />
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-2xl">
               <DialogHeader>
-                <DialogTitle>AI 操作触发设置</DialogTitle>
-                <DialogDescription>用前缀触发卡片/列表/看板的 CRUD，避免影响普通聊天。</DialogDescription>
+                <DialogTitle>AI 助手设置</DialogTitle>
               </DialogHeader>
 
-              {settingsDraft && commandsDraft && (
+              {/* Tab 导航 */}
+              <div className="flex border-b">
+                <button
+                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                    settingsActiveTab === 'trigger'
+                      ? 'border-b-2 border-primary text-primary'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  onClick={() => setSettingsActiveTab('trigger')}
+                >
+                  触发设置
+                </button>
+                <button
+                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                    settingsActiveTab === 'tags'
+                      ? 'border-b-2 border-primary text-primary'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  onClick={() => setSettingsActiveTab('tags')}
+                >
+                  标签管理
+                </button>
+              </div>
+
+              {settingsActiveTab === 'trigger' && settingsDraft && commandsDraft && (
                 <DialogBody className="space-y-4">
                   <label className="flex items-center gap-2 text-sm">
                     <input
@@ -1336,6 +1364,12 @@ export function DeepSeekChatPanel({
                       {settingsLoading ? '保存中...' : '保存'}
                     </Button>
                   </div>
+                </DialogBody>
+              )}
+
+              {settingsActiveTab === 'tags' && (
+                <DialogBody>
+                  <TagSettingsPanel />
                 </DialogBody>
               )}
             </DialogContent>

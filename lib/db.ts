@@ -8,9 +8,6 @@ import { getStorage, resetStorage, dbHelpersWrapper } from './storage/StorageAda
 // 导出类型定义
 export type { Tag, Card, Lane, Board, Data } from '@/types'
 
-// 导出预设标签颜色（保持兼容）
-export { TAG_COLORS } from './storage/StorageAdapter'
-
 // 导出新的存储适配器
 export { getStorage, resetStorage, dbHelpersWrapper } from './storage/StorageAdapter'
 

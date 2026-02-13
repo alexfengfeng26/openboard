@@ -3,6 +3,7 @@
  */
 
 import type { AiCommand } from './ai-commands.types'
+import type { Tag } from './index'
 
 /**
  * AI 工具触发配置
@@ -50,6 +51,18 @@ export interface BoardViewSettings {
 }
 
 /**
+ * 标签配置设置
+ */
+export interface TagsSettings {
+  /** 全局预设标签池 */
+  globalTags: Tag[]
+  /** 是否允许在看板中自定义标签 */
+  allowCustomTags: boolean
+  /** 默认标签颜色选项 */
+  colorOptions: string[]
+}
+
+/**
  * 应用设置（根对象）
  */
 export interface AppSettings {
@@ -59,6 +72,8 @@ export interface AppSettings {
   ai: AiSettings
   /** 看板显示设置 */
   boardView: BoardViewSettings
+  /** 标签配置设置 */
+  tags: TagsSettings
   /** 更新时间 */
   updatedAt: string
 }
@@ -71,6 +86,42 @@ export class SettingsStorageError extends Error {
     super(message)
     this.name = 'SettingsStorageError'
   }
+}
+
+/** 默认标签颜色选项 */
+export const DEFAULT_TAG_COLORS = [
+  '#ef4444', // 红色
+  '#f97316', // 橙色
+  '#f59e0b', // 琥珀色
+  '#84cc16', // 黄绿色
+  '#22c55e', // 绿色
+  '#10b981', // 翠绿色
+  '#14b8a6', // 青色
+  '#06b6d4', // 天蓝色
+  '#0ea5e9', // 蓝色
+  '#3b82f6', // 亮蓝色
+  '#6366f1', // 靛蓝色
+  '#8b5cf6', // 紫色
+  '#a855f7', // 紫罗兰
+  '#d946ef', // 洋红色
+  '#ec4899', // 粉色
+  '#f43f5e', // 玫瑰色
+  '#6b7280', // 灰色
+  '#374151', // 深灰色
+]
+
+/**
+ * 创建默认标签
+ */
+export function createDefaultTags(): Tag[] {
+  return [
+    { id: 'tag-urgent', name: '紧急', color: '#ef4444' },
+    { id: 'tag-feature', name: '功能', color: '#3b82f6' },
+    { id: 'tag-bug', name: 'Bug', color: '#f59e0b' },
+    { id: 'tag-optimize', name: '优化', color: '#10b981' },
+    { id: 'tag-docs', name: '文档', color: '#8b5cf6' },
+    { id: 'tag-design', name: '设计', color: '#ec4899' },
+  ]
 }
 
 /**
@@ -100,6 +151,11 @@ export function createDefaultSettings(): AppSettings {
       cardDensity: 'normal',
       showCardDescription: true,
       showTagColors: true,
+    },
+    tags: {
+      globalTags: createDefaultTags(),
+      allowCustomTags: true,
+      colorOptions: DEFAULT_TAG_COLORS,
     },
     updatedAt: now,
   }

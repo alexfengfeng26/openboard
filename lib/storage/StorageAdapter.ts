@@ -15,6 +15,7 @@ import {
 import { MarkdownBoard } from './MarkdownBoard'
 import { BoardCache } from './BoardCache'
 import { FileLock } from './FileLock'
+import { SettingsStorage } from './SettingsStorage'
 
 /**
  * 数据目录路径
@@ -22,18 +23,6 @@ import { FileLock } from './FileLock'
 const DATA_DIR = path.join(process.cwd(), 'data')
 const DB_JSON_PATH = path.join(DATA_DIR, 'db.json')
 const MIGRATION_FLAG = path.join(DATA_DIR, '.migration-complete')
-
-/**
- * 预设标签颜色
- */
-export const TAG_COLORS: Tag[] = [
-  { id: 'tag-0', name: '紧急', color: '#ef4444' },
-  { id: 'tag-1', name: '功能', color: '#3b82f6' },
-  { id: 'tag-2', name: 'Bug', color: '#f59e0b' },
-  { id: 'tag-3', name: '优化', color: '#10b981' },
-  { id: 'tag-4', name: '文档', color: '#8b5cf6' },
-  { id: 'tag-5', name: '设计', color: '#ec4899' },
-]
 
 /**
  * 存储适配器类
@@ -131,7 +120,7 @@ export class StorageAdapter {
       title,
       createdAt: now,
       updatedAt: now,
-      tags: TAG_COLORS.map((t, i) => ({ ...t, id: `${boardId}-tag-${i}` })),
+      tags: [],
       lanes: [
         {
           id: this.createLaneId(boardId, 0),
@@ -211,17 +200,12 @@ export class StorageAdapter {
   }
 
   /**
-   * 获取所有标签
+   * 获取所有标签（从全局设置获取）
    */
-  async getTags(boardId?: string): Promise<Tag[]> {
-    const targetId = boardId || 'default-board'
-    const board = await this.getBoard(targetId)
-
-    if (!board) {
-      return TAG_COLORS.map((t, i) => ({ ...t, id: `tag-${i}` }))
-    }
-
-    return board.tags || TAG_COLORS.map((t, i) => ({ ...t, id: `tag-${i}` }))
+  async getTags(): Promise<Tag[]> {
+    const settingsStorage = SettingsStorage.getInstance()
+    await settingsStorage.initialize()
+    return settingsStorage.getGlobalTags()
   }
 
   /**
@@ -616,7 +600,7 @@ export async function dbHelpersWrapper() {
     updateBoard: (boardId: string, data: { title?: string }) => storage.updateBoard(boardId, data),
     deleteBoard: (boardId: string) => storage.deleteBoard(boardId),
     getDefaultBoard: () => storage.getDefaultBoard(),
-    getTags: (boardId?: string) => storage.getTags(boardId),
+    getTags: () => storage.getTags(),
 
     // 列表操作
     createLane: (boardId: string, title: string) => storage.createLane(boardId, title),
