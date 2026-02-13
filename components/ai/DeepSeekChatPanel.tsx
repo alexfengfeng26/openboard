@@ -17,7 +17,7 @@ import type { ToolCallRequest, OperationLogEntry, PromptContext, ChatMessage } f
 import type { AiCommand } from '@/types/ai-commands.types'
 import type { CardDraft } from '@/lib/ai-tools/parser/card-draft-types'
 import type { AiToolTriggerConfig } from '@/types/settings.types'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogBody, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Settings } from 'lucide-react'
 import {
   createDefaultAiCommands,
@@ -1129,7 +1129,7 @@ export function DeepSeekChatPanel({
               </DialogHeader>
 
               {settingsDraft && commandsDraft && (
-                <div className="space-y-3">
+                <DialogBody className="space-y-4">
                   <label className="flex items-center gap-2 text-sm">
                     <input
                       type="checkbox"
@@ -1329,7 +1329,7 @@ export function DeepSeekChatPanel({
                       {settingsLoading ? '保存中...' : '保存'}
                     </Button>
                   </div>
-                </div>
+                </DialogBody>
               )}
             </DialogContent>
           </Dialog>

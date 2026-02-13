@@ -552,7 +552,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
 
       {/* 移动端聊天对话框 */}
       <Dialog open={showChat} onOpenChange={(open) => dispatch({ type: 'SET_SHOW_CHAT', payload: open })}>
-        <DialogContent className="w-[min(92vw,640px)] p-0 sm:rounded-2xl">
+        <DialogContent className="w-[min(92vw,640px)] sm:rounded-2xl overflow-hidden">
           <DialogHeader className="px-4 pt-4 border-b border-slate-200/60">
             <div className="flex items-center gap-2 pb-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600">
