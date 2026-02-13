@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { Card, Lane } from '@/lib/db'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -1086,17 +1087,24 @@ export function DeepSeekChatPanel({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-start justify-between gap-3 border-b px-4 py-3">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <div className="text-sm font-semibold">DeepSeek</div>
-            <Badge variant="secondary" className="h-5 px-2 text-[10px]">
-              {model === 'deepseek-reasoner' ? 'Reasoner' : 'Chat'}
-            </Badge>
+      <div className="flex items-center justify-between gap-3 border-b border-slate-200/60 px-4 py-3 bg-white/50">
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-md shadow-indigo-500/20">
+            <svg className="h-4 w-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+            </svg>
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="text-sm font-bold text-slate-800">DeepSeek</div>
+              <Badge variant="secondary" className="h-5 px-2 text-[10px] rounded-full">
+                {model === 'deepseek-reasoner' ? 'Reasoner' : 'Chat'}
+              </Badge>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <select
             value={model}
             onChange={async (e) => {
@@ -1108,14 +1116,14 @@ export function DeepSeekChatPanel({
                 // 错误已在 hook 中处理
               }
             }}
-            className="h-8 rounded-md border bg-background px-2 text-xs"
+            className="h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-600 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
           >
             <option value="deepseek-chat">deepseek-chat</option>
             <option value="deepseek-reasoner">deepseek-reasoner</option>
           </select>
           <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="rounded-lg">
                 <Settings className="h-4 w-4" />
               </Button>
             </DialogTrigger>
@@ -1359,15 +1367,17 @@ export function DeepSeekChatPanel({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-3">
-        <div className="space-y-3">
+      <div className="flex-1 overflow-y-auto px-4 py-4">
+        <div className="space-y-4">
           {messages.map((m) => (
-            <div key={m.id} className={m.role === 'user' ? 'flex justify-end' : 'flex justify-start'}>
+            <div key={m.id} className={cn('flex', m.role === 'user' ? 'justify-end' : 'justify-start')}>
               <div
-                className={[
-                  'max-w-[92%] rounded-lg px-3 py-2 text-sm leading-relaxed',
-                  m.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground',
-                ].join(' ')}
+                className={cn(
+                  'max-w-[90%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm',
+                  m.role === 'user' 
+                    ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-br-md' 
+                    : 'bg-white border border-slate-200/60 text-slate-700 rounded-bl-md'
+                )}
               >
                 <div className="whitespace-pre-wrap">{m.content}</div>
                 {m.role === 'assistant' && shouldShowAssistantActions(m.id) && (
@@ -1387,12 +1397,12 @@ export function DeepSeekChatPanel({
       </div>
 
       {(draft || draftError) && (
-        <div className="border-t bg-background px-4 py-3">
+        <div className="border-t border-slate-200/60 bg-white/70 px-4 py-3">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <div className="text-xs font-medium">卡片草稿</div>
+              <div className="text-xs font-bold text-slate-700">卡片草稿</div>
               {draftQueue && draftQueue.length > 1 && (
-                <div className="text-[11px] text-muted-foreground">
+                <div className="text-[11px] font-medium text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-full">
                   {draftIndex + 1}/{draftQueue.length}
                 </div>
               )}
@@ -1506,9 +1516,9 @@ export function DeepSeekChatPanel({
         </div>
       )}
 
-      <div className="border-t bg-background px-4 py-3">
+      <div className="border-t border-slate-200/60 bg-white/50 px-4 py-3">
         {(!toolTriggerConfig.gateByPrefix || toolTriggerConfig.showQuickTemplatesInChat) && (
-          <div className="mb-2 flex flex-wrap gap-2">
+          <div className="mb-3 flex flex-wrap gap-2">
             {quickbarCommands.map((c) => (
               <Button
                 key={c.id}
@@ -1516,6 +1526,7 @@ export function DeepSeekChatPanel({
                 variant="outline"
                 size="sm"
                 onClick={() => applyTemplate(c.insertText)}
+                className="rounded-full text-xs"
               >
                 {formatQuickbarLabel(c.label)}
               </Button>
@@ -1565,7 +1576,7 @@ export function DeepSeekChatPanel({
             value={input}
             onChange={(e) => handleInputChange(e.target.value)}
             placeholder="输入你的问题…（Enter 发送，Shift+Enter 换行）"
-            className="min-h-[44px] resize-none text-sm"
+            className="min-h-[52px] resize-none text-sm bg-white rounded-xl border-slate-200 focus:border-indigo-400"
             onKeyDownCapture={(e) => {
               const handled = handleSlashMenuKeyDown(e)
               if (handled) return
@@ -1576,7 +1587,11 @@ export function DeepSeekChatPanel({
             }}
             disabled={isSending}
           />
-          <Button onClick={handleSend} disabled={!input.trim() || isSending}>
+          <Button 
+            onClick={handleSend} 
+            disabled={!input.trim() || isSending}
+            className="h-[52px] px-6 rounded-xl"
+          >
             {isSending ? '发送中…' : '发送'}
           </Button>
         </div>

@@ -1,13 +1,27 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from '@/components/ui/toast'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ 
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+})
 
 export const metadata: Metadata = {
   title: '看板系统 | Kanban Board',
-  description: '基于 Next.js 15 和 SQLite 的现代化看板系统',
+  description: '基于 Next.js 16 的现代化看板系统，支持 AI 辅助和拖放操作',
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#0f172a' },
+  ],
 }
 
 export default function RootLayout({
@@ -16,12 +30,12 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="zh-CN">
-      <body className={inter.className} suppressHydrationWarning>
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <html lang="zh-CN" className={inter.variable}>
+      <body className={`${inter.className} antialiased`} suppressHydrationWarning>
+        <div className="min-h-screen gradient-bg">
           {children}
         </div>
-        <Toaster position="bottom-right" richColors />
+        <Toaster position="bottom-right" richColors closeButton />
       </body>
     </html>
   )
