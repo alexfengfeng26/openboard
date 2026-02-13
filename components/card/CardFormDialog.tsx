@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogBody, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -178,42 +178,44 @@ export function CardFormDialog({
               <DialogTitle className="text-base">{dialogTitle}</DialogTitle>
             </DialogHeader>
 
-            <div className="space-y-3 py-3">
-              <div className="space-y-1.5">
-                <label htmlFor={inputId} className="text-xs font-medium">
-                  标题 <span className="text-destructive">*</span>
-                </label>
-                <Input
-                  id={inputId}
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="输入卡片标题..."
-                  disabled={isSubmitting}
-                  autoFocus
-                  className="h-8 text-sm"
-                />
-              </div>
+            <DialogBody>
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label htmlFor={inputId} className="text-xs font-medium text-slate-700">
+                    标题 <span className="text-rose-500">*</span>
+                  </label>
+                  <Input
+                    id={inputId}
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="输入卡片标题..."
+                    disabled={isSubmitting}
+                    autoFocus
+                    className="h-9 text-sm"
+                  />
+                </div>
 
-              <div className="space-y-1.5">
-                <label htmlFor={descriptionId} className="text-xs font-medium">
-                  描述
-                </label>
-                <Textarea
-                  id={descriptionId}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="输入卡片描述..."
-                  rows={descriptionRows}
-                  disabled={isSubmitting}
-                  className="text-sm resize-none"
-                />
-              </div>
+                <div className="space-y-1.5">
+                  <label htmlFor={descriptionId} className="text-xs font-medium text-slate-700">
+                    描述
+                  </label>
+                  <Textarea
+                    id={descriptionId}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="输入卡片描述..."
+                    rows={descriptionRows}
+                    disabled={isSubmitting}
+                    className="text-sm resize-none"
+                  />
+                </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium">标签</label>
-                <TagSelector selectedTags={tags} onTagsChange={setTags} disabled={isSubmitting} />
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-slate-700">标签</label>
+                  <TagSelector selectedTags={tags} onTagsChange={setTags} disabled={isSubmitting} />
+                </div>
               </div>
-            </div>
+            </DialogBody>
 
             <DialogFooter className={isEditMode ? 'gap-2' : undefined}>
               {isEditMode && (

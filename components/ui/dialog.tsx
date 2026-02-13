@@ -40,7 +40,7 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        'fixed left-[50%] top-[50%] z-50 w-full max-w-lg',
+        'fixed left-[50%] top-[50%] z-50 w-[calc(100%-2rem)] max-w-lg',
         'translate-x-[-50%] translate-y-[-50%]',
         'rounded-2xl border border-slate-200/60 bg-white',
         'shadow-2xl shadow-slate-900/20',
@@ -54,7 +54,9 @@ const DialogContent = React.forwardRef<
       )}
       {...props}
     >
-      {children}
+      <div className="max-h-[calc(100vh-4rem)] overflow-y-auto">
+        {children}
+      </div>
       <DialogPrimitive.Close className="absolute right-4 top-4 rounded-lg p-2 text-slate-400 transition-all duration-200 hover:bg-slate-100 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:pointer-events-none">
         <X className="h-4 w-4" />
         <span className="sr-only">Close</span>
@@ -63,6 +65,17 @@ const DialogContent = React.forwardRef<
   </DialogPortal>
 ))
 DialogContent.displayName = DialogPrimitive.Content.displayName
+
+const DialogBody = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={cn('px-6 py-5', className)}
+    {...props}
+  />
+)
+DialogBody.displayName = 'DialogBody'
 
 const DialogHeader = ({
   className,
@@ -129,6 +142,7 @@ export {
   DialogTrigger,
   DialogContent,
   DialogHeader,
+  DialogBody,
   DialogFooter,
   DialogTitle,
   DialogDescription,

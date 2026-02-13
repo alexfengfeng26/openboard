@@ -159,16 +159,16 @@ export function DeepSeekChatPanel({
   // 从服务端设置加载 AI 命令
   useEffect(() => {
     if (aiSettings?.commands && !commandsLoaded) {
-      const commands = aiSettings.commands.length > 0 
-        ? aiSettings.commands 
+      const commands = aiSettings.commands.length > 0
+        ? aiSettings.commands
         : createDefaultAiCommands({
-            prefixes: {
-              all: aiSettings.toolTrigger?.prefixes?.all,
-              card: aiSettings.toolTrigger?.prefixes?.card,
-              lane: aiSettings.toolTrigger?.prefixes?.lane,
-              board: aiSettings.toolTrigger?.prefixes?.board,
-            }
-          })
+          prefixes: {
+            all: aiSettings.toolTrigger?.prefixes?.all,
+            card: aiSettings.toolTrigger?.prefixes?.card,
+            lane: aiSettings.toolTrigger?.prefixes?.lane,
+            board: aiSettings.toolTrigger?.prefixes?.board,
+          }
+        })
       setAiCommands(commands)
       setCommandsLoaded(true)
     }
@@ -1089,14 +1089,9 @@ export function DeepSeekChatPanel({
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between gap-3 border-b border-slate-200/60 px-4 py-3 bg-white/50">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-md shadow-indigo-500/20">
-            <svg className="h-4 w-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-            </svg>
-          </div>
+
           <div>
             <div className="flex items-center gap-2">
-              <div className="text-sm font-bold text-slate-800">DeepSeek</div>
               <Badge variant="secondary" className="h-5 px-2 text-[10px] rounded-full">
                 {model === 'deepseek-reasoner' ? 'Reasoner' : 'Chat'}
               </Badge>
@@ -1374,8 +1369,8 @@ export function DeepSeekChatPanel({
               <div
                 className={cn(
                   'max-w-[90%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm',
-                  m.role === 'user' 
-                    ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-br-md' 
+                  m.role === 'user'
+                    ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-br-md'
                     : 'bg-white border border-slate-200/60 text-slate-700 rounded-bl-md'
                 )}
               >
@@ -1587,8 +1582,8 @@ export function DeepSeekChatPanel({
             }}
             disabled={isSending}
           />
-          <Button 
-            onClick={handleSend} 
+          <Button
+            onClick={handleSend}
             disabled={!input.trim() || isSending}
             className="h-[52px] px-6 rounded-xl"
           >

@@ -2,7 +2,7 @@
 id: default-board
 title: 我的看板
 createdAt: '2026-02-11T07:06:35.423Z'
-updatedAt: '2026-02-12T10:25:32.150Z'
+updatedAt: '2026-02-13T06:58:50.278Z'
 tags:
   - id: tag-0
     name: 紧急
@@ -27,7 +27,7 @@ lanes:
     title: 待办
     position: 0
     createdAt: '2026-02-11T07:06:35.423Z'
-    updatedAt: '2026-02-12T10:17:26.534Z'
+    updatedAt: '2026-02-13T06:58:50.278Z'
     cards:
       - id: card-3
         laneId: lane-todo
@@ -46,12 +46,6 @@ lanes:
           1. 创建管理员后台登录与主界面。
           2. 开发商品管理模块，支持增删改查商品信息。
           3. 开发订单管理模块，支持查看订单列表与状态更新。
-      - id: card-b1c77947-bb01-44bf-b5e4-274d9431c99a
-        laneId: lane-todo
-        title: 起号
-        position: 8
-        createdAt: '2026-02-12T06:33:32.063Z'
-        updatedAt: '2026-02-12T06:33:32.063Z'
       - id: card-1770891446534-sh5p25
         laneId: lane-todo
         title: 看板系统功能介绍与协助引导
@@ -186,8 +180,6 @@ lanes:
 1. 创建管理员后台登录与主界面。
 2. 开发商品管理模块，支持增删改查商品信息。
 3. 开发订单管理模块，支持查看订单列表与状态更新。
-
-### 起号
 
 ### 看板系统功能介绍与协助引导
 

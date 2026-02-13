@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogBody, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Trash2 } from 'lucide-react'
@@ -101,25 +101,28 @@ export function EditLaneDialog({ open, onOpenChange, lane, onLaneUpdated, onLane
               <DialogTitle className="text-base">编辑列表</DialogTitle>
             </DialogHeader>
 
-            <div className="space-y-3 py-3">
-              <div className="space-y-1.5">
-                <label htmlFor="edit-lane-title" className="text-xs font-medium">
-                  列表标题
-                </label>
-                <Input
-                  id="edit-lane-title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="输入列表标题..."
-                  disabled={isSubmitting}
-                  className="h-8 text-sm"
-                />
-              </div>
+            <DialogBody>
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label htmlFor="edit-lane-title" className="text-xs font-medium text-slate-700">
+                    列表标题
+                  </label>
+                  <Input
+                    id="edit-lane-title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="输入列表标题..."
+                    disabled={isSubmitting}
+                    className="h-9 text-sm"
+                  />
+                </div>
 
-              <div className="text-xs text-muted-foreground">
-                此列表包含 {lane.cards.length} 个卡片
+                <div className="inline-flex items-center gap-1.5 text-xs text-slate-500 bg-slate-100 px-2.5 py-1.5 rounded-lg">
+                  <span className="font-medium text-slate-700">{lane.cards.length}</span>
+                  <span>个卡片</span>
+                </div>
               </div>
-            </div>
+            </DialogBody>
 
             <DialogFooter className="gap-2">
               <Button

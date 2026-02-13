@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogBody, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Trash2 } from 'lucide-react'
@@ -96,21 +96,23 @@ export function EditBoardDialog({
               <DialogTitle className="text-base">编辑看板</DialogTitle>
             </DialogHeader>
 
-            <div className="space-y-3 py-3">
-              <div className="space-y-1.5">
-                <label htmlFor="edit-board-title" className="text-xs font-medium">
-                  看板名称
-                </label>
-                <Input
-                  id="edit-board-title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="输入看板名称..."
-                  disabled={isSubmitting}
-                  className="h-8 text-sm"
-                />
+            <DialogBody>
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label htmlFor="edit-board-title" className="text-xs font-medium text-slate-700">
+                    看板名称
+                  </label>
+                  <Input
+                    id="edit-board-title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="输入看板名称..."
+                    disabled={isSubmitting}
+                    className="h-9 text-sm"
+                  />
+                </div>
               </div>
-            </div>
+            </DialogBody>
 
             <DialogFooter className="gap-2">
               <Button

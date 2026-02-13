@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogBody, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -46,22 +46,24 @@ export function CreateLaneDialog({ open, onOpenChange, onLaneCreated }: CreateLa
             <DialogTitle className="text-base">创建列表</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-3 py-3">
-            <div className="space-y-1.5">
-              <label htmlFor="lane-title" className="text-xs font-medium">
-                列表标题 <span className="text-destructive">*</span>
-              </label>
-              <Input
-                id="lane-title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="例如：待办、进行中、已完成"
-                disabled={isSubmitting}
-                autoFocus
-                className="h-8 text-sm"
-              />
+          <DialogBody>
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <label htmlFor="lane-title" className="text-xs font-medium text-slate-700">
+                  列表标题 <span className="text-rose-500">*</span>
+                </label>
+                <Input
+                  id="lane-title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="例如：待办、进行中、已完成"
+                  disabled={isSubmitting}
+                  autoFocus
+                  className="h-9 text-sm"
+                />
+              </div>
             </div>
-          </div>
+          </DialogBody>
 
           <DialogFooter>
             <Button type="button" variant="outline" size="sm" onClick={handleClose} disabled={isSubmitting}>
