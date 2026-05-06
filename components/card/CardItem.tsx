@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 import { formatRelativeTime } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Edit2 } from 'lucide-react'
-import { useState } from 'react'
+import { memo, useState } from 'react'
 
 interface CardItemProps {
   card: Card
@@ -13,7 +13,7 @@ interface CardItemProps {
   onEdit?: (card: Card) => void
 }
 
-export function CardItem({ card, isDragging, onEdit }: CardItemProps) {
+export const CardItem = memo(function CardItem({ card, isDragging, onEdit }: CardItemProps) {
   const [isExpanded, setIsExpanded] = useState(false)
 
   return (
@@ -96,4 +96,4 @@ export function CardItem({ card, isDragging, onEdit }: CardItemProps) {
       </div>
     </div>
   )
-}
+})

@@ -8,6 +8,7 @@ interface ChatRequestBody {
   model?: string
   system?: string
   messages?: IncomingMessage[]
+  temperature?: number
 }
 
 interface DeepSeekErrorResponse {
@@ -36,12 +37,16 @@ export async function POST(request: Request) {
     const model = typeof body?.model === 'string' ? body.model : 'deepseek-chat'
     const system = typeof body?.system === 'string' ? body.system : ''
     const messages = Array.isArray(body?.messages) ? body!.messages : []
+    const temperature = typeof body?.temperature === 'number' ? body.temperature : 0.4
 
     const sanitized = messages
       .filter((m) => m && (m.role === 'user' || m.role === 'assistant' || m.role === 'system') && typeof m.content === 'string')
       .map((m) => ({ role: m.role, content: m.content }))
 
     const outgoing = system ? [{ role: 'system' as const, content: system }, ...sanitized] : sanitized
+
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 30000)
 
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
@@ -53,9 +58,12 @@ export async function POST(request: Request) {
         model,
         messages: outgoing,
         stream: false,
-        temperature: 0.4,
+        temperature,
       }),
+      signal: controller.signal,
     })
+
+    clearTimeout(timeoutId)
 
     const data = await response.json().catch(() => null) as DeepSeekErrorResponse | DeepSeekSuccessResponse | null
     if (!response.ok) {
@@ -72,6 +80,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ content })
   } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      return NextResponse.json({ error: 'AI 请求超时，请稍后重试' }, { status: 504 })
+    }
     return NextResponse.json({ error: 'AI 服务异常' }, { status: 500 })
   }
 }

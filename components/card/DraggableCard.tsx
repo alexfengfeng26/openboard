@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type { Card } from '@/lib/db'
@@ -10,7 +11,7 @@ interface DraggableCardProps {
   onEdit?: (card: Card) => void
 }
 
-export function DraggableCard({ card, onEdit }: DraggableCardProps) {
+export const DraggableCard = memo(function DraggableCard({ card, onEdit }: DraggableCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,
     data: {
@@ -33,4 +34,4 @@ export function DraggableCard({ card, onEdit }: DraggableCardProps) {
       <CardItem card={card} isDragging={isDragging} onEdit={onEdit} />
     </div>
   )
-}
+})

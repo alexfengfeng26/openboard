@@ -5,19 +5,32 @@ import { X, Plus } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { toastError } from '@/components/ui/toast'
+import { useBoardTags } from '@/components/board/BoardTagsContext'
 import type { Tag } from '@/lib/db'
 
 interface TagSelectorProps {
   selectedTags: Tag[]
   onTagsChange: (tags: Tag[]) => void
   disabled?: boolean
+  availableTags?: Tag[]
 }
 
-export function TagSelector({ selectedTags, onTagsChange, disabled }: TagSelectorProps) {
-  const [availableTags, setAvailableTags] = useState<Tag[]>([])
+export function TagSelector({ selectedTags, onTagsChange, disabled, availableTags: propTags }: TagSelectorProps) {
+  const contextTags = useBoardTags()
+  const [availableTags, setAvailableTags] = useState<Tag[]>(propTags || contextTags || [])
   const [showAll, setShowAll] = useState(false)
 
   useEffect(() => {
+    if (propTags && propTags.length > 0) {
+      setAvailableTags(propTags)
+      return
+    }
+
+    if (contextTags && contextTags.length > 0) {
+      setAvailableTags(contextTags)
+      return
+    }
+
     async function fetchTags() {
       try {
         const response = await fetch('/api/tags')
@@ -30,7 +43,7 @@ export function TagSelector({ selectedTags, onTagsChange, disabled }: TagSelecto
       }
     }
     fetchTags()
-  }, [])
+  }, [propTags, contextTags])
 
   const isTagSelected = (tag: Tag) => selectedTags.some((t) => t.id === tag.id)
 

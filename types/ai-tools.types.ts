@@ -55,6 +55,8 @@ export interface OperationLogEntry {
   result?: unknown
   error?: string
   confirmedBy?: 'user' | 'auto'
+  /** 操作耗时（毫秒） */
+  durationMs?: number
 }
 
 /**
@@ -81,6 +83,8 @@ export interface PromptContext {
       title: string
     }>
   }>
+  /** 附加提示信息（如截断提示） */
+  note?: string
 }
 
 /**

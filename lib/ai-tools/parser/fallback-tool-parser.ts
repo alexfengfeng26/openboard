@@ -186,11 +186,14 @@ export class FallbackToolParser {
         continue
       }
 
-      if (trimmed.length < 100 && !/[:：]/.test(trimmed)) {
+      // 兜底策略：仅当文本明确包含创建意图时才拆分
+      const creationKeywords = /(?:创建|添加|新增|生成|todo|待办|task|card|卡片)/i
+      if (trimmed.length < 100 && !/[:：]/.test(trimmed) && creationKeywords.test(trimmed)) {
         const potentialTitles = trimmed.split(/[，、；。]/)
         for (const t of potentialTitles) {
           const cleanTitle = t.trim()
-          if (cleanTitle.length > 1 && cleanTitle.length < 50) {
+          // 更严格的标题长度：3-30 字符
+          if (cleanTitle.length >= 3 && cleanTitle.length <= 30) {
             drafts.push({ title: cleanTitle })
           }
         }

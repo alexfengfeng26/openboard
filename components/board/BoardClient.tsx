@@ -1,20 +1,21 @@
 'use client'
 
-import { useReducer, useCallback } from 'react'
+import { useReducer, useCallback, useRef, useState, useEffect } from 'react'
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors, DragOverEvent, closestCenter } from '@dnd-kit/core'
 import { SortableContext, horizontalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'
-import type { Board, Lane, Card } from '@/lib/db'
+import type { Board, Lane, Card, Tag } from '@/lib/db'
 import { LaneItem } from '@/components/lane/LaneItem'
 import { EditCardDialog } from '@/components/card/EditCardDialog'
 import { CardItem } from '@/components/card/CardItem'
 import { findCardById, getCardLaneId, getDragType, isValidDragEnd } from '@/lib/drag-utils'
 import { toastError } from '@/components/ui/toast'
-import { MessageCircle, Plus, Sparkles, LayoutGrid } from 'lucide-react'
+import { MessageCircle, Plus, Sparkles, LayoutGrid, GripVertical } from 'lucide-react'
 import { CreateLaneDialog } from '@/components/lane/CreateLaneDialog'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { DeepSeekChatPanel } from '@/components/ai/DeepSeekChatPanel'
 import { BoardSelector } from './BoardSelector'
+import { BoardTagsProvider } from './BoardTagsContext'
 import { cn } from '@/lib/utils'
 
 interface BoardClientProps {
@@ -154,6 +155,27 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
 
   const { board, boards, activeId, activeType, showCreateLane, editingCard, hoveredLaneId, showChat } = state
 
+  // 使用 useRef 缓存 board，避免 handleDragEnd 频繁重建
+  const boardRef = useRef(board)
+  boardRef.current = board
+
+  const [boardTags, setBoardTags] = useState<Tag[]>([])
+
+  useEffect(() => {
+    async function fetchTags() {
+      try {
+        const response = await fetch('/api/tags')
+        const result = await response.json()
+        if (result.success) {
+          setBoardTags(result.data)
+        }
+      } catch {
+        // 静默失败
+      }
+    }
+    fetchTags()
+  }, [])
+
   // 刷新看板列表
   const refreshBoards = useCallback(async () => {
     try {
@@ -200,6 +222,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
 
   // 拖放移动
   const handleDragOver = useCallback((event: DragOverEvent) => {
+    const currentBoard = boardRef.current
     const { active, over } = event
     if (!over) {
       dispatch({ type: 'SET_HOVERED_LANE_ID', payload: null })
@@ -210,17 +233,18 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
     const overType = getDragType(over)
 
     if (overType === 'CARD') {
-      const card = findCardById(board.lanes, over.id as string)
+      const card = findCardById(currentBoard.lanes, over.id as string)
       if (card) {
         laneId = card.laneId
       }
     }
 
     dispatch({ type: 'SET_HOVERED_LANE_ID', payload: laneId })
-  }, [board])
+  }, [])
 
   // 拖放结束
   const handleDragEnd = useCallback(async (event: DragEndEvent) => {
+    const currentBoard = boardRef.current
     const { active, over } = event
 
     dispatch({ type: 'SET_ACTIVE_ID', payload: null })
@@ -240,20 +264,20 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
       const overType = getDragType(over)
 
       if (overType === 'CARD') {
-        const droppedCard = findCardById(board.lanes, over.id as string)
+        const droppedCard = findCardById(currentBoard.lanes, over.id as string)
         if (droppedCard) {
           toLaneId = droppedCard.laneId
         }
       }
 
-      const toLane = board.lanes.find((l) => l.id === toLaneId)
+      const toLane = currentBoard.lanes.find((l) => l.id === toLaneId)
 
       if (!fromLaneId || !toLane) {
         return
       }
 
       if (fromLaneId === toLaneId) {
-        const fromLane = board.lanes.find((l) => l.id === fromLaneId)
+        const fromLane = currentBoard.lanes.find((l) => l.id === fromLaneId)
         if (!fromLane) return
 
         const oldIndex = fromLane.cards.findIndex((c) => c.id === cardId)
@@ -264,18 +288,18 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
         }
 
         const updatedCards = arrayMove(fromLane.cards, oldIndex, newIndex)
-        const updatedLanes = board.lanes.map((lane) =>
+        const updatedLanes = currentBoard.lanes.map((lane) =>
           lane.id === fromLaneId ? { ...lane, cards: updatedCards } : lane
         )
 
-        dispatch({ type: 'SET_BOARD', payload: { ...board, lanes: updatedLanes } })
+        dispatch({ type: 'SET_BOARD', payload: { ...currentBoard, lanes: updatedLanes } })
 
         try {
           const response = await fetch('/api/cards/reorder', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              boardId: board.id,
+              boardId: currentBoard.id,
               laneId: fromLaneId,
               cardIds: updatedCards.map((c) => c.id),
             }),
@@ -285,7 +309,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
             throw new Error('Failed to reorder cards')
           }
         } catch (error) {
-          dispatch({ type: 'SET_BOARD', payload: board })
+          dispatch({ type: 'SET_BOARD', payload: currentBoard })
         }
         return
       }
@@ -299,7 +323,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
         }
       }
 
-      const updatedLanes = board.lanes.map((lane) => {
+      const updatedLanes = currentBoard.lanes.map((lane) => {
         if (lane.id === fromLaneId) {
           return {
             ...lane,
@@ -307,7 +331,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
           }
         }
         if (lane.id === toLaneId) {
-          const card = findCardById(board.lanes, cardId)
+          const card = findCardById(currentBoard.lanes, cardId)
           if (card) {
             const insertIndex = overType === 'CARD' && toLane.cards.findIndex((c) => c.id === over.id) !== -1
               ? toLane.cards.findIndex((c) => c.id === over.id)
@@ -325,44 +349,44 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
         return lane
       })
 
-      dispatch({ type: 'SET_BOARD', payload: { ...board, lanes: updatedLanes } })
+      dispatch({ type: 'SET_BOARD', payload: { ...currentBoard, lanes: updatedLanes } })
 
       try {
         const response = await fetch('/api/cards/move', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ boardId: board.id, cardId, toLaneId, newPosition }),
+          body: JSON.stringify({ boardId: currentBoard.id, cardId, toLaneId, newPosition }),
         })
 
         if (!response.ok) {
           throw new Error('Failed to move card')
         }
       } catch (error) {
-        dispatch({ type: 'SET_BOARD', payload: board })
+        dispatch({ type: 'SET_BOARD', payload: currentBoard })
       }
     }
 
     if (type === 'LANE') {
-      const oldIndex = board.lanes.findIndex((l) => l.id === active.id)
-      const newIndex = board.lanes.findIndex((l) => l.id === over.id)
+      const oldIndex = currentBoard.lanes.findIndex((l) => l.id === active.id)
+      const newIndex = currentBoard.lanes.findIndex((l) => l.id === over.id)
 
       if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) {
         return
       }
 
-      const updatedLanes = arrayMove(board.lanes, oldIndex, newIndex)
+      const updatedLanes = arrayMove(currentBoard.lanes, oldIndex, newIndex)
       updatedLanes.forEach((lane, index) => {
         lane.position = index
       })
 
-      dispatch({ type: 'SET_BOARD', payload: { ...board, lanes: updatedLanes } })
+      dispatch({ type: 'SET_BOARD', payload: { ...currentBoard, lanes: updatedLanes } })
 
       try {
         const response = await fetch('/api/lanes/reorder', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            boardId: board.id,
+            boardId: currentBoard.id,
             laneIds: updatedLanes.map((l) => l.id),
           }),
         })
@@ -371,10 +395,10 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
           throw new Error('Failed to reorder lanes')
         }
       } catch (error) {
-        dispatch({ type: 'SET_BOARD', payload: board })
+        dispatch({ type: 'SET_BOARD', payload: currentBoard })
       }
     }
-  }, [board])
+  }, [])
 
   // 添加列表
   const handleAddLane = useCallback(async (title: string) => {
@@ -422,10 +446,21 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
     dispatch({ type: 'ADD_CARD_TO_LANE', payload: { laneId, card } })
   }, [])
 
+  const handleLaneUpdate = useCallback((updatedLane: Lane) => {
+    dispatch({ type: 'UPDATE_LANE', payload: updatedLane })
+  }, [])
+
+  const handleLaneDeleted = useCallback((laneId: string) => {
+    dispatch({ type: 'DELETE_LANE', payload: laneId })
+  }, [])
+
   // 获取正在拖拽的卡片
   const activeCard = activeId && activeType === 'CARD' ? findCardById(board.lanes, activeId) : null
+  // 获取正在拖拽的列表
+  const activeLane = activeId && activeType === 'LANE' ? board.lanes.find((l) => l.id === activeId) : null
 
   return (
+    <BoardTagsProvider tags={boardTags}>
     <div className="flex h-screen w-full">
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         {/* 顶部导航栏 */}
@@ -484,13 +519,9 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                     lane={lane}
                     boardId={board.id}
                     isHovered={hoveredLaneId === lane.id}
-                    onLaneUpdate={(updatedLane) => {
-                      dispatch({ type: 'UPDATE_LANE', payload: updatedLane })
-                    }}
+                    onLaneUpdate={handleLaneUpdate}
                     onCardEdit={handleCardEdit}
-                    onLaneDeleted={(laneId) => {
-                      dispatch({ type: 'DELETE_LANE', payload: laneId })
-                    }}
+                    onLaneDeleted={handleLaneDeleted}
                   />
                 ))}
 
@@ -521,6 +552,27 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                   <CardItem card={activeCard} isDragging />
                 </div>
               )}
+              {activeLane && (
+                <div className="react-kanban-drag-overlay w-64 shrink-0 rotate-1 rounded-lg bg-muted/50 py-3 px-2 shadow-2xl opacity-90">
+                  <div className="mb-3 flex items-center gap-2">
+                    <GripVertical className="h-4 w-4 text-muted-foreground" />
+                    <h2 className="font-semibold">{activeLane.title}</h2>
+                    <span className="text-xs text-muted-foreground">{activeLane.cards.length}</span>
+                  </div>
+                  <div className="space-y-2">
+                    {activeLane.cards.slice(0, 3).map((card) => (
+                      <div key={card.id} className="rounded-md border bg-card p-3 shadow-sm">
+                        <h3 className="text-sm font-medium">{card.title}</h3>
+                      </div>
+                    ))}
+                    {activeLane.cards.length > 3 && (
+                      <div className="text-center text-xs text-muted-foreground">
+                        还有 {activeLane.cards.length - 3} 张卡片...
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </DragOverlay>
           </DndContext>
         </div>
@@ -545,6 +597,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
               onCardCreated={handleCardCreatedFromChat}
               onBoardRefresh={refreshCurrentBoard}
               boardId={board.id}
+              boardTitle={board.title}
             />
           </div>
         </div>
@@ -568,6 +621,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
               onCardCreated={handleCardCreatedFromChat}
               onBoardRefresh={refreshCurrentBoard}
               boardId={board.id}
+              boardTitle={board.title}
             />
           </div>
         </DialogContent>
@@ -592,5 +646,6 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
         />
       )}
     </div>
+    </BoardTagsProvider>
   )
 }

@@ -113,6 +113,10 @@ ${toolTriggerHelp}
       })
     }
 
+    if (context.note) {
+      parts.push(`\n${context.note}`)
+    }
+
     return parts.length > 0 ? parts.join('\n') : '无上下文信息'
   }
 }

@@ -35,11 +35,11 @@ export async function POST(request: Request) {
       updatedAt: new Date().toISOString(),
     }
 
-    await dbHelpers.updateBoard(boardId, { title: board.title })
+    await dbHelpers.updateBoard(boardId, { title: board.title, lanes: updatedBoard.lanes })
 
     return NextResponse.json({ success: true, data: updatedBoard })
   } catch (error) {
     console.error('Error reordering lanes:', error)
-    return NextResponse.json({ error: 'Failed to reorder lanes' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to reorder lanes' }, { status: 500 })
   }
 }

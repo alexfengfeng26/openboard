@@ -34,7 +34,9 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting lane:', error)
-    return NextResponse.json({ error: 'Failed to delete lane' }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Failed to delete lane'
+    const status = message.includes('not found') ? 404 : 500
+    return NextResponse.json({ success: false, error: message }, { status })
   }
 }
 
@@ -52,6 +54,8 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error updating lane:', error)
-    return NextResponse.json({ error: 'Failed to update lane' }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Failed to update lane'
+    const status = message.includes('not found') ? 404 : 500
+    return NextResponse.json({ success: false, error: message }, { status })
   }
 }

@@ -54,11 +54,11 @@ export async function POST(request: Request) {
       updatedAt: new Date().toISOString(),
     }
 
-    await db.updateBoard(boardId, { title: board.title })
+    await db.updateBoard(boardId, { title: board.title, lanes: updatedBoard.lanes })
 
     return NextResponse.json({ success: true, data: updatedLane })
   } catch (error) {
     console.error('Error reordering cards:', error)
-    return NextResponse.json({ error: 'Failed to reorder cards' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to reorder cards' }, { status: 500 })
   }
 }

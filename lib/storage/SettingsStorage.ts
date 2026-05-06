@@ -9,6 +9,7 @@ import type { AppSettings, AiSettings, BoardViewSettings, TagsSettings } from '@
 import type { Tag } from '@/types/card.types'
 import { createDefaultSettings, createDefaultTags, SettingsStorageError } from '@/types/settings.types'
 import { createDefaultAiCommands, normalizeAiCommands } from '@/lib/ai/commands'
+import { FileLock } from './FileLock'
 
 /**
  * 设置文件路径
@@ -235,6 +236,7 @@ export class SettingsStorage {
    * 从文件加载设置
    */
   private async loadFromFile(): Promise<AppSettings | null> {
+    const release = await FileLock.acquire(SETTINGS_FILE, { maxRetries: 5, timeout: 3000 })
     try {
       const content = await fs.readFile(SETTINGS_FILE, 'utf-8')
       const parsed = JSON.parse(content) as AppSettings
@@ -251,6 +253,8 @@ export class SettingsStorage {
         return null
       }
       throw error
+    } finally {
+      await release()
     }
   }
 
@@ -258,14 +262,19 @@ export class SettingsStorage {
    * 保存设置到文件
    */
   private async saveToFile(): Promise<void> {
+    const release = await FileLock.acquire(SETTINGS_FILE)
     try {
       const content = JSON.stringify(this.settings, null, 2)
-      await fs.writeFile(SETTINGS_FILE, content, 'utf-8')
+      const tempFile = SETTINGS_FILE + '.tmp'
+      await fs.writeFile(tempFile, content, 'utf-8')
+      await fs.rename(tempFile, SETTINGS_FILE)  // 原子重命名
     } catch (error) {
       throw new SettingsStorageError(
         '保存设置文件失败',
         error instanceof Error ? error : undefined
       )
+    } finally {
+      await release()
     }
   }
 

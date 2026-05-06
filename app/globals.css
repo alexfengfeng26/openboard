@@ -64,6 +64,8 @@
 
 * {
   border-color: hsl(var(--border));
+  scrollbar-width: thin;
+  scrollbar-color: hsl(215 20% 80%) transparent;
 }
 
 body {
@@ -101,7 +103,3 @@ body {
   background: hsl(215 20% 65%);
 }
 
-* {
-  scrollbar-width: thin;
-  scrollbar-color: hsl(215 20% 80%) transparent;
-}

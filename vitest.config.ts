@@ -9,7 +9,14 @@ export default defineConfig({
     },
     test: {
         environment: 'node',
-        include: ['**/*.test.ts'],
+        include: ['**/*.test.{ts,tsx}'],
+        coverage: {
+            reporter: ['text', 'json', 'html'],
+            thresholds: {
+                lines: 60,
+                functions: 60,
+            },
+        },
         exclude: ['node_modules', '.next', 'dist', 'build'],
     },
 })

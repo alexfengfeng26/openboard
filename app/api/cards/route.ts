@@ -51,7 +51,9 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting card:', error)
-    return NextResponse.json({ error: 'Failed to delete card' }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Failed to delete card'
+    const status = message.includes('not found') ? 404 : 500
+    return NextResponse.json({ success: false, error: message }, { status })
   }
 }
 
@@ -73,6 +75,8 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error updating card:', error)
-    return NextResponse.json({ error: 'Failed to update card' }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Failed to update card'
+    const status = message.includes('not found') ? 404 : 500
+    return NextResponse.json({ success: false, error: message }, { status })
   }
 }

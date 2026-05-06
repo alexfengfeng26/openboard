@@ -23,6 +23,15 @@ import { SettingsStorage } from './SettingsStorage'
 const DATA_DIR = path.join(process.cwd(), 'data')
 const DB_JSON_PATH = path.join(DATA_DIR, 'db.json')
 const MIGRATION_FLAG = path.join(DATA_DIR, '.migration-complete')
+const INDEX_FILE = path.join(DATA_DIR, '_boards.json')
+
+interface BoardIndexEntry {
+  id: string
+  title: string
+  createdAt: string
+  updatedAt: string
+  cardCount: number
+}
 
 /**
  * 存储适配器类
@@ -59,8 +68,21 @@ export class StorageAdapter {
    * 获取所有看板列表（轻量级）
    */
   async getBoards(): Promise<Array<{ id: string; title: string; createdAt: string; updatedAt: string }>> {
+    // 首先尝试从索引文件加载
+    const index = await this.loadIndex()
+    if (index) {
+      return index.map(entry => ({
+        id: entry.id,
+        title: entry.title,
+        createdAt: entry.createdAt,
+        updatedAt: entry.updatedAt,
+      }))
+    }
+
+    // 索引不存在，回退到扫描 Markdown 文件
     const boardIds = await MarkdownBoard.listAll()
     const result: Array<{ id: string; title: string; createdAt: string; updatedAt: string }> = []
+    const indexEntries: BoardIndexEntry[] = []
 
     for (const boardId of boardIds) {
       // 尝试从缓存获取元数据
@@ -89,8 +111,12 @@ export class StorageAdapter {
           createdAt: board.createdAt,
           updatedAt: board.updatedAt,
         })
+        indexEntries.push(this.buildIndexEntry(board))
       }
     }
+
+    // 异步保存索引文件（不阻塞返回）
+    this.saveIndex(indexEntries).catch(() => {})
 
     return result
   }
@@ -105,7 +131,9 @@ export class StorageAdapter {
       return cached
     }
 
-    return await MarkdownBoard.read(boardId)
+    const board = await MarkdownBoard.read(boardId)
+    if (board) this.cache.set(boardId, board)
+    return board
   }
 
   /**
@@ -154,6 +182,7 @@ export class StorageAdapter {
 
     await MarkdownBoard.write(newBoard)
     this.cache.set(boardId, newBoard)
+    await this.rebuildIndex()
 
     return newBoard
   }
@@ -161,7 +190,7 @@ export class StorageAdapter {
   /**
    * 更新看板
    */
-  async updateBoard(boardId: string, data: { title?: string }): Promise<Board | null> {
+  async updateBoard(boardId: string, data: { title?: string; lanes?: Lane[] }): Promise<Board | null> {
     const board = await this.getBoard(boardId)
     if (!board) return null
 
@@ -172,7 +201,8 @@ export class StorageAdapter {
     }
 
     await MarkdownBoard.write(updated)
-    this.cache.invalidate(boardId)
+    this.cache.set(boardId, updated)
+    await this.rebuildIndex()
 
     return updated
   }
@@ -188,6 +218,7 @@ export class StorageAdapter {
 
     await MarkdownBoard.delete(boardId)
     this.cache.delete(boardId)
+    await this.rebuildIndex()
 
     return true
   }
@@ -238,7 +269,7 @@ export class StorageAdapter {
     }
 
     await MarkdownBoard.write(updatedBoard)
-    this.cache.invalidate(boardId)
+    this.cache.set(boardId, updatedBoard)
 
     return newLane
   }
@@ -267,7 +298,7 @@ export class StorageAdapter {
     }
 
     await MarkdownBoard.write(updatedBoard)
-    this.cache.invalidate(boardId)
+    this.cache.set(boardId, updatedBoard)
   }
 
   /**
@@ -284,7 +315,7 @@ export class StorageAdapter {
     }
 
     await MarkdownBoard.write(updatedBoard)
-    this.cache.invalidate(boardId)
+    this.cache.set(boardId, updatedBoard)
   }
 
   /**
@@ -332,7 +363,7 @@ export class StorageAdapter {
     }
 
     await MarkdownBoard.write(updatedBoard)
-    this.cache.invalidate(boardId)
+    this.cache.set(boardId, updatedBoard)
 
     return newCard
   }
@@ -368,7 +399,7 @@ export class StorageAdapter {
         }
 
         await MarkdownBoard.write(updatedBoard)
-        this.cache.invalidate(boardId)
+        this.cache.set(boardId, updatedBoard)
         return
       }
     }
@@ -408,7 +439,7 @@ export class StorageAdapter {
     }
 
     await MarkdownBoard.write(updatedBoard)
-    this.cache.invalidate(boardId)
+    this.cache.set(boardId, updatedBoard)
   }
 
   /**
@@ -452,9 +483,12 @@ export class StorageAdapter {
           position: newPosition,
           updatedAt: now,
         }
+        const newCards = [...lane.cards, movedCard]
+        // 按 position 排序，确保数组顺序与位置一致
+        newCards.sort((a, b) => a.position - b.position)
         updatedLanes.push({
           ...lane,
-          cards: [...lane.cards, movedCard],
+          cards: newCards,
           updatedAt: now,
         })
       } else {
@@ -473,12 +507,73 @@ export class StorageAdapter {
     }
 
     await MarkdownBoard.write(updatedBoard)
-    this.cache.invalidate(boardId)
+    this.cache.set(boardId, updatedBoard)
   }
 
   /**
    * ========== 私有辅助方法 ==========
    */
+
+  /**
+   * 从索引文件加载看板列表
+   */
+  private async loadIndex(): Promise<BoardIndexEntry[] | null> {
+    try {
+      const content = await fs.readFile(INDEX_FILE, 'utf-8')
+      const parsed = JSON.parse(content)
+      if (Array.isArray(parsed?.boards)) {
+        return parsed.boards as BoardIndexEntry[]
+      }
+      return null
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        return null
+      }
+      throw error
+    }
+  }
+
+  /**
+   * 保存看板列表到索引文件
+   */
+  private async saveIndex(boards: BoardIndexEntry[]): Promise<void> {
+    const content = JSON.stringify({ boards, updatedAt: new Date().toISOString() }, null, 2)
+    await fs.writeFile(INDEX_FILE, content, 'utf-8')
+  }
+
+  /**
+   * 构建看板索引条目
+   */
+  private buildIndexEntry(board: Board): BoardIndexEntry {
+    return {
+      id: board.id,
+      title: board.title,
+      createdAt: board.createdAt,
+      updatedAt: board.updatedAt,
+      cardCount: board.lanes.reduce((sum, lane) => sum + lane.cards.length, 0),
+    }
+  }
+
+  /**
+   * 重建索引文件
+   */
+  private async rebuildIndex(): Promise<void> {
+    try {
+      const boardIds = await MarkdownBoard.listAll()
+      const entries: BoardIndexEntry[] = []
+
+      for (const boardId of boardIds) {
+        const board = await this.getBoard(boardId)
+        if (board) {
+          entries.push(this.buildIndexEntry(board))
+        }
+      }
+
+      await this.saveIndex(entries)
+    } catch {
+      // 索引重建失败不应影响主流程
+    }
+  }
 
   /**
    * 检查是否需要迁移
@@ -597,7 +692,7 @@ export async function dbHelpersWrapper() {
     getBoards: () => storage.getBoards(),
     getBoard: (boardId: string) => storage.getBoard(boardId),
     createBoard: (title: string) => storage.createBoard(title),
-    updateBoard: (boardId: string, data: { title?: string }) => storage.updateBoard(boardId, data),
+    updateBoard: (boardId: string, data: { title?: string; lanes?: Lane[] }) => storage.updateBoard(boardId, data),
     deleteBoard: (boardId: string) => storage.deleteBoard(boardId),
     getDefaultBoard: () => storage.getDefaultBoard(),
     getTags: () => storage.getTags(),

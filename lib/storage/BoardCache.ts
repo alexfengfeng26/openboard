@@ -18,7 +18,7 @@ interface CacheEntry {
  */
 export class BoardCache {
   private cache: Map<string, CacheEntry> = new Map()
-  private readonly DEFAULT_TTL = 30000 // 30 秒（毫秒）
+  private readonly DEFAULT_TTL = 300000 // 5 分钟（毫秒）
   private readonly ttl: number
 
   constructor(ttl?: number) {

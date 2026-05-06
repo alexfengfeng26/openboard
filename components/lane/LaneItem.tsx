@@ -9,8 +9,9 @@ import { DraggableCard } from '@/components/card/DraggableCard'
 import { CreateCardDialog } from '@/components/card/CreateCardDialog'
 import { EditLaneDialog } from '@/components/lane/EditLaneDialog'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Plus, Edit2, GripVertical } from 'lucide-react'
-import { useState } from 'react'
+import { useState, memo, useRef } from 'react'
 
 interface LaneItemProps {
   lane: Lane
@@ -21,7 +22,7 @@ interface LaneItemProps {
   boardId: string
 }
 
-function LaneContent({ lane, onLaneUpdate, onCardEdit, isHovered, onLaneDeleted, boardId }: LaneItemProps) {
+const LaneContent = memo(function LaneContent({ lane, onLaneUpdate, onCardEdit, isHovered, onLaneDeleted, boardId }: LaneItemProps) {
   const { setNodeRef } = useDroppable({
     id: lane.id,
     data: {
@@ -32,8 +33,35 @@ function LaneContent({ lane, onLaneUpdate, onCardEdit, isHovered, onLaneDeleted,
 
   const [showCreateCard, setShowCreateCard] = useState(false)
   const [showEditLane, setShowEditLane] = useState(false)
+  const [isQuickAdding, setIsQuickAdding] = useState(false)
+  const [quickTitle, setQuickTitle] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const quickInputRef = useRef<HTMLInputElement>(null)
 
   const cardIds = lane.cards.map((card) => card.id)
+
+  async function handleQuickCreate() {
+    if (!quickTitle.trim() || isSubmitting) return
+    setIsSubmitting(true)
+    try {
+      const response = await fetch('/api/cards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ boardId, laneId: lane.id, title: quickTitle.trim() }),
+      })
+      if (!response.ok) throw new Error('Failed to create card')
+      const result = await response.json()
+      if (result.success) {
+        onLaneUpdate({ ...lane, cards: [...lane.cards, result.data] })
+        setQuickTitle('')
+        setTimeout(() => quickInputRef.current?.focus(), 0)
+      }
+    } catch {
+      // 可以添加简单的错误提示
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
     <div className={`flex h-full w-64 shrink-0 flex-col rounded-lg bg-muted/50 py-3 px-2 ${isHovered ? 'ring-2 ring-primary/50 bg-muted' : ''}`}>
@@ -76,15 +104,56 @@ function LaneContent({ lane, onLaneUpdate, onCardEdit, isHovered, onLaneDeleted,
         </div>
       </div>
 
-      {/* 添加卡片按钮 */}
-      <Button
-        variant="ghost"
-        className="mt-2 justify-start"
-        onClick={() => setShowCreateCard(true)}
-      >
-        <Plus className="mr-2 h-4 w-4" />
-        添加卡片
-      </Button>
+      {/* 快速创建卡片 */}
+      {!isQuickAdding ? (
+        <Button
+          variant="ghost"
+          className="mt-2 justify-start"
+          onClick={() => setIsQuickAdding(true)}
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          添加卡片
+        </Button>
+      ) : (
+        <div className="mt-2 flex items-center gap-2">
+          <Input
+            ref={quickInputRef}
+            autoFocus
+            placeholder="输入卡片标题，按 Enter 创建"
+            value={quickTitle}
+            onChange={(e) => setQuickTitle(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                handleQuickCreate()
+              } else if (e.key === 'Escape') {
+                setIsQuickAdding(false)
+                setQuickTitle('')
+              }
+            }}
+            onBlur={() => {
+              if (!quickTitle.trim()) {
+                setIsQuickAdding(false)
+                setQuickTitle('')
+              }
+            }}
+            disabled={isSubmitting}
+            className="h-8 text-sm"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 shrink-0 px-2 text-xs"
+            onClick={() => {
+              setIsQuickAdding(false)
+              setQuickTitle('')
+            }}
+            disabled={isSubmitting}
+          >
+            取消
+          </Button>
+        </div>
+      )}
 
       {/* 创建卡片对话框 */}
       <CreateCardDialog
@@ -113,9 +182,9 @@ function LaneContent({ lane, onLaneUpdate, onCardEdit, isHovered, onLaneDeleted,
       />
     </div>
   )
-}
+})
 
-export function LaneItem({ lane, onLaneUpdate, onCardEdit, isHovered, onLaneDeleted, boardId }: LaneItemProps) {
+export const LaneItem = memo(function LaneItem({ lane, onLaneUpdate, onCardEdit, isHovered, onLaneDeleted, boardId }: LaneItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: lane.id,
     data: {
@@ -144,4 +213,4 @@ export function LaneItem({ lane, onLaneUpdate, onCardEdit, isHovered, onLaneDele
       />
     </div>
   )
-}
+})

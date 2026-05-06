@@ -37,7 +37,7 @@ kanban-board 项目的完整文档索引。
 
 ## 项目概述
 
-**kanban-board** 是一个基于 Next.js 16、React 19 和 lowdb 构建的现代化看板系统。
+**kanban-board** 是一个基于 Next.js 16、React 19 和 Markdown 文件存储构建的现代化看板系统。
 
 **核心功能**:
 - 多看板管理
@@ -52,7 +52,7 @@ kanban-board 项目的完整文档索引。
 - TypeScript (strict mode)
 - Tailwind CSS v4
 - @dnd-kit (拖放)
-- lowdb (数据持久化)
+- Markdown 文件存储 (数据持久化)
 - DeepSeek API (AI)
 
 ---
@@ -79,7 +79,8 @@ kanban-board/
 │   └── ai-tools/          # AI 工具系统
 ├── types/                   # TypeScript 类型
 ├── data/                    # 数据存储
-│   └── db.json          # lowdb 数据文件
+│   ├── *.md             # 看板 Markdown 文件
+│   └── settings.json    # 应用设置 JSON
 └── docs/                    # 项目文档（本目录）
 ```
 
