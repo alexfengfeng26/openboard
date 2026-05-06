@@ -6,7 +6,7 @@ import type { Data } from '@/types'
 import { getStorage, resetStorage, dbHelpersWrapper } from './storage/StorageAdapter'
 
 // 导出类型定义
-export type { Tag, Card, Lane, Board, Data } from '@/types'
+export type { Tag, Card, Lane, Board, Data, Attachment, CardPriority } from '@/types'
 
 // 导出新的存储适配器
 export { getStorage, resetStorage, dbHelpersWrapper } from './storage/StorageAdapter'
@@ -57,6 +57,31 @@ export function resetDb() {
 }
 
 /**
+ * 数据库操作辅助函数接口
+ */
+export interface DbHelpers {
+  getBoards: (includeArchived?: boolean) => Promise<Array<{ id: string; title: string; createdAt: string; updatedAt: string; archivedAt?: string }>>
+  getBoard: (boardId: string) => Promise<import('@/types').Board | null>
+  createBoard: (title: string, lanes?: Pick<import('@/types').Lane, 'title'>[]) => Promise<import('@/types').Board>
+  updateBoard: (boardId: string, data: { title?: string; lanes?: import('@/types').Lane[]; archivedAt?: string | null }) => Promise<import('@/types').Board | null>
+  deleteBoard: (boardId: string) => Promise<boolean>
+  archiveBoard: (boardId: string) => Promise<import('@/types').Board | null>
+  unarchiveBoard: (boardId: string) => Promise<import('@/types').Board | null>
+  getDefaultBoard: () => Promise<import('@/types').Board | null>
+  getTags: () => Promise<import('@/types').Tag[]>
+  addOperationLog: (boardId: string, log: import('@/types/ai-tools.types').OperationLogEntry) => Promise<import('@/types').Board | null>
+  getOperationLogs: (boardId: string) => Promise<import('@/types/ai-tools.types').OperationLogEntry[]>
+  clearOperationLogs: (boardId: string) => Promise<import('@/types').Board | null>
+  createLane: (boardId: string, title: string) => Promise<import('@/types').Lane>
+  updateLane: (boardId: string, laneId: string, data: { title?: string }) => Promise<void>
+  deleteLane: (boardId: string, laneId: string) => Promise<void>
+  createCard: (boardId: string, laneId: string, title: string, description?: string, tags?: import('@/types').Tag[], attachments?: import('@/types').Attachment[], dueDate?: string, priority?: import('@/types').CardPriority) => Promise<import('@/types').Card>
+  updateCard: (boardId: string, cardId: string, data: { title?: string; description?: string; tags?: import('@/types').Tag[]; attachments?: import('@/types').Attachment[]; dueDate?: string; priority?: import('@/types').CardPriority }) => Promise<void>
+  deleteCard: (boardId: string, cardId: string) => Promise<void>
+  moveCard: (boardId: string, cardId: string, toLaneId: string, newPosition: number) => Promise<void>
+}
+
+/**
  * 数据库操作辅助函数
  *
  * 为了向后兼容，创建一个懒加载的代理对象
@@ -71,7 +96,7 @@ async function getHelpers() {
   return cachedHelpers
 }
 
-export const dbHelpers = new Proxy({} as Awaited<ReturnType<typeof dbHelpersWrapper>>, {
+export const dbHelpers = new Proxy({} as DbHelpers, {
   get(_target, prop: string) {
     return async (...args: any[]) => {
       const helpers = await getHelpers()
@@ -81,5 +106,5 @@ export const dbHelpers = new Proxy({} as Awaited<ReturnType<typeof dbHelpersWrap
       }
       throw new Error(`Method ${prop} not found on dbHelpers`)
     }
-  }
+  },
 })

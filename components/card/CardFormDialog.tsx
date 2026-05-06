@@ -1,14 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Dialog, DialogContent, DialogBody, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Paperclip, X, ImageIcon } from 'lucide-react'
 import { TagSelector } from '@/components/card/TagSelector'
 import { toastSuccess, toastError } from '@/components/ui/toast'
-import type { Card, Tag } from '@/lib/db'
+import type { Card, Tag, Attachment } from '@/lib/db'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 export type CardFormMode = 'create' | 'edit'
@@ -39,20 +39,67 @@ export function CardFormDialog({
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [tags, setTags] = useState<Tag[]>([])
+  const [attachments, setAttachments] = useState<Attachment[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isDraggingOver, setIsDraggingOver] = useState(false)
 
   useEffect(() => {
     if (mode === 'edit' && card) {
       setTitle(card.title)
       setDescription(card.description || '')
       setTags(card.tags || [])
+      setAttachments(card.attachments || [])
     } else {
       setTitle('')
       setDescription('')
       setTags([])
+      setAttachments([])
     }
   }, [mode, card, open])
+
+  async function uploadFile(file: File): Promise<Attachment | null> {
+    try {
+      const cardId = mode === 'edit' && card ? card.id : 'temp'
+      const formData = new FormData()
+      formData.append('file', file)
+      const response = await fetch(`/api/cards/${cardId}/attachments?boardId=${boardId}`, {
+        method: 'POST',
+        body: formData,
+      })
+      const result = await response.json()
+      if (result.success) {
+        return result.data as Attachment
+      }
+      toastError(result.error || '上传失败')
+      return null
+    } catch {
+      toastError('上传附件失败')
+      return null
+    }
+  }
+
+  const handleFileSelect = useCallback(async (files: FileList | null) => {
+    if (!files || files.length === 0) return
+    for (const file of Array.from(files)) {
+      const attachment = await uploadFile(file)
+      if (attachment) {
+        setAttachments((prev) => [...prev, attachment])
+      }
+    }
+  }, [boardId, mode, card])
+
+  async function handleRemoveAttachment(attachmentId: string) {
+    try {
+      const cardId = mode === 'edit' && card ? card.id : 'temp'
+      await fetch(`/api/cards/${cardId}/attachments/${attachmentId}?boardId=${boardId}`, {
+        method: 'DELETE',
+      })
+    } catch {
+      // silent fail
+    }
+    setAttachments((prev) => prev.filter((a) => a.id !== attachmentId))
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -75,6 +122,7 @@ export function CardFormDialog({
             title: title.trim(),
             description: description.trim() || undefined,
             tags,
+            attachments,
           }),
         })
 
@@ -101,6 +149,7 @@ export function CardFormDialog({
             title: title.trim(),
             description: description.trim() || undefined,
             tags,
+            attachments,
           }),
         })
 
@@ -116,6 +165,7 @@ export function CardFormDialog({
             title: title.trim(),
             description: description.trim() || undefined,
             tags,
+            attachments,
           })
           toastSuccess('卡片更新成功')
           onOpenChange(false)
@@ -214,6 +264,84 @@ export function CardFormDialog({
                   <label className="text-xs font-medium text-slate-700">标签</label>
                   <TagSelector selectedTags={tags} onTagsChange={setTags} disabled={isSubmitting} />
                 </div>
+
+                {/* 附件区域 */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-slate-700">附件</label>
+                  <div
+                    className={[
+                      'rounded-xl border-2 border-dashed p-4 transition-colors',
+                      isDraggingOver
+                        ? 'border-primary bg-primary/5'
+                        : 'border-slate-200 bg-slate-50/50 hover:border-slate-300',
+                    ].join(' ')}
+                    onDragOver={(e) => {
+                      e.preventDefault()
+                      setIsDraggingOver(true)
+                    }}
+                    onDragLeave={() => setIsDraggingOver(false)}
+                    onDrop={(e) => {
+                      e.preventDefault()
+                      setIsDraggingOver(false)
+                      void handleFileSelect(e.dataTransfer.files)
+                    }}
+                  >
+                    <div className="flex flex-col items-center justify-center gap-2 text-slate-500">
+                      <UploadIcon />
+                      <p className="text-xs">拖拽文件到此处，或</p>
+                      <label className="cursor-pointer">
+                        <span className="text-xs font-medium text-primary hover:underline">点击上传</span>
+                        <input
+                          type="file"
+                          className="hidden"
+                          multiple
+                          onChange={(e) => void handleFileSelect(e.target.files)}
+                          disabled={isSubmitting}
+                        />
+                      </label>
+                      <p className="text-[10px] text-slate-400">单个文件最大 5MB</p>
+                    </div>
+                  </div>
+
+                  {/* 附件列表 */}
+                  {attachments.length > 0 && (
+                    <div className="mt-2 space-y-2">
+                      {attachments.map((att) => (
+                        <div
+                          key={att.id}
+                          className="flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-sm"
+                        >
+                          {att.mimeType.startsWith('image/') ? (
+                            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md border">
+                              <img
+                                src={att.url}
+                                alt={att.originalName}
+                                className="h-full w-full object-cover"
+                              />
+                            </div>
+                          ) : (
+                            <Paperclip className="h-4 w-4 shrink-0 text-slate-400" />
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-xs font-medium">{att.originalName}</p>
+                            <p className="text-[10px] text-slate-400">
+                              {(att.size / 1024).toFixed(1)} KB
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => void handleRemoveAttachment(att.id)}
+                            className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                            disabled={isSubmitting}
+                            aria-label={`删除附件 ${att.originalName}`}
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </DialogBody>
 
@@ -254,5 +382,13 @@ export function CardFormDialog({
         />
       )}
     </>
+  )
+}
+
+function UploadIcon() {
+  return (
+    <svg className="h-6 w-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+    </svg>
   )
 }

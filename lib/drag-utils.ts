@@ -47,7 +47,7 @@ export function findLanePosition(lanes: Lane[], laneId: string): number {
  */
 export function findCardById(lanes: Lane[], cardId: string): Card | null {
   for (const lane of lanes) {
-    const card = lane.cards?.find((c) => c.id === cardId)
+    const card = lane.cards.find((c) => c.id === cardId)
     if (card) {
       return card
     }
@@ -60,7 +60,7 @@ export function findCardById(lanes: Lane[], cardId: string): Card | null {
  */
 export function getTargetLaneCards(lanes: Lane[], laneId: string): Card[] {
   const lane = lanes.find((l) => l.id === laneId)
-  return lane?.cards || []
+  return lane?.cards ?? []
 }
 
 /**
@@ -75,7 +75,7 @@ export function handleCardMoveAcrossLanes(
 ): Lane[] {
   const result = lanes.map((lane) => ({
     ...lane,
-    cards: [...(lane.cards || [])],
+    cards: [...lane.cards],
   }))
 
   // 从源列表移除卡片
@@ -100,7 +100,7 @@ export function handleCardMoveAcrossLanes(
  * 处理列表内卡片排序
  */
 export function handleCardReorder(lane: Lane, oldIndex: number, newIndex: number): Card[] {
-  const cards = [...(lane.cards || [])]
+  const cards = [...lane.cards]
   const [removed] = cards.splice(oldIndex, 1)
   cards.splice(newIndex, 0, removed)
   return cards

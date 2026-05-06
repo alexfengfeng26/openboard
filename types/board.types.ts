@@ -1,7 +1,8 @@
 // 看板相关类型定义
 
-import type { Lane, LaneWithCards } from './lane.types'
+import type { Lane } from './lane.types'
 import type { Tag } from './card.types'
+import type { OperationLogEntry } from './ai-tools.types'
 
 export interface Board {
   id: string
@@ -10,14 +11,12 @@ export interface Board {
   updatedAt: string
   lanes: Lane[]
   tags?: Tag[]
+  archivedAt?: string
+  operationLogs?: OperationLogEntry[]
 }
 
 export interface BoardWithLanes extends Board {
   lanes: Lane[]
-}
-
-export interface BoardWithLanesAndCards extends Board {
-  lanes: LaneWithCards[]
 }
 
 export interface CreateBoardInput {
@@ -26,6 +25,7 @@ export interface CreateBoardInput {
 
 export interface UpdateBoardInput {
   title?: string
+  archivedAt?: string
 }
 
 /**

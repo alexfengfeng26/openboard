@@ -1,16 +1,16 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { ChevronDown, Plus, Settings2, Search, LayoutDashboard } from 'lucide-react'
+import { ChevronDown, Plus, Settings2, Search, LayoutDashboard, Download, Upload, Archive } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
-import { toastError } from '@/components/ui/toast'
+import { toastError, toastSuccess } from '@/components/ui/toast'
 import type { Board as BoardType } from '@/lib/db'
 import { CreateBoardDialog } from './CreateBoardDialog'
 import { EditBoardDialog } from './EditBoardDialog'
 import { cn } from '@/lib/utils'
 
 interface BoardSelectorProps {
-  boards: Array<{ id: string; title: string; createdAt: string; updatedAt: string }>
+  boards: Array<{ id: string; title: string; createdAt: string; updatedAt: string; archivedAt?: string }>
   currentBoard: BoardType
   onBoardChange: (board: BoardType) => void
   onBoardsRefresh: () => void
@@ -22,7 +22,9 @@ export function BoardSelector({ boards, currentBoard, onBoardChange, onBoardsRef
   const [showEdit, setShowEdit] = useState(false)
   const [hoveredBoardId, setHoveredBoardId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [showArchived, setShowArchived] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const importInputRef = useRef<HTMLInputElement>(null)
 
   const router = useRouter()
   const pathname = usePathname()
@@ -65,10 +67,58 @@ export function BoardSelector({ boards, currentBoard, onBoardChange, onBoardsRef
     }
   }
 
+  // 导出看板
+  async function handleExport(boardId: string, format: 'json' | 'csv' | 'md') {
+    try {
+      const response = await fetch(`/api/boards/${boardId}/export?format=${format}`)
+      if (!response.ok) throw new Error('Export failed')
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      const filename = response.headers.get('Content-Disposition')?.match(/filename="([^"]+)"/)?.[1] || `board.${format}`
+      a.download = decodeURIComponent(filename)
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+      toastSuccess('导出成功')
+    } catch (error) {
+      toastError('导出失败')
+    }
+  }
+
+  // 导入看板
+  async function handleImportFile(file: File) {
+    try {
+      const text = await file.text()
+      const data = JSON.parse(text)
+
+      const response = await fetch('/api/boards/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+
+      const result = await response.json()
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Import failed')
+      }
+
+      toastSuccess('看板导入成功')
+      onBoardsRefresh()
+      handleBoardSelect(result.data.id)
+    } catch (error) {
+      toastError('导入失败：' + (error instanceof Error ? error.message : '未知错误'))
+    }
+  }
+
   // 过滤看板
-  const filteredBoards = boards.filter(board =>
-    board.title.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const displayBoards = boards.filter((board) => {
+    if (!showArchived && board.archivedAt) return false
+    return board.title.toLowerCase().includes(searchQuery.toLowerCase())
+  })
 
   const totalCards = currentBoard.lanes.reduce((acc, lane) => acc + lane.cards.length, 0)
 
@@ -105,28 +155,31 @@ export function BoardSelector({ boards, currentBoard, onBoardChange, onBoardsRef
             {/* 搜索框 */}
             <div className="p-3 border-b border-slate-100">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" aria-hidden="true" />
                 <input
                   type="text"
                   placeholder="搜索看板..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full h-9 pl-9 pr-3 rounded-xl text-sm bg-slate-100 border-transparent focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                  aria-label="搜索看板"
                 />
               </div>
             </div>
 
             {/* 看板列表 */}
-            <div className="max-h-72 overflow-auto p-2">
-              {filteredBoards.length === 0 ? (
+            <div className="max-h-72 overflow-auto p-2" role="listbox">
+              {displayBoards.length === 0 ? (
                 <div className="py-8 text-center text-slate-400">
                   <LayoutDashboard className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <p className="text-sm">没有找到看板</p>
                 </div>
               ) : (
-                filteredBoards.map((board) => (
+                displayBoards.map((board) => (
                   <div
                     key={board.id}
+                    role="option"
+                    aria-selected={board.id === currentBoard.id}
                     className={cn(
                       'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200',
                       board.id === currentBoard.id
@@ -141,10 +194,16 @@ export function BoardSelector({ boards, currentBoard, onBoardChange, onBoardsRef
                         'flex h-9 w-9 items-center justify-center rounded-lg shrink-0',
                         board.id === currentBoard.id
                           ? 'bg-secondary'
-                          : 'bg-slate-100 text-slate-500'
+                          : board.archivedAt
+                            ? 'bg-slate-100 text-slate-400'
+                            : 'bg-slate-100 text-slate-500'
                       )}
                     >
-                      <LayoutDashboard className="h-4 w-4" />
+                      {board.archivedAt ? (
+                        <Archive className="h-4 w-4" />
+                      ) : (
+                        <LayoutDashboard className="h-4 w-4" />
+                      )}
                     </div>
 
                     <button
@@ -156,6 +215,9 @@ export function BoardSelector({ boards, currentBoard, onBoardChange, onBoardsRef
                         board.id === currentBoard.id ? 'text-primary' : 'text-foreground'
                       )}>
                         {board.title}
+                        {board.archivedAt && (
+                          <span className="ml-1.5 text-[10px] text-slate-400 font-normal">已归档</span>
+                        )}
                       </div>
                       <div className="text-xs text-slate-500">
                         {board.id === currentBoard.id
@@ -166,17 +228,29 @@ export function BoardSelector({ boards, currentBoard, onBoardChange, onBoardsRef
                     </button>
 
                     {hoveredBoardId === board.id && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setShowEdit(true)
-                          setIsOpen(false)
-                        }}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-white/80 text-slate-400 hover:text-slate-600 transition-colors"
-                        title="编辑看板"
-                      >
-                        <Settings2 className="h-3.5 w-3.5" />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleExport(board.id, 'json')
+                          }}
+                          className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-white/80 text-slate-400 hover:text-slate-600 transition-colors"
+                          title="导出看板"
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setShowEdit(true)
+                            setIsOpen(false)
+                          }}
+                          className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-white/80 text-slate-400 hover:text-slate-600 transition-colors"
+                          title="编辑看板"
+                        >
+                          <Settings2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     )}
                   </div>
                 ))
@@ -200,6 +274,44 @@ export function BoardSelector({ boards, currentBoard, onBoardChange, onBoardsRef
                 </div>
                 <span className="text-sm font-medium">创建新看板</span>
               </button>
+
+              <button
+                onClick={() => importInputRef.current?.click()}
+                className={cn(
+                  'flex w-full items-center gap-3 rounded-xl px-3 py-2.5',
+                  'text-slate-600 transition-all duration-200',
+                  'hover:bg-muted'
+                )}
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary">
+                  <Upload className="h-4 w-4" />
+                </div>
+                <span className="text-sm font-medium">导入看板</span>
+                <input
+                  ref={importInputRef}
+                  type="file"
+                  accept=".json"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) handleImportFile(file)
+                    e.target.value = ''
+                  }}
+                />
+              </button>
+            </div>
+
+            {/* 显示已归档开关 */}
+            <div className="px-3 py-2 border-t border-slate-100 bg-slate-50/50">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={showArchived}
+                  onChange={(e) => setShowArchived(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
+                />
+                <span className="text-xs text-slate-600">显示已归档看板</span>
+              </label>
             </div>
           </div>
         )}
@@ -225,7 +337,7 @@ export function BoardSelector({ boards, currentBoard, onBoardChange, onBoardsRef
           }}
           onBoardDeleted={(boardId) => {
             onBoardsRefresh()
-            const remainingBoards = boards.filter((b) => b.id !== boardId)
+            const remainingBoards = boards.filter((b) => b.id !== boardId && !b.archivedAt)
             if (remainingBoards.length > 0) {
               handleBoardSelect(remainingBoards[0].id)
             }

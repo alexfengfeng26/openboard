@@ -1,7 +1,7 @@
 {
   "version": 1,
   "ai": {
-    "defaultModel": "deepseek-chat",
+    "defaultModel": "deepseek-reasoner",
     "toolTrigger": {
       "gateByPrefix": true,
       "showQuickTemplatesInChat": false,
@@ -160,5 +160,5 @@
       "#374151"
     ]
   },
-  "updatedAt": "2026-02-13T08:17:21.896Z"
+  "updatedAt": "2026-05-06T07:24:18.014Z"
 }

@@ -2,7 +2,8 @@
  * Markdown 存储类型定义
  */
 
-import type { Tag } from './index'
+import type { Tag, Attachment, CardPriority } from './index'
+import type { OperationLogEntry } from './ai-tools.types'
 
 /**
  * YAML Frontmatter 格式的看板数据
@@ -14,6 +15,8 @@ export interface BoardFrontmatter {
   updatedAt: string
   tags?: Tag[]
   lanes?: LaneFrontmatter[]
+  archivedAt?: string
+  operationLogs?: OperationLogEntry[]
 }
 
 /**
@@ -40,6 +43,9 @@ export interface CardFrontmatter {
   createdAt: string
   updatedAt: string
   tags?: Tag[]
+  attachments?: Attachment[]
+  dueDate?: string
+  priority?: CardPriority
 }
 
 /**

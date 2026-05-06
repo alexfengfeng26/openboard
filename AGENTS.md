@@ -205,6 +205,21 @@ interface Card {
   createdAt: string
   updatedAt: string
   tags?: Tag[]          // 引用看板标签
+  attachments?: Attachment[] // 附件列表
+}
+```
+
+### Attachment（附件）
+
+```typescript
+interface Attachment {
+  id: string
+  name: string
+  originalName: string
+  size: number
+  type: string
+  url: string
+  createdAt: string
 }
 ```
 
@@ -239,6 +254,7 @@ interface Tag {
 | `MarkdownBoard` | Markdown 文件读写操作 |
 | `BoardCache` | 内存缓存，减少文件 I/O |
 | `FileLock` | 文件锁，防止并发写入 |
+| `SettingsStorage` | 服务端 JSON 设置文件读写 |
 
 ### 预设标签颜色
 
@@ -315,6 +331,10 @@ AI 工具系统允许 DeepSeek AI 直接操作看板数据：
 | `/api/cards` | POST | 创建卡片 |
 | `/api/cards/reorder` | POST | 同列表卡片重排序 |
 | `/api/cards/move` | POST | 跨列表移动卡片 |
+| `/api/cards/batch-move` | POST | 批量移动卡片 |
+| `/api/cards/batch-delete` | POST | 批量删除卡片 |
+| `/api/cards/batch-update-tags` | POST | 批量更新卡片标签 |
+| `/api/cards/[cardId]/attachments` | POST/DELETE | 卡片附件上传/删除 |
 | `/api/tags` | GET | 获取标签 |
 
 ### AI API
@@ -322,6 +342,7 @@ AI 工具系统允许 DeepSeek AI 直接操作看板数据：
 | 路由 | 方法 | 描述 |
 |------|------|------|
 | `/api/ai/chat` | POST | DeepSeek 聊天接口 |
+| `/api/ai/chat/history` | GET/POST/DELETE | AI 聊天历史管理 |
 | `/api/ai/tools/execute` | POST | 执行 AI 工具调用 |
 
 ---
@@ -547,6 +568,34 @@ const { config, updateConfig } = useToolTriggerConfig()
 - 原 localStorage 存储 (`kanban.aiCommands.v1`, `kanban.aiToolTriggerConfig.v1`) 已弃用
 - 首次启动时自动创建默认设置文件
 - 设置文件路径：`data/settings.json`
+
+---
+
+## 自定义 Hooks
+
+### 卡片搜索
+
+| Hook | 路径 | 职责 |
+|------|------|------|
+| `useCardSearch` | `lib/hooks/useCardSearch.ts` | 卡片级搜索与过滤 |
+
+```typescript
+const { filters, setQuery, filteredBoard, resultCount, clearFilters } = useCardSearch(board)
+```
+
+### 键盘快捷键
+
+| Hook | 路径 | 职责 |
+|------|------|------|
+| `useKeyboardShortcuts` | `lib/hooks/useKeyboardShortcuts.ts` | 全局键盘快捷键监听 |
+
+```typescript
+const { showHelp, setShowHelp } = useKeyboardShortcuts({
+  onFocusSearch: () => searchRef.current?.focus(),
+  onExitSelectionMode: () => {},
+  onCloseDialog: () => boolean,
+})
+```
 
 ---
 

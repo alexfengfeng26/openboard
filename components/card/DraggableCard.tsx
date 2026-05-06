@@ -9,9 +9,20 @@ import { CardItem } from './CardItem'
 interface DraggableCardProps {
   card: Card
   onEdit?: (card: Card) => void
+  selected?: boolean
+  selectionMode?: boolean
+  onSelectToggle?: (cardId: string) => void
+  onSelectRange?: (toCardId: string) => void
 }
 
-export const DraggableCard = memo(function DraggableCard({ card, onEdit }: DraggableCardProps) {
+export const DraggableCard = memo(function DraggableCard({
+  card,
+  onEdit,
+  selected,
+  selectionMode,
+  onSelectToggle,
+  onSelectRange,
+}: DraggableCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,
     data: {
@@ -20,7 +31,6 @@ export const DraggableCard = memo(function DraggableCard({ card, onEdit }: Dragg
     },
   })
 
-  // 只有在存在 transform 或 transition 时才设置 style
   const style: React.CSSProperties = {}
   if (transform) {
     style.transform = CSS.Transform.toString(transform)
@@ -31,7 +41,15 @@ export const DraggableCard = memo(function DraggableCard({ card, onEdit }: Dragg
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <CardItem card={card} isDragging={isDragging} onEdit={onEdit} />
+      <CardItem
+        card={card}
+        isDragging={isDragging}
+        onEdit={onEdit}
+        selected={selected}
+        selectionMode={selectionMode}
+        onSelectToggle={onSelectToggle}
+        onSelectRange={onSelectRange}
+      />
     </div>
   )
 })

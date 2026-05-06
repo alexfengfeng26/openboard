@@ -1,61 +1,64 @@
-import { NextResponse } from 'next/server'
+import { z } from 'zod'
 import { dbHelpers } from '@/lib/db'
+import { CreateLaneSchema, UpdateLaneSchema } from '@/lib/validation/schema'
+import { validateBody } from '@/lib/validation/api'
+import { withValidation } from '@/lib/api/validate'
+import { successResponse, errorResponse, notFoundResponse } from '@/lib/api/response'
 
+/**
+ * POST /api/lanes - 创建列表
+ */
 export async function POST(request: Request) {
-  try {
-    const body = await request.json()
-    const { boardId, title } = body
-
-    if (!boardId || !title) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
-    }
-
-    const lane = await dbHelpers.createLane(boardId, title)
-
-    return NextResponse.json({ success: true, data: lane })
-  } catch (error) {
-    console.error('Error creating lane:', error)
-    return NextResponse.json({ error: 'Failed to create lane' }, { status: 500 })
-  }
+  return withValidation(CreateLaneSchema, async (data) => {
+    const lane = await dbHelpers.createLane(data.boardId, data.title)
+    return successResponse(lane, 201)
+  })(request)
 }
 
+/**
+ * 删除列表查询参数 Schema
+ */
+const DeleteLaneQuerySchema = z.object({
+  laneId: z.string().min(1),
+  boardId: z.string().min(1),
+})
+
+/**
+ * DELETE /api/lanes - 删除列表
+ */
 export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const laneId = searchParams.get('id')
-    const boardId = searchParams.get('boardId')
+    const queryResult = validateBody(DeleteLaneQuerySchema, {
+      laneId: searchParams.get('id') || searchParams.get('laneId'),
+      boardId: searchParams.get('boardId'),
+    })
 
-    if (!laneId || !boardId) {
-      return NextResponse.json({ error: 'Missing lane id or board id' }, { status: 400 })
+    if (!queryResult.success) {
+      return errorResponse(queryResult.error || 'Invalid query parameters', 400)
     }
 
+    const { laneId, boardId } = queryResult.data
     await dbHelpers.deleteLane(boardId, laneId)
-
-    return NextResponse.json({ success: true })
+    return successResponse(null)
   } catch (error) {
     console.error('Error deleting lane:', error)
     const message = error instanceof Error ? error.message : 'Failed to delete lane'
     const status = message.includes('not found') ? 404 : 500
-    return NextResponse.json({ success: false, error: message }, { status })
+    if (status === 404) {
+      return notFoundResponse('Lane')
+    }
+    return errorResponse(message, status)
   }
 }
 
+/**
+ * PATCH /api/lanes - 更新列表
+ */
 export async function PATCH(request: Request) {
-  try {
-    const body = await request.json()
-    const { boardId, laneId, title } = body
-
-    if (!boardId || !laneId || !title) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
-    }
-
+  return withValidation(UpdateLaneSchema, async (data) => {
+    const { boardId, laneId, title } = data
     await dbHelpers.updateLane(boardId, laneId, { title })
-
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error('Error updating lane:', error)
-    const message = error instanceof Error ? error.message : 'Failed to update lane'
-    const status = message.includes('not found') ? 404 : 500
-    return NextResponse.json({ success: false, error: message }, { status })
-  }
+    return successResponse(null)
+  })(request)
 }

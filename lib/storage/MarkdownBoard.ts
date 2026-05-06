@@ -186,6 +186,9 @@ export class MarkdownBoard {
             createdAt: cardFm.createdAt || new Date().toISOString(),
             updatedAt: cardFm.updatedAt || new Date().toISOString(),
             tags: cardFm.tags || [],
+            attachments: cardFm.attachments || [],
+            dueDate: cardFm.dueDate,
+            priority: cardFm.priority,
           }
         })
 
@@ -207,6 +210,8 @@ export class MarkdownBoard {
         updatedAt: frontmatter.updatedAt || new Date().toISOString(),
         tags: frontmatter.tags || [],
         lanes,
+        archivedAt: frontmatter.archivedAt,
+        operationLogs: frontmatter.operationLogs,
       }
     } catch (error) {
       throw new MarkdownParseError(
@@ -257,6 +262,15 @@ export class MarkdownBoard {
             if (card.tags && card.tags.length > 0) {
               cardFm.tags = card.tags
             }
+            if (card.attachments && card.attachments.length > 0) {
+              cardFm.attachments = card.attachments
+            }
+            if (card.dueDate !== undefined) {
+              cardFm.dueDate = card.dueDate
+            }
+            if (card.priority !== undefined) {
+              cardFm.priority = card.priority
+            }
 
             return cardFm
           })
@@ -266,17 +280,24 @@ export class MarkdownBoard {
       }),
     }
 
-    // 添加可选的 Markdown 正文
-    const body = this.generateMarkdownBody(board)
+    if (board.archivedAt !== undefined) {
+      frontmatter.archivedAt = board.archivedAt
+    }
+    if (board.operationLogs !== undefined && board.operationLogs.length > 0) {
+      frontmatter.operationLogs = board.operationLogs
+    }
 
-    // 使用 gray-matter 序列化（frontmatter + body）
+    // 使用 gray-matter 序列化（仅 frontmatter，body 置空以避免冗余）
+    // generateMarkdownBody 保留为备用方法，供导出功能调用
+    const body = ''
+
     return matter.stringify(body, frontmatter)
   }
 
   /**
    * 生成 Markdown 正文内容（可选）
    */
-  private static generateMarkdownBody(board: Board): string {
+  public static generateMarkdownBody(board: Board): string {
     const parts: string[] = []
 
     for (const lane of board.lanes) {

@@ -1,5 +1,6 @@
 /**
  * 看板内存缓存 - 提升性能
+ * 支持 TTL（自动过期）和 LRU（最近最少使用）淘汰策略
  */
 
 import type { Board } from '@/types'
@@ -14,15 +15,17 @@ interface CacheEntry {
 
 /**
  * 看板缓存类
- * 使用简单的 Map 实现，支持 TTL（自动过期）
+ * 使用 Map 实现 LRU，支持 TTL（自动过期）
  */
 export class BoardCache {
   private cache: Map<string, CacheEntry> = new Map()
   private readonly DEFAULT_TTL = 300000 // 5 分钟（毫秒）
   private readonly ttl: number
+  private readonly maxSize: number
 
-  constructor(ttl?: number) {
+  constructor(ttl?: number, maxSize = 50) {
     this.ttl = ttl ?? this.DEFAULT_TTL
+    this.maxSize = maxSize
   }
 
   /**
@@ -44,6 +47,10 @@ export class BoardCache {
       return null
     }
 
+    // LRU: 移到最新
+    this.cache.delete(boardId)
+    this.cache.set(boardId, entry)
+
     return entry.data
   }
 
@@ -51,6 +58,19 @@ export class BoardCache {
    * 设置看板缓存
    */
   set(boardId: string, board: Board): void {
+    // 如果 key 已存在，先删除再设置（更新顺序）
+    if (this.cache.has(boardId)) {
+      this.cache.delete(boardId)
+    }
+
+    // 如果容量超限，删除最久未使用的（Map 的第一个 key）
+    if (this.cache.size >= this.maxSize) {
+      const firstKey = this.cache.keys().next().value
+      if (firstKey !== undefined) {
+        this.cache.delete(firstKey)
+      }
+    }
+
     this.cache.set(boardId, {
       data: board,
       timestamp: Date.now(),
@@ -81,9 +101,10 @@ export class BoardCache {
   /**
    * 获取缓存统计信息
    */
-  getStats(): { size: number; keys: string[] } {
+  getStats(): { size: number; maxSize: number; keys: string[] } {
     return {
       size: this.cache.size,
+      maxSize: this.maxSize,
       keys: Array.from(this.cache.keys()),
     }
   }

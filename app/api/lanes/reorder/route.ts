@@ -1,45 +1,44 @@
-import { NextResponse } from 'next/server'
 import { dbHelpers } from '@/lib/db'
+import { ReorderLanesSchema } from '@/lib/validation/schema'
+import { withValidation } from '@/lib/api/validate'
+import { successResponse, errorResponse, notFoundResponse } from '@/lib/api/response'
 import type { Board } from '@/types'
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json()
-    const { boardId, laneIds } = body
+    return await withValidation(ReorderLanesSchema, async (body) => {
+      const { boardId, laneIds } = body
 
-    if (!boardId || !Array.isArray(laneIds)) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
-    }
+      // 获取完整看板数据
+      const board = await dbHelpers.getBoard(boardId)
+      if (!board) {
+        return notFoundResponse('Board')
+      }
 
-    // 获取完整看板数据
-    const board = await dbHelpers.getBoard(boardId)
-    if (!board) {
-      return NextResponse.json({ error: 'Board not found' }, { status: 404 })
-    }
+      // 创建新的 lanes 数组，按新顺序排列
+      const reorderedLanes = board.lanes.map((lane) => {
+        const index = laneIds.indexOf(lane.id)
+        const newPosition = index === -1 ? 0 : index
 
-    // 创建新的 lanes 数组，按新顺序排列
-    const reorderedLanes = board.lanes.map((lane) => {
-      const index = laneIds.indexOf(lane.id)
-      const newPosition = index === -1 ? 0 : index
+        return {
+          ...lane,
+          position: newPosition * 1000,
+          updatedAt: new Date().toISOString(),
+        }
+      })
 
-      return {
-        ...lane,
-        position: newPosition * 1000,
+      const updatedBoard: Board = {
+        ...board,
+        lanes: reorderedLanes,
         updatedAt: new Date().toISOString(),
       }
-    })
 
-    const updatedBoard: Board = {
-      ...board,
-      lanes: reorderedLanes,
-      updatedAt: new Date().toISOString(),
-    }
+      await dbHelpers.updateBoard(boardId, { title: board.title, lanes: updatedBoard.lanes })
 
-    await dbHelpers.updateBoard(boardId, { title: board.title, lanes: updatedBoard.lanes })
-
-    return NextResponse.json({ success: true, data: updatedBoard })
+      return successResponse(updatedBoard)
+    })(request)
   } catch (error) {
     console.error('Error reordering lanes:', error)
-    return NextResponse.json({ success: false, error: 'Failed to reorder lanes' }, { status: 500 })
+    return errorResponse(error instanceof Error ? error.message : 'Failed to reorder lanes', 500)
   }
 }

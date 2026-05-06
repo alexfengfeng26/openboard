@@ -4,7 +4,6 @@ import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type { Lane, Card } from '@/lib/db'
-import { CardItem } from '@/components/card/CardItem'
 import { DraggableCard } from '@/components/card/DraggableCard'
 import { CreateCardDialog } from '@/components/card/CreateCardDialog'
 import { EditLaneDialog } from '@/components/lane/EditLaneDialog'
@@ -20,9 +19,24 @@ interface LaneItemProps {
   isHovered?: boolean
   onLaneDeleted?: (laneId: string) => void
   boardId: string
+  selectionMode?: boolean
+  selectedCardIds?: Set<string>
+  onCardSelectToggle?: (cardId: string) => void
+  onCardSelectRange?: (toCardId: string) => void
 }
 
-const LaneContent = memo(function LaneContent({ lane, onLaneUpdate, onCardEdit, isHovered, onLaneDeleted, boardId }: LaneItemProps) {
+const LaneContent = memo(function LaneContent({
+  lane,
+  onLaneUpdate,
+  onCardEdit,
+  isHovered,
+  onLaneDeleted,
+  boardId,
+  selectionMode,
+  selectedCardIds,
+  onCardSelectToggle,
+  onCardSelectRange,
+}: LaneItemProps) {
   const { setNodeRef } = useDroppable({
     id: lane.id,
     data: {
@@ -82,6 +96,7 @@ const LaneContent = memo(function LaneContent({ lane, onLaneUpdate, onCardEdit, 
           size="icon"
           className="h-6 w-6"
           onClick={() => setShowEditLane(true)}
+          aria-label="编辑列表"
         >
           <Edit2 className="h-3 w-3" />
         </Button>
@@ -92,7 +107,15 @@ const LaneContent = memo(function LaneContent({ lane, onLaneUpdate, onCardEdit, 
         <div ref={setNodeRef} className={`min-h-[100px] space-y-2 ${isHovered ? 'bg-primary/5 rounded-md p-2 -m-2' : ''}`}>
           <SortableContext items={cardIds} strategy={verticalListSortingStrategy}>
             {lane.cards.map((card) => (
-              <DraggableCard key={card.id} card={card} onEdit={onCardEdit} />
+              <DraggableCard
+                key={card.id}
+                card={card}
+                onEdit={onCardEdit}
+                selected={selectedCardIds?.has(card.id)}
+                selectionMode={selectionMode}
+                onSelectToggle={onCardSelectToggle}
+                onSelectRange={onCardSelectRange}
+              />
             ))}
 
             {lane.cards.length === 0 && (
@@ -110,6 +133,8 @@ const LaneContent = memo(function LaneContent({ lane, onLaneUpdate, onCardEdit, 
           variant="ghost"
           className="mt-2 justify-start"
           onClick={() => setIsQuickAdding(true)}
+          aria-label="添加卡片"
+          data-quick-add-btn
         >
           <Plus className="mr-2 h-4 w-4" />
           添加卡片
@@ -184,7 +209,7 @@ const LaneContent = memo(function LaneContent({ lane, onLaneUpdate, onCardEdit, 
   )
 })
 
-export const LaneItem = memo(function LaneItem({ lane, onLaneUpdate, onCardEdit, isHovered, onLaneDeleted, boardId }: LaneItemProps) {
+export const LaneItem = memo(function LaneItem({ lane, onLaneUpdate, onCardEdit, isHovered, onLaneDeleted, boardId, selectionMode, selectedCardIds, onCardSelectToggle, onCardSelectRange }: LaneItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: lane.id,
     data: {
@@ -210,6 +235,10 @@ export const LaneItem = memo(function LaneItem({ lane, onLaneUpdate, onCardEdit,
         isHovered={isHovered}
         onLaneDeleted={onLaneDeleted}
         boardId={boardId}
+        selectionMode={selectionMode}
+        selectedCardIds={selectedCardIds}
+        onCardSelectToggle={onCardSelectToggle}
+        onCardSelectRange={onCardSelectRange}
       />
     </div>
   )

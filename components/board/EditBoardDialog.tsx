@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogBody, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Archive, RotateCcw } from 'lucide-react'
 import { toastSuccess, toastError } from '@/components/ui/toast'
 import type { Board } from '@/lib/db'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
@@ -15,6 +15,7 @@ interface EditBoardDialogProps {
   board: Board
   onBoardUpdated: (board: Board) => void
   onBoardDeleted: (boardId: string) => void
+  onBoardArchived?: (board: Board) => void
 }
 
 export function EditBoardDialog({
@@ -23,10 +24,12 @@ export function EditBoardDialog({
   board,
   onBoardUpdated,
   onBoardDeleted,
+  onBoardArchived,
 }: EditBoardDialogProps) {
   const [title, setTitle] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showArchiveConfirm, setShowArchiveConfirm] = useState(false)
 
   useEffect(() => {
     if (board) setTitle(board.title)
@@ -83,6 +86,32 @@ export function EditBoardDialog({
     }
   }
 
+  async function handleArchive() {
+    if (!board) return
+
+    const archived = !board.archivedAt
+    try {
+      const response = await fetch(`/api/boards/${board.id}/archive`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ archived }),
+      })
+
+      if (!response.ok) throw new Error('Failed to archive board')
+
+      const result = await response.json()
+      if (result.success) {
+        onBoardUpdated?.(result.data)
+        onBoardArchived?.(result.data)
+        toastSuccess(archived ? '看板已归档' : '看板已恢复')
+        onOpenChange(false)
+        setShowArchiveConfirm(false)
+      }
+    } catch (error) {
+      toastError(archived ? '归档看板失败' : '恢复看板失败')
+    }
+  }
+
   function handleClose() {
     if (!isSubmitting) onOpenChange(false)
   }
@@ -125,6 +154,25 @@ export function EditBoardDialog({
                 <Trash2 className="mr-1.5 h-3.5 w-3.5" />
                 删除
               </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowArchiveConfirm(true)}
+                disabled={isSubmitting}
+              >
+                {board?.archivedAt ? (
+                  <>
+                    <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+                    恢复
+                  </>
+                ) : (
+                  <>
+                    <Archive className="mr-1.5 h-3.5 w-3.5" />
+                    归档
+                  </>
+                )}
+              </Button>
               <div className="flex gap-2 ml-auto">
                 <Button type="button" variant="outline" size="sm" onClick={handleClose} disabled={isSubmitting}>
                   取消
@@ -145,6 +193,19 @@ export function EditBoardDialog({
         description="确定要删除这个看板吗？看板下的所有列表和卡片也将被删除，此操作无法撤销。"
         confirmText="删除"
         onConfirm={handleDelete}
+      />
+
+      <ConfirmDialog
+        open={showArchiveConfirm}
+        onOpenChange={setShowArchiveConfirm}
+        title={board?.archivedAt ? '恢复看板' : '归档看板'}
+        description={
+          board?.archivedAt
+            ? '确定要恢复这个看板吗？恢复后看板将重新显示在看板列表中。'
+            : '确定要归档这个看板吗？归档后看板将隐藏，但可以通过“显示已归档”查看。'
+        }
+        confirmText={board?.archivedAt ? '恢复' : '归档'}
+        onConfirm={handleArchive}
       />
     </>
   )

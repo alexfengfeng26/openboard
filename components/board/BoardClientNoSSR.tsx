@@ -2,6 +2,7 @@
 
 import type { Board } from '@/lib/db'
 import dynamic from 'next/dynamic'
+import { ErrorBoundary } from '@/components/ui/error-boundary'
 
 // 动态导入 BoardClient，禁用 SSR 以避免 @dnd-kit hydration 问题
 const BoardClient = dynamic(() => import('./BoardClient').then(mod => ({ default: mod.BoardClient })), {
@@ -25,7 +26,9 @@ export function BoardClientNoSSR({
 }) {
   return (
     <div suppressHydrationWarning>
-      <BoardClient initialBoard={initialBoard} initialBoards={initialBoards} />
+      <ErrorBoundary>
+        <BoardClient initialBoard={initialBoard} initialBoards={initialBoards} />
+      </ErrorBoundary>
     </div>
   )
 }

@@ -1,82 +1,98 @@
-import { NextResponse } from 'next/server'
 import { dbHelpers } from '@/lib/db'
-import type { Card, Tag } from '@/lib/db'
+import { CreateCardSchema, UpdateCardSchema } from '@/lib/validation/schema'
+import { validateBody } from '@/lib/validation/api'
+import { withValidation } from '@/lib/api/validate'
+import { successResponse, errorResponse, notFoundResponse } from '@/lib/api/response'
+import { z } from 'zod'
 
-interface CreateCardRequestBody {
-  boardId: string
-  laneId: string
-  title: string
-  description?: string
-  tags?: Tag[]
-}
+/**
+ * DELETE /api/cards - 删除卡片查询参数 Schema
+ */
+const DeleteCardQuerySchema = z.object({
+  cardId: z.string().min(1),
+  boardId: z.string().min(1),
+})
 
-interface UpdateCardRequestBody {
-  cardId?: string
-  boardId?: string
-  title?: string
-  description?: string
-  tags?: Tag[]
-}
-
+/**
+ * POST /api/cards - 创建卡片
+ */
 export async function POST(request: Request) {
+  let rawBody: any = {}
   try {
-    const body = await request.json() as CreateCardRequestBody
-    const { boardId, laneId, title, description, tags } = body
-
-    if (!boardId || !laneId || !title) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
-    }
-
-    const card = await dbHelpers.createCard(boardId, laneId, title, description, tags)
-
-    return NextResponse.json({ success: true, data: card })
-  } catch (error) {
-    console.error('Error creating card:', error)
-    return NextResponse.json({ error: 'Failed to create card' }, { status: 500 })
+    const clonedRequest = request.clone()
+    rawBody = await clonedRequest.json()
+  } catch {
+    // Invalid JSON will be handled by withValidation
   }
+
+  return withValidation(CreateCardSchema, async (data) => {
+    const { boardId, laneId, title, description, tags } = data
+    const { attachments, dueDate, priority } = rawBody
+    const card = await dbHelpers.createCard(boardId, laneId, title, description, tags, attachments, dueDate, priority)
+    return successResponse(card, 201)
+  })(request)
 }
 
+/**
+ * DELETE /api/cards - 删除卡片
+ */
 export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const cardId = searchParams.get('id') || searchParams.get('cardId')
-    const boardId = searchParams.get('boardId')
+    const queryResult = validateBody(DeleteCardQuerySchema, {
+      cardId: searchParams.get('id') || searchParams.get('cardId'),
+      boardId: searchParams.get('boardId'),
+    })
 
-    if (!cardId || !boardId) {
-      return NextResponse.json({ error: 'Missing card id or board id' }, { status: 400 })
+    if (!queryResult.success) {
+      return errorResponse(queryResult.error || 'Invalid query parameters', 400)
     }
 
+    const { cardId, boardId } = queryResult.data
     await dbHelpers.deleteCard(boardId, cardId)
-
-    return NextResponse.json({ success: true })
+    return successResponse(null)
   } catch (error) {
     console.error('Error deleting card:', error)
     const message = error instanceof Error ? error.message : 'Failed to delete card'
     const status = message.includes('not found') ? 404 : 500
-    return NextResponse.json({ success: false, error: message }, { status })
+    if (status === 404) {
+      return notFoundResponse('Card')
+    }
+    return errorResponse(message, status)
   }
 }
 
+/**
+ * PATCH /api/cards - 更新卡片
+ */
 export async function PATCH(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const body = await request.json().catch(() => ({})) as UpdateCardRequestBody
-    const bodyCardId = typeof body.cardId === 'string' ? body.cardId : null
-    const cardId = bodyCardId || searchParams.get('cardId') || searchParams.get('id')
-    const { cardId: _cardId, ...data } = body
-    const boardId = body.boardId || searchParams.get('boardId')
+    const body = await request.json().catch(() => ({}))
 
-    if (!cardId || !boardId) {
-      return NextResponse.json({ error: 'Missing card id or board id' }, { status: 400 })
+    // Merge query params into body for backward compatibility
+    const payload = {
+      ...body,
+      cardId: body.cardId || searchParams.get('cardId') || searchParams.get('id'),
+      boardId: body.boardId || searchParams.get('boardId'),
     }
 
-    await dbHelpers.updateCard(boardId, cardId, data)
+    const result = validateBody(UpdateCardSchema, payload)
+    if (!result.success) {
+      return errorResponse(result.error || 'Validation failed', 400)
+    }
 
-    return NextResponse.json({ success: true })
+    const { cardId, boardId, ...updates } = result.data
+    const { attachments, dueDate, priority } = body
+    await dbHelpers.updateCard(boardId, cardId, { ...updates, attachments, dueDate, priority })
+    return successResponse(null)
   } catch (error) {
     console.error('Error updating card:', error)
     const message = error instanceof Error ? error.message : 'Failed to update card'
     const status = message.includes('not found') ? 404 : 500
-    return NextResponse.json({ success: false, error: message }, { status })
+    if (status === 404) {
+      return notFoundResponse('Card')
+    }
+    return errorResponse(message, status)
   }
 }

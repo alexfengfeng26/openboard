@@ -57,6 +57,8 @@ export interface OperationLogEntry {
   confirmedBy?: 'user' | 'auto'
   /** 操作耗时（毫秒） */
   durationMs?: number
+  /** 用户备注 */
+  userNote?: string
 }
 
 /**

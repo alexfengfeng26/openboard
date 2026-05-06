@@ -14,6 +14,7 @@ kanban-board 项目的完整文档索引。
 | [ai-tools-system.md](./ai-tools-system.md) | AI 工具调用系统架构 |
 | [ai-tools-guide.md](./ai-tools-guide.md) | AI 工具使用手册 |
 | [database.md](./database.md) | 数据库层设计文档 |
+| [lark-integration-plan.md](./lark-integration-plan.md) | Lark CLI 与看板系统集成方案 |
 | [codereview.md](./codereview.md) | 代码审查和问题清单 |
 
 ---

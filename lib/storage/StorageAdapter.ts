@@ -5,7 +5,8 @@
 
 import { promises as fs } from 'fs'
 import path from 'path'
-import type { Board, Lane, Card, Tag } from '@/types'
+import type { Board, Lane, Card, Tag, CardPriority, Attachment } from '@/types'
+import type { OperationLogEntry } from '@/types/ai-tools.types'
 import type { LockAcquisitionError } from '@/types/storage.types'
 import {
   StorageReadError,
@@ -31,6 +32,7 @@ interface BoardIndexEntry {
   createdAt: string
   updatedAt: string
   cardCount: number
+  archivedAt?: string
 }
 
 /**
@@ -67,21 +69,24 @@ export class StorageAdapter {
   /**
    * 获取所有看板列表（轻量级）
    */
-  async getBoards(): Promise<Array<{ id: string; title: string; createdAt: string; updatedAt: string }>> {
+  async getBoards(includeArchived = false): Promise<Array<{ id: string; title: string; createdAt: string; updatedAt: string; archivedAt?: string }>> {
     // 首先尝试从索引文件加载
     const index = await this.loadIndex()
     if (index) {
-      return index.map(entry => ({
-        id: entry.id,
-        title: entry.title,
-        createdAt: entry.createdAt,
-        updatedAt: entry.updatedAt,
-      }))
+      return index
+        .filter(entry => includeArchived || !entry.archivedAt)
+        .map(entry => ({
+          id: entry.id,
+          title: entry.title,
+          createdAt: entry.createdAt,
+          updatedAt: entry.updatedAt,
+          archivedAt: entry.archivedAt,
+        }))
     }
 
     // 索引不存在，回退到扫描 Markdown 文件
     const boardIds = await MarkdownBoard.listAll()
-    const result: Array<{ id: string; title: string; createdAt: string; updatedAt: string }> = []
+    const result: Array<{ id: string; title: string; createdAt: string; updatedAt: string; archivedAt?: string }> = []
     const indexEntries: BoardIndexEntry[] = []
 
     for (const boardId of boardIds) {
@@ -105,12 +110,15 @@ export class StorageAdapter {
       }
 
       if (board) {
-        result.push({
-          id: board.id,
-          title: board.title,
-          createdAt: board.createdAt,
-          updatedAt: board.updatedAt,
-        })
+        if (includeArchived || !board.archivedAt) {
+          result.push({
+            id: board.id,
+            title: board.title,
+            createdAt: board.createdAt,
+            updatedAt: board.updatedAt,
+            archivedAt: board.archivedAt,
+          })
+        }
         indexEntries.push(this.buildIndexEntry(board))
       }
     }
@@ -139,9 +147,17 @@ export class StorageAdapter {
   /**
    * 创建新看板
    */
-  async createBoard(title: string): Promise<Board> {
+  async createBoard(title: string, lanes?: Pick<Lane, 'title'>[]): Promise<Board> {
     const now = new Date().toISOString()
     const boardId = this.createBoardId()
+
+    const defaultLanes = lanes && lanes.length > 0
+      ? lanes
+      : [
+          { title: '待办' },
+          { title: '进行中' },
+          { title: '已完成' },
+        ]
 
     const newBoard: Board = {
       id: boardId,
@@ -149,35 +165,15 @@ export class StorageAdapter {
       createdAt: now,
       updatedAt: now,
       tags: [],
-      lanes: [
-        {
-          id: this.createLaneId(boardId, 0),
-          boardId,
-          title: '待办',
-          position: 0,
-          createdAt: now,
-          updatedAt: now,
-          cards: [],
-        },
-        {
-          id: this.createLaneId(boardId, 1),
-          boardId,
-          title: '进行中',
-          position: 1,
-          createdAt: now,
-          updatedAt: now,
-          cards: [],
-        },
-        {
-          id: this.createLaneId(boardId, 2),
-          boardId,
-          title: '已完成',
-          position: 2,
-          createdAt: now,
-          updatedAt: now,
-          cards: [],
-        },
-      ],
+      lanes: defaultLanes.map((l, index) => ({
+        id: this.createLaneId(boardId, index),
+        boardId,
+        title: l.title,
+        position: index,
+        createdAt: now,
+        updatedAt: now,
+        cards: [],
+      })),
     }
 
     await MarkdownBoard.write(newBoard)
@@ -190,7 +186,7 @@ export class StorageAdapter {
   /**
    * 更新看板
    */
-  async updateBoard(boardId: string, data: { title?: string; lanes?: Lane[] }): Promise<Board | null> {
+  async updateBoard(boardId: string, data: { title?: string; lanes?: Lane[]; archivedAt?: string | null }): Promise<Board | null> {
     const board = await this.getBoard(boardId)
     if (!board) return null
 
@@ -200,9 +196,50 @@ export class StorageAdapter {
       updatedAt: new Date().toISOString(),
     }
 
+    if (data.archivedAt === null) {
+      delete updated.archivedAt
+    }
+
     await MarkdownBoard.write(updated)
     this.cache.set(boardId, updated)
     await this.rebuildIndex()
+
+    return updated
+  }
+
+  /**
+   * 归档看板
+   */
+  async archiveBoard(boardId: string): Promise<Board | null> {
+    return this.updateBoard(boardId, { archivedAt: new Date().toISOString() })
+  }
+
+  /**
+   * 恢复看板
+   */
+  async unarchiveBoard(boardId: string): Promise<Board | null> {
+    return this.updateBoard(boardId, { archivedAt: null })
+  }
+
+  /**
+   * 添加操作日志到看板
+   * 单看板最多保留 200 条日志，超出时淘汰最早的
+   */
+  async addOperationLog(boardId: string, log: OperationLogEntry): Promise<Board | null> {
+    const board = await this.getBoard(boardId)
+    if (!board) return null
+
+    const logs = board.operationLogs || []
+    const newLogs = [log, ...logs].slice(0, 200)
+
+    const updated: Board = {
+      ...board,
+      operationLogs: newLogs,
+      updatedAt: new Date().toISOString(),
+    }
+
+    await MarkdownBoard.write(updated)
+    this.cache.set(boardId, updated)
 
     return updated
   }
@@ -228,6 +265,33 @@ export class StorageAdapter {
    */
   async getDefaultBoard(): Promise<Board | null> {
     return this.getBoard('default-board')
+  }
+
+  /**
+   * 获取操作日志
+   */
+  async getOperationLogs(boardId: string): Promise<OperationLogEntry[]> {
+    const board = await this.getBoard(boardId)
+    return board?.operationLogs || []
+  }
+
+  /**
+   * 清空操作日志
+   */
+  async clearOperationLogs(boardId: string): Promise<Board | null> {
+    const board = await this.getBoard(boardId)
+    if (!board) return null
+
+    const updated: Board = {
+      ...board,
+      operationLogs: [],
+      updatedAt: new Date().toISOString(),
+    }
+
+    await MarkdownBoard.write(updated)
+    this.cache.set(boardId, updated)
+
+    return updated
   }
 
   /**
@@ -330,7 +394,10 @@ export class StorageAdapter {
     laneId: string,
     title: string,
     description?: string,
-    tags?: Tag[]
+    tags?: Tag[],
+    attachments?: Attachment[],
+    dueDate?: string,
+    priority?: CardPriority
   ): Promise<Card> {
     const board = await this.getBoard(boardId)
     if (!board) throw new Error('Board not found')
@@ -348,6 +415,9 @@ export class StorageAdapter {
       createdAt: now,
       updatedAt: now,
       tags: tags || [],
+      attachments: attachments || [],
+      dueDate,
+      priority,
     }
 
     const updatedLane: Lane = {
@@ -371,7 +441,7 @@ export class StorageAdapter {
   /**
    * 更新卡片
    */
-  async updateCard(boardId: string, cardId: string, data: { title?: string; description?: string; tags?: Tag[] }): Promise<void> {
+  async updateCard(boardId: string, cardId: string, data: { title?: string; description?: string; tags?: Tag[]; attachments?: Attachment[]; dueDate?: string; priority?: CardPriority }): Promise<void> {
     const board = await this.getBoard(boardId)
     if (!board) throw new Error('Board not found')
 
@@ -511,6 +581,122 @@ export class StorageAdapter {
   }
 
   /**
+   * 批量移动卡片
+   */
+  async batchMoveCards(boardId: string, cardIds: string[], toLaneId: string): Promise<void> {
+    const board = await this.getBoard(boardId)
+    if (!board) throw new Error('Board not found')
+
+    const now = new Date().toISOString()
+    const targetLane = board.lanes.find((l) => l.id === toLaneId)
+    if (!targetLane) throw new Error('Lane not found')
+
+    const cardsToMove: Card[] = []
+    for (const cardId of cardIds) {
+      for (const lane of board.lanes) {
+        const card = lane.cards.find((c) => c.id === cardId)
+        if (card) {
+          cardsToMove.push({ ...card, laneId: toLaneId, updatedAt: now })
+          break
+        }
+      }
+    }
+
+    if (cardsToMove.length === 0) throw new Error('No cards found to move')
+
+    const updatedLanes: Lane[] = board.lanes.map((lane) => {
+      if (lane.id === toLaneId) {
+        const existingIds = new Set(lane.cards.map((c) => c.id))
+        const newCards = [...lane.cards]
+        for (const card of cardsToMove) {
+          if (!existingIds.has(card.id)) {
+            newCards.push(card)
+          }
+        }
+        return { ...lane, cards: newCards, updatedAt: now }
+      }
+      return {
+        ...lane,
+        cards: lane.cards.filter((c) => !cardIds.includes(c.id)),
+        updatedAt: now,
+      }
+    })
+
+    const updatedBoard: Board = {
+      ...board,
+      lanes: updatedLanes,
+      updatedAt: now,
+    }
+
+    await MarkdownBoard.write(updatedBoard)
+    this.cache.set(boardId, updatedBoard)
+  }
+
+  /**
+   * 批量删除卡片
+   */
+  async batchDeleteCards(boardId: string, cardIds: string[]): Promise<void> {
+    const board = await this.getBoard(boardId)
+    if (!board) throw new Error('Board not found')
+
+    const now = new Date().toISOString()
+    const idSet = new Set(cardIds)
+
+    const updatedLanes: Lane[] = board.lanes.map((lane) => ({
+      ...lane,
+      cards: lane.cards.filter((c) => !idSet.has(c.id)),
+      updatedAt: now,
+    }))
+
+    const updatedBoard: Board = {
+      ...board,
+      lanes: updatedLanes,
+      updatedAt: now,
+    }
+
+    await MarkdownBoard.write(updatedBoard)
+    this.cache.set(boardId, updatedBoard)
+  }
+
+  /**
+   * 批量更新卡片标签
+   */
+  async batchUpdateCardTags(boardId: string, cardIds: string[], addTags: Tag[], removeTagIds: string[]): Promise<void> {
+    const board = await this.getBoard(boardId)
+    if (!board) throw new Error('Board not found')
+
+    const now = new Date().toISOString()
+    const idSet = new Set(cardIds)
+    const removeSet = new Set(removeTagIds)
+
+    const updatedLanes: Lane[] = board.lanes.map((lane) => ({
+      ...lane,
+      cards: lane.cards.map((card) => {
+        if (!idSet.has(card.id)) return card
+        let tags = [...(card.tags || [])]
+        tags = tags.filter((t) => !removeSet.has(t.id))
+        const existingIds = new Set(tags.map((t) => t.id))
+        for (const tag of addTags) {
+          if (!existingIds.has(tag.id)) {
+            tags.push(tag)
+          }
+        }
+        return { ...card, tags, updatedAt: now }
+      }),
+      updatedAt: now,
+    }))
+
+    const updatedBoard: Board = {
+      ...board,
+      lanes: updatedLanes,
+      updatedAt: now,
+    }
+
+    await MarkdownBoard.write(updatedBoard)
+    this.cache.set(boardId, updatedBoard)
+  }
+
+  /**
    * ========== 私有辅助方法 ==========
    */
 
@@ -551,6 +737,7 @@ export class StorageAdapter {
       createdAt: board.createdAt,
       updatedAt: board.updatedAt,
       cardCount: board.lanes.reduce((sum, lane) => sum + lane.cards.length, 0),
+      archivedAt: board.archivedAt,
     }
   }
 
@@ -691,22 +878,28 @@ export async function dbHelpersWrapper() {
     // 看板操作
     getBoards: () => storage.getBoards(),
     getBoard: (boardId: string) => storage.getBoard(boardId),
-    createBoard: (title: string) => storage.createBoard(title),
-    updateBoard: (boardId: string, data: { title?: string; lanes?: Lane[] }) => storage.updateBoard(boardId, data),
+    createBoard: (title: string, lanes?: Pick<Lane, 'title'>[]) => storage.createBoard(title, lanes),
+    updateBoard: (boardId: string, data: { title?: string; lanes?: Lane[]; archivedAt?: string | null }) => storage.updateBoard(boardId, data),
     deleteBoard: (boardId: string) => storage.deleteBoard(boardId),
     getDefaultBoard: () => storage.getDefaultBoard(),
     getTags: () => storage.getTags(),
 
-    // 列表操作
-    createLane: (boardId: string, title: string) => storage.createLane(boardId, title),
+    // 归档
+    archiveBoard: (boardId: string) => storage.archiveBoard(boardId),
+    unarchiveBoard: (boardId: string) => storage.unarchiveBoard(boardId),
+
+    // 操作日志
+    addOperationLog: (boardId: string, log: OperationLogEntry) => storage.addOperationLog(boardId, log),
+    getOperationLogs: (boardId: string) => storage.getOperationLogs(boardId),
+    clearOperationLogs: (boardId: string) => storage.clearOperationLogs(boardId),
     updateLane: (boardId: string, laneId: string, data: { title?: string }) =>
       storage.updateLane(boardId, laneId, data),
     deleteLane: (boardId: string, laneId: string) => storage.deleteLane(boardId, laneId),
 
     // 卡片操作
-    createCard: (boardId: string, laneId: string, title: string, description?: string, tags?: Tag[]) =>
-      storage.createCard(boardId, laneId, title, description, tags),
-    updateCard: (boardId: string, cardId: string, data: { title?: string; description?: string; tags?: Tag[] }) =>
+    createCard: (boardId: string, laneId: string, title: string, description?: string, tags?: Tag[], attachments?: Attachment[], dueDate?: string, priority?: CardPriority) =>
+      storage.createCard(boardId, laneId, title, description, tags, attachments, dueDate, priority),
+    updateCard: (boardId: string, cardId: string, data: { title?: string; description?: string; tags?: Tag[]; attachments?: Attachment[]; dueDate?: string; priority?: CardPriority }) =>
       storage.updateCard(boardId, cardId, data),
     deleteCard: (boardId: string, cardId: string) => storage.deleteCard(boardId, cardId),
     moveCard: (boardId: string, cardId: string, toLaneId: string, newPosition: number) =>

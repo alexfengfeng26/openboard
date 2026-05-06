@@ -9,10 +9,6 @@ export interface Lane {
   position: number
   createdAt: string
   updatedAt: string
-  cards?: Card[]
-}
-
-export interface LaneWithCards extends Lane {
   cards: Card[]
 }
 
