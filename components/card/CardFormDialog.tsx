@@ -223,7 +223,7 @@ export function CardFormDialog({
     <>
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className={dialogSizeClass}>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
             <DialogHeader>
               <DialogTitle className="text-base">{dialogTitle}</DialogTitle>
             </DialogHeader>

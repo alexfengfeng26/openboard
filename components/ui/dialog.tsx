@@ -40,7 +40,7 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        'fixed left-[50%] top-[50%] z-50 max-h-[calc(100vh-4rem)] w-[calc(100%-2rem)] max-w-lg overflow-hidden',
+        'fixed left-[50%] top-[50%] z-50 flex max-h-[calc(100vh-4rem)] w-[calc(100%-2rem)] max-w-lg flex-col overflow-hidden',
         'translate-x-[-50%] translate-y-[-50%]',
         'rounded-lg border border-border bg-white',
         'shadow-lg shadow-black/10',
@@ -54,9 +54,7 @@ const DialogContent = React.forwardRef<
       )}
       {...props}
     >
-      <div className="h-full overflow-y-auto">
-        {children}
-      </div>
+      {children}
       <DialogPrimitive.Close className="absolute right-4 top-4 rounded-md p-1.5 text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 disabled:pointer-events-none">
         <X className="h-4 w-4" />
         <span className="sr-only">Close</span>
@@ -71,7 +69,7 @@ const DialogBody = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn('px-5 py-4', className)}
+    className={cn('px-5 py-4 flex-1 overflow-y-auto min-h-0', className)}
     {...props}
   />
 )

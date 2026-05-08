@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Dialog, DialogContent, DialogBody, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogBody, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { TagSettingsPanel } from './TagSettingsPanel'
 import type { AiSettings, AiTrustMode } from '@/types/settings.types'
 import type { AiCommand, AiCommandScope, AiCommandPlacement } from '@/types/ai-commands.types'
@@ -285,7 +285,7 @@ export function AiSettingsDialog({
                 </div>
               </div>
 
-              <div className="max-h-80 space-y-2 overflow-y-auto rounded-md border p-2">
+              <div className="space-y-2 rounded-md border p-2">
                 {commandsDraft.map((c, idx) => (
                   <div key={c.id} className="space-y-2 rounded-md border p-2">
                     <div className="flex flex-wrap items-center gap-2">
@@ -373,14 +373,6 @@ export function AiSettingsDialog({
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-1">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                取消
-              </Button>
-              <Button onClick={handleSave} disabled={loading}>
-                {loading ? '保存中...' : '保存'}
-              </Button>
-            </div>
           </DialogBody>
         )}
 
@@ -388,6 +380,17 @@ export function AiSettingsDialog({
           <DialogBody>
             <TagSettingsPanel />
           </DialogBody>
+        )}
+
+        {settingsActiveTab === 'trigger' && (
+          <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              取消
+            </Button>
+            <Button onClick={handleSave} disabled={loading}>
+              {loading ? '保存中...' : '保存'}
+            </Button>
+          </DialogFooter>
         )}
       </DialogContent>
     </Dialog>
