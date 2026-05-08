@@ -281,8 +281,20 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
     }
     return { x: Math.max(20, window.innerWidth - 380), y: 80 }
   })
+  const [chatHeight, setChatHeight] = useState(() => {
+    if (typeof window === 'undefined') return 720
+    const saved = localStorage.getItem('ai-panel-height')
+    if (saved) {
+      const h = parseInt(saved, 10)
+      if (!isNaN(h)) return Math.max(400, Math.min(window.innerHeight - 80, h))
+    }
+    return Math.min(720, window.innerHeight - 80)
+  })
   const [isDraggingChat, setIsDraggingChat] = useState(false)
+  const [isResizingHeight, setIsResizingHeight] = useState(false)
   const chatDragOffset = useRef({ x: 0, y: 0 })
+  const resizeStartY = useRef(0)
+  const resizeStartHeight = useRef(0)
   const chatPanelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -295,19 +307,29 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
   // AI 面板拖拽逻辑
   useEffect(() => {
     function onMouseMove(e: MouseEvent) {
-      if (!isDraggingChat) return
-      setChatPosition({
-        x: Math.max(0, Math.min(window.innerWidth - 320, e.clientX - chatDragOffset.current.x)),
-        y: Math.max(0, Math.min(window.innerHeight - 100, e.clientY - chatDragOffset.current.y)),
-      })
+      if (isDraggingChat) {
+        setChatPosition({
+          x: Math.max(0, Math.min(window.innerWidth - 320, e.clientX - chatDragOffset.current.x)),
+          y: Math.max(0, Math.min(window.innerHeight - 100, e.clientY - chatDragOffset.current.y)),
+        })
+      }
+      if (isResizingHeight) {
+        const delta = e.clientY - resizeStartY.current
+        const newHeight = Math.max(400, Math.min(window.innerHeight - 80, resizeStartHeight.current + delta))
+        setChatHeight(newHeight)
+      }
     }
     function onMouseUp() {
       if (isDraggingChat) {
         setIsDraggingChat(false)
         localStorage.setItem('ai-panel-position', JSON.stringify(chatPosition))
       }
+      if (isResizingHeight) {
+        setIsResizingHeight(false)
+        localStorage.setItem('ai-panel-height', String(chatHeight))
+      }
     }
-    if (isDraggingChat) {
+    if (isDraggingChat || isResizingHeight) {
       window.addEventListener('mousemove', onMouseMove)
       window.addEventListener('mouseup', onMouseUp)
     }
@@ -315,7 +337,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
       window.removeEventListener('mousemove', onMouseMove)
       window.removeEventListener('mouseup', onMouseUp)
     }
-  }, [isDraggingChat, chatPosition])
+  }, [isDraggingChat, chatPosition, isResizingHeight, chatHeight])
 
   // 路由
   const router = useRouter()
@@ -1090,7 +1112,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
               left: `${chatPosition.x}px`,
               top: `${chatPosition.y}px`,
               width: '360px',
-              height: 'min(80vh, 600px)',
+              height: `${chatHeight}px`,
             }}
           >
             {/* 拖拽手柄 */}
@@ -1138,6 +1160,16 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                 />
               </ErrorBoundary>
             </div>
+            {/* 底部高度拖拽条 */}
+            <div
+              className="h-1.5 cursor-ns-resize bg-transparent hover:bg-primary/20 transition-colors"
+              onMouseDown={(e) => {
+                setIsResizingHeight(true)
+                resizeStartY.current = e.clientY
+                resizeStartHeight.current = chatHeight
+              }}
+              title="拖拽调整高度"
+            />
           </div>
         ) : showChat && chatMinimized ? (
           <button
