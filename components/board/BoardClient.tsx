@@ -1080,7 +1080,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
         {/* AI 聊天面板 — 移动端用 Dialog，桌面端用浮动面板 */}
         {isMobile ? (
           <Dialog open={showChat} onOpenChange={(open) => dispatch({ type: 'SET_SHOW_CHAT', payload: open })}>
-            <DialogContent className="left-auto right-0 top-0 h-dvh max-h-none w-[min(100vw,420px)] max-w-none translate-x-0 translate-y-0 overflow-hidden rounded-none border-y-0 border-r-0 p-0 shadow-lg">
+            <DialogContent className="left-auto right-0 top-0 h-dvh max-h-none w-[min(100vw,420px)] max-w-none translate-x-0 translate-y-0 overflow-visible rounded-none border-y-0 border-r-0 p-0 shadow-lg">
               <DialogHeader className="border-b border-border px-4 py-3">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-muted-foreground" />
@@ -1107,7 +1107,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
         ) : showChat && !chatMinimized ? (
           <div
             ref={chatPanelRef}
-            className="fixed z-50 flex flex-col overflow-hidden rounded-xl border bg-white/95 shadow-xl backdrop-blur-md"
+            className="fixed z-50 flex flex-col overflow-visible rounded-xl border bg-white/95 shadow-xl backdrop-blur-md"
             style={{
               left: `${chatPosition.x}px`,
               top: `${chatPosition.y}px`,
