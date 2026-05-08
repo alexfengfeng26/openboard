@@ -261,12 +261,58 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
   const [isMobile, setIsMobile] = useState(false)
   const [showBatchDeleteConfirm, setShowBatchDeleteConfirm] = useState(false)
 
+  // AI 浮动面板状态
+  const [chatMinimized, setChatMinimized] = useState(false)
+  const [chatPosition, setChatPosition] = useState<{ x: number; y: number }>(() => {
+    if (typeof window === 'undefined') return { x: 0, y: 0 }
+    const saved = localStorage.getItem('ai-panel-position')
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        if (typeof parsed.x === 'number' && typeof parsed.y === 'number') {
+          return parsed
+        }
+      } catch {
+        // ignore
+      }
+    }
+    return { x: Math.max(20, window.innerWidth - 380), y: 80 }
+  })
+  const [isDraggingChat, setIsDraggingChat] = useState(false)
+  const chatDragOffset = useRef({ x: 0, y: 0 })
+  const chatPanelRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
     check()
     window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
   }, [])
+
+  // AI 面板拖拽逻辑
+  useEffect(() => {
+    function onMouseMove(e: MouseEvent) {
+      if (!isDraggingChat) return
+      setChatPosition({
+        x: Math.max(0, Math.min(window.innerWidth - 320, e.clientX - chatDragOffset.current.x)),
+        y: Math.max(0, Math.min(window.innerHeight - 100, e.clientY - chatDragOffset.current.y)),
+      })
+    }
+    function onMouseUp() {
+      if (isDraggingChat) {
+        setIsDraggingChat(false)
+        localStorage.setItem('ai-panel-position', JSON.stringify(chatPosition))
+      }
+    }
+    if (isDraggingChat) {
+      window.addEventListener('mousemove', onMouseMove)
+      window.addEventListener('mouseup', onMouseUp)
+    }
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('mouseup', onMouseUp)
+    }
+  }, [isDraggingChat, chatPosition])
 
   useEffect(() => {
     async function fetchTags() {
@@ -692,6 +738,18 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
       btn?.click()
     },
     onExitSelectionMode: () => dispatch({ type: 'CLEAR_SELECTION' }),
+    onToggleAI: () => {
+      if (showChat) {
+        if (chatMinimized) {
+          setChatMinimized(false)
+        } else {
+          setChatMinimized(true)
+        }
+      } else {
+        dispatch({ type: 'SET_SHOW_CHAT', payload: true })
+        setChatMinimized(false)
+      }
+    },
     onCloseDialog: () => {
       if (editingCard) {
         dispatch({ type: 'SET_EDITING_CARD', payload: null })
@@ -699,6 +757,10 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
       }
       if (showCreateLane) {
         dispatch({ type: 'SET_SHOW_CREATE_LANE', payload: false })
+        return true
+      }
+      if (showChat && !chatMinimized && !isMobile) {
+        setChatMinimized(true)
         return true
       }
       if (showChat) {
@@ -854,6 +916,12 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                       selectedCardIds={selectedCardIds}
                       onCardSelectToggle={handleCardSelectToggle}
                       onCardSelectRange={handleCardSelectRange}
+                      onOpenAI={(laneId) => {
+                        dispatch({ type: 'SET_SHOW_CHAT', payload: true })
+                        setChatMinimized(false)
+                        // 通过全局事件通知 AI 面板预填 /card 和设置默认 lane
+                        window.dispatchEvent(new CustomEvent('ai-panel-open', { detail: { laneId, prefix: '/card ' } }))
+                      }}
                     />
                   ))}
 
@@ -911,16 +979,72 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
           </div>
         </div>
 
-        {/* AI 聊天抽屉 */}
-        <Dialog open={showChat} onOpenChange={(open) => dispatch({ type: 'SET_SHOW_CHAT', payload: open })}>
-          <DialogContent className="left-auto right-0 top-0 h-dvh max-h-none w-[min(100vw,420px)] max-w-none translate-x-0 translate-y-0 overflow-hidden rounded-none border-y-0 border-r-0 p-0 shadow-lg">
-            <DialogHeader className="border-b border-border px-4 py-3">
+        {/* AI 聊天面板 — 移动端用 Dialog，桌面端用浮动面板 */}
+        {isMobile ? (
+          <Dialog open={showChat} onOpenChange={(open) => dispatch({ type: 'SET_SHOW_CHAT', payload: open })}>
+            <DialogContent className="left-auto right-0 top-0 h-dvh max-h-none w-[min(100vw,420px)] max-w-none translate-x-0 translate-y-0 overflow-hidden rounded-none border-y-0 border-r-0 p-0 shadow-lg">
+              <DialogHeader className="border-b border-border px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-muted-foreground" />
+                  <DialogTitle className="text-base">AI 助手</DialogTitle>
+                </div>
+              </DialogHeader>
+              <div className="h-[calc(100dvh-57px)] min-h-0">
+                <ErrorBoundary>
+                  <DeepSeekChatPanel
+                    lanes={board.lanes}
+                    tags={board.tags}
+                    linkedCard={editingCard}
+                    onCardCreated={handleCardCreatedFromChat}
+                    onBoardRefresh={refreshCurrentBoard}
+                    boardId={board.id}
+                    boardTitle={board.title}
+                  />
+                </ErrorBoundary>
+              </div>
+            </DialogContent>
+          </Dialog>
+        ) : showChat && !chatMinimized ? (
+          <div
+            ref={chatPanelRef}
+            className="fixed z-50 flex flex-col overflow-hidden rounded-xl border bg-white/95 shadow-xl backdrop-blur-md"
+            style={{
+              left: `${chatPosition.x}px`,
+              top: `${chatPosition.y}px`,
+              width: '360px',
+              height: 'min(80vh, 600px)',
+            }}
+          >
+            {/* 拖拽手柄 */}
+            <div
+              className="flex cursor-move items-center justify-between border-b border-border bg-muted/50 px-3 py-2"
+              onMouseDown={(e) => {
+                setIsDraggingChat(true)
+                chatDragOffset.current = { x: e.clientX - chatPosition.x, y: e.clientY - chatPosition.y }
+              }}
+            >
               <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-muted-foreground" />
-                <DialogTitle className="text-base">AI 助手</DialogTitle>
+                <span className="text-sm font-medium">AI 助手</span>
               </div>
-            </DialogHeader>
-            <div className="h-[calc(100dvh-57px)] min-h-0">
+              <div className="flex items-center gap-1">
+                <button
+                  className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  onClick={() => setChatMinimized(true)}
+                  title="最小化"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+                <button
+                  className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  onClick={() => dispatch({ type: 'SET_SHOW_CHAT', payload: false })}
+                  title="关闭"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 min-h-0">
               <ErrorBoundary>
                 <DeepSeekChatPanel
                   lanes={board.lanes}
@@ -928,13 +1052,22 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                   linkedCard={editingCard}
                   onCardCreated={handleCardCreatedFromChat}
                   onBoardRefresh={refreshCurrentBoard}
+                  onRequestMinimize={() => setChatMinimized(true)}
                   boardId={board.id}
                   boardTitle={board.title}
                 />
               </ErrorBoundary>
             </div>
-          </DialogContent>
-        </Dialog>
+          </div>
+        ) : showChat && chatMinimized ? (
+          <button
+            className="fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-transform hover:scale-105"
+            onClick={() => setChatMinimized(false)}
+            title="打开 AI 助手"
+          >
+            <Sparkles className="h-5 w-5" />
+          </button>
+        ) : null}
 
         {/* 创建列表对话框 */}
         <CreateLaneDialog

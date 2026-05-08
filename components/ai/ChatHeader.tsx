@@ -7,8 +7,8 @@ import { AiSettingsDialog } from './AiSettingsDialog'
 import type { AiSettings } from '@/types/settings.types'
 
 interface ChatHeaderProps {
-  model: 'deepseek-chat' | 'deepseek-reasoner'
-  onModelChange: (model: 'deepseek-chat' | 'deepseek-reasoner') => void
+  model: 'deepseek-v4-flash' | 'deepseek-v4-pro'
+  onModelChange: (model: 'deepseek-v4-flash' | 'deepseek-v4-pro') => void
   showLogPanel: boolean
   onToggleLogPanel: () => void
   operationLogsCount: number
@@ -39,7 +39,7 @@ export function ChatHeader({
         <div>
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="h-5 rounded px-1.5 text-[10px]">
-              {model === 'deepseek-reasoner' ? 'Reasoner' : 'Chat'}
+              {model === 'deepseek-v4-pro' ? 'Pro' : 'Flash'}
             </Badge>
           </div>
         </div>
@@ -48,12 +48,12 @@ export function ChatHeader({
       <div className="flex items-center gap-1.5">
         <select
           value={model}
-          onChange={(e) => onModelChange(e.target.value as 'deepseek-chat' | 'deepseek-reasoner')}
+          onChange={(e) => onModelChange(e.target.value as 'deepseek-v4-flash' | 'deepseek-v4-pro')}
           className="h-8 rounded-md border border-border bg-white px-2 text-xs font-medium text-muted-foreground outline-none transition-colors focus:border-ring/40 focus:ring-2 focus:ring-ring/10"
           aria-label="选择 AI 模型"
         >
-          <option value="deepseek-chat">deepseek-chat</option>
-          <option value="deepseek-reasoner">deepseek-reasoner</option>
+          <option value="deepseek-v4-flash">V4 Flash</option>
+          <option value="deepseek-v4-pro">V4 Pro</option>
         </select>
         <Button
           variant="outline"

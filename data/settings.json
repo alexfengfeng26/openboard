@@ -1,7 +1,7 @@
 {
   "version": 1,
   "ai": {
-    "defaultModel": "deepseek-reasoner",
+    "defaultModel": "deepseek-v4-flash",
     "toolTrigger": {
       "gateByPrefix": true,
       "showQuickTemplatesInChat": false,
@@ -98,7 +98,9 @@
         "enabled": true,
         "placement": "slash"
       }
-    ]
+    ],
+    "trustMode": "confirm_high_risk",
+    "autoMinimizeAfterAction": true
   },
   "boardView": {
     "cardDensity": "normal",
@@ -160,5 +162,5 @@
       "#374151"
     ]
   },
-  "updatedAt": "2026-05-06T07:24:18.014Z"
+  "updatedAt": "2026-05-08T06:31:02.982Z"
 }

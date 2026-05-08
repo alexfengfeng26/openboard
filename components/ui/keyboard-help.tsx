@@ -20,9 +20,10 @@ export function KeyboardHelp({ open, onOpenChange }: KeyboardHelpProps) {
         </DialogHeader>
         <DialogBody>
           <div className="space-y-3">
+            <ShortcutItem keys="Cmd/Ctrl + Shift + A" desc="打开/切换 AI 助手面板" />
             <ShortcutItem keys="Cmd/Ctrl + K" desc="聚焦搜索栏" />
             <ShortcutItem keys="Cmd/Ctrl + N" desc="聚焦当前第一个列表的快速添加" />
-            <ShortcutItem keys="Esc" desc="退出选择模式 / 关闭对话框" />
+            <ShortcutItem keys="Esc" desc="退出选择模式 / 最小化或关闭面板" />
             <ShortcutItem keys="?" desc="显示快捷键帮助" />
             <ShortcutItem keys="Ctrl/Cmd + 点击" desc="多选卡片" />
             <ShortcutItem keys="Shift + 点击" desc="区间选择" />

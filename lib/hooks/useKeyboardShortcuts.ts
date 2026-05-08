@@ -8,6 +8,7 @@ export interface KeyboardShortcutConfig {
   onExitSelectionMode?: () => void
   onCloseDialog?: () => boolean
   onToggleHelp?: () => void
+  onToggleAI?: () => void
 }
 
 export function useKeyboardShortcuts(config: KeyboardShortcutConfig) {
@@ -31,6 +32,13 @@ export function useKeyboardShortcuts(config: KeyboardShortcutConfig) {
       if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
         e.preventDefault()
         config.onFocusQuickAdd?.()
+        return
+      }
+
+      // Cmd/Ctrl + Shift + A: toggle AI panel
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'A') {
+        e.preventDefault()
+        config.onToggleAI?.()
         return
       }
 

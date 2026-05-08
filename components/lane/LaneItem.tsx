@@ -9,7 +9,7 @@ import { CreateCardDialog } from '@/components/card/CreateCardDialog'
 import { EditLaneDialog } from '@/components/lane/EditLaneDialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Plus, Edit2, GripVertical } from 'lucide-react'
+import { Plus, Edit2, GripVertical, Sparkles, Wand2 } from 'lucide-react'
 import { useState, memo, useRef } from 'react'
 
 interface LaneItemProps {
@@ -23,6 +23,7 @@ interface LaneItemProps {
   selectedCardIds?: Set<string>
   onCardSelectToggle?: (cardId: string) => void
   onCardSelectRange?: (toCardId: string) => void
+  onOpenAI?: (laneId: string, laneTitle: string) => void
 }
 
 const LaneContent = memo(function LaneContent({
@@ -36,6 +37,7 @@ const LaneContent = memo(function LaneContent({
   selectedCardIds,
   onCardSelectToggle,
   onCardSelectRange,
+  onOpenAI,
 }: LaneItemProps) {
   const { setNodeRef } = useDroppable({
     id: lane.id,
@@ -51,6 +53,59 @@ const LaneContent = memo(function LaneContent({
   const [quickTitle, setQuickTitle] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const quickInputRef = useRef<HTMLInputElement>(null)
+
+  // AI 内联输入
+  const [isAIInputOpen, setIsAIInputOpen] = useState(false)
+  const [aiQuery, setAiQuery] = useState('')
+  const [isAIGenerating, setIsAIGenerating] = useState(false)
+  const aiInputRef = useRef<HTMLInputElement>(null)
+
+  async function handleAIGenerate() {
+    if (!aiQuery.trim() || isAIGenerating) return
+    setIsAIGenerating(true)
+    try {
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'deepseek-v4-flash',
+          system: `你是一个看板助手。用户希望在列表"${lane.title}"中创建卡片。请根据用户描述，返回一个 JSON 数组，每个元素包含 title 和 description。只返回 JSON，不要其他文字。格式：\n[{\"title\":\"...\",\"description\":\"...\"}]`,
+          messages: [{ role: 'user', content: aiQuery.trim() }],
+        }),
+      })
+      const data = await response.json().catch(() => null)
+      let cards: Array<{ title: string; description?: string }> = []
+      if (data?.content) {
+        try {
+          const parsed = JSON.parse(data.content)
+          if (Array.isArray(parsed)) cards = parsed
+        } catch {
+          // fallback: 按行拆分
+          const lines = data.content.split('\n').filter((l: string) => l.trim())
+          cards = lines.map((l: string) => ({ title: l.trim() }))
+        }
+      }
+      for (const card of cards) {
+        const res = await fetch('/api/cards', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ boardId, laneId: lane.id, title: card.title, description: card.description }),
+        })
+        if (res.ok) {
+          const result = await res.json()
+          if (result.success) {
+            onLaneUpdate({ ...lane, cards: [...lane.cards, result.data] })
+          }
+        }
+      }
+      setAiQuery('')
+      setIsAIInputOpen(false)
+    } catch {
+      // 静默失败或显示简单错误
+    } finally {
+      setIsAIGenerating(false)
+    }
+  }
 
   const cardIds = lane.cards.map((card) => card.id)
 
@@ -91,15 +146,27 @@ const LaneContent = memo(function LaneContent({
           </h2>
           <span className="rounded bg-background px-1.5 py-0.5 text-[11px] text-muted-foreground">{lane.cards.length}</span>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 opacity-0 group-hover:opacity-100"
-          onClick={() => setShowEditLane(true)}
-          aria-label="编辑列表"
-        >
-          <Edit2 className="h-3 w-3" />
-        </Button>
+        <div className="flex items-center gap-0.5">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-primary"
+            onClick={() => onOpenAI?.(lane.id, lane.title)}
+            aria-label="用 AI 生成卡片"
+            title="用 AI 生成卡片"
+          >
+            <Wand2 className="h-3 w-3" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 opacity-0 group-hover:opacity-100"
+            onClick={() => setShowEditLane(true)}
+            aria-label="编辑列表"
+          >
+            <Edit2 className="h-3 w-3" />
+          </Button>
+        </div>
       </div>
 
       {/* 卡片列表（拖放区域） */}
@@ -127,11 +194,66 @@ const LaneContent = memo(function LaneContent({
         </div>
       </div>
 
+      {/* AI 内联生成 */}
+      {!isAIInputOpen ? (
+        <Button
+          variant="ghost"
+          className="mt-1 h-7 justify-start px-2 text-xs text-muted-foreground/70 hover:text-primary"
+          onClick={() => {
+            setIsAIInputOpen(true)
+            setTimeout(() => aiInputRef.current?.focus(), 0)
+          }}
+          aria-label="用 AI 生成卡片"
+        >
+          <Sparkles className="mr-1.5 h-3 w-3" />
+          用 AI 生成卡片…
+        </Button>
+      ) : (
+        <div className="mt-1 flex items-center gap-2">
+          <Input
+            ref={aiInputRef}
+            autoFocus
+            placeholder="描述需求，按 Enter 生成"
+            value={aiQuery}
+            onChange={(e) => setAiQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                handleAIGenerate()
+              } else if (e.key === 'Escape') {
+                setIsAIInputOpen(false)
+                setAiQuery('')
+              }
+            }}
+            onBlur={() => {
+              if (!aiQuery.trim() && !isAIGenerating) {
+                setIsAIInputOpen(false)
+                setAiQuery('')
+              }
+            }}
+            disabled={isAIGenerating}
+            className="h-7 text-xs"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 shrink-0 px-2 text-xs"
+            onClick={() => {
+              setIsAIInputOpen(false)
+              setAiQuery('')
+            }}
+            disabled={isAIGenerating}
+          >
+            取消
+          </Button>
+        </div>
+      )}
+
       {/* 快速创建卡片 */}
       {!isQuickAdding ? (
         <Button
           variant="ghost"
-          className="mt-2 h-8 justify-start px-2 text-muted-foreground hover:text-foreground"
+          className="mt-1 h-8 justify-start px-2 text-muted-foreground hover:text-foreground"
           onClick={() => setIsQuickAdding(true)}
           aria-label="添加卡片"
           data-quick-add-btn
@@ -209,7 +331,7 @@ const LaneContent = memo(function LaneContent({
   )
 })
 
-export const LaneItem = memo(function LaneItem({ lane, onLaneUpdate, onCardEdit, isHovered, onLaneDeleted, boardId, selectionMode, selectedCardIds, onCardSelectToggle, onCardSelectRange }: LaneItemProps) {
+export const LaneItem = memo(function LaneItem({ lane, onLaneUpdate, onCardEdit, isHovered, onLaneDeleted, boardId, selectionMode, selectedCardIds, onCardSelectToggle, onCardSelectRange, onOpenAI }: LaneItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: lane.id,
     data: {
@@ -239,6 +361,7 @@ export const LaneItem = memo(function LaneItem({ lane, onLaneUpdate, onCardEdit,
         selectedCardIds={selectedCardIds}
         onCardSelectToggle={onCardSelectToggle}
         onCardSelectRange={onCardSelectRange}
+        onOpenAI={onOpenAI}
       />
     </div>
   )

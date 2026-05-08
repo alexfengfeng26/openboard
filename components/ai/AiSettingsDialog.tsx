@@ -39,6 +39,7 @@ export function AiSettingsDialog({
   const [settingsActiveTab, setSettingsActiveTab] = useState<'trigger' | 'tags'>('trigger')
   const [settingsDraft, setSettingsDraft] = useState(aiSettings?.toolTrigger ?? null)
   const [trustModeDraft, setTrustModeDraft] = useState<AiTrustMode>(aiSettings?.trustMode ?? 'confirm_high_risk')
+  const [autoMinimizeDraft, setAutoMinimizeDraft] = useState(aiSettings?.autoMinimizeAfterAction ?? true)
   const [commandsDraft, setCommandsDraft] = useState<AiCommand[] | null>(() => {
     const commands = aiSettings?.commands && aiSettings.commands.length > 0
       ? aiSettings.commands
@@ -97,7 +98,7 @@ export function AiSettingsDialog({
     if (normalized.length !== commandsDraft.length) {
       toastWarning('部分 command 被忽略：可能是重复触发词或缺少必要字段')
     }
-    await onAiSettingsChange({ commands: normalized, toolTrigger: settingsDraft, trustMode: trustModeDraft })
+    await onAiSettingsChange({ commands: normalized, toolTrigger: settingsDraft, trustMode: trustModeDraft, autoMinimizeAfterAction: autoMinimizeDraft })
     onOpenChange(false)
     toastSuccess('已保存设置')
   }, [settingsDraft, commandsDraft, onAiSettingsChange, onOpenChange])
@@ -169,6 +170,16 @@ export function AiSettingsDialog({
                 }
               />
               普通聊天中显示&quot;创建为卡片/编辑后创建&quot;
+            </label>
+
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="h-4 w-4"
+                checked={autoMinimizeDraft}
+                onChange={(e) => setAutoMinimizeDraft(e.target.checked)}
+              />
+              AI 操作完成后自动最小化面板
             </label>
 
             <div className="space-y-1 rounded-md border p-3">

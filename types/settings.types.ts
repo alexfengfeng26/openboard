@@ -37,13 +37,15 @@ export type AiTrustMode = 'confirm_all' | 'confirm_high_risk' | 'auto_execute'
  */
 export interface AiSettings {
   /** 默认使用的模型 */
-  defaultModel: 'deepseek-chat' | 'deepseek-reasoner'
+  defaultModel: 'deepseek-v4-flash' | 'deepseek-v4-pro'
   /** 工具触发配置 */
   toolTrigger: AiToolTriggerConfig
   /** AI 命令/模板列表 */
   commands: AiCommand[]
   /** 信任模式：控制AI操作的自动执行策略 */
   trustMode: AiTrustMode
+  /** AI 操作完成后是否自动最小化面板 */
+  autoMinimizeAfterAction: boolean
 }
 
 /**
@@ -143,7 +145,7 @@ export function createDefaultSettings(): AppSettings {
   return {
     version: 1,
     ai: {
-      defaultModel: 'deepseek-chat',
+      defaultModel: 'deepseek-v4-flash',
       toolTrigger: {
         gateByPrefix: true,
         showQuickTemplatesInChat: false,
@@ -157,6 +159,7 @@ export function createDefaultSettings(): AppSettings {
       },
       commands: [], // 默认命令在初始化时从 createDefaultAiCommands 填充
       trustMode: 'confirm_high_risk',
+      autoMinimizeAfterAction: true,
     },
     boardView: {
       cardDensity: 'normal',

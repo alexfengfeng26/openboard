@@ -35,7 +35,7 @@ export async function POST(request: Request) {
 
     const body = (await request.json().catch(() => null)) as ChatRequestBody | null
 
-    const model = typeof body?.model === 'string' ? body.model : 'deepseek-chat'
+    const model = typeof body?.model === 'string' ? body.model : 'deepseek-v4-flash'
     const system = typeof body?.system === 'string' ? body.system : ''
     const messages = Array.isArray(body?.messages) ? body!.messages : []
     const temperature = typeof body?.temperature === 'number' ? body.temperature : 0.4

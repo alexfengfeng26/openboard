@@ -45,6 +45,7 @@ export function DeepSeekChatPanel({
   linkedCard,
   onCardCreated,
   onBoardRefresh,
+  onRequestMinimize,
   boardId,
   boardTitle,
 }: {
@@ -53,11 +54,12 @@ export function DeepSeekChatPanel({
   linkedCard: Card | null
   onCardCreated: (laneId: string, card: Card) => void
   onBoardRefresh?: () => void | Promise<void>
+  onRequestMinimize?: () => void
   boardId?: string
   boardTitle?: string
 }) {
   const { aiSettings, loading: settingsLoading, updateAiSettings } = useAiSettings()
-  const [model, setModel] = useState<'deepseek-chat' | 'deepseek-reasoner'>('deepseek-chat')
+  const [model, setModel] = useState<'deepseek-v4-flash' | 'deepseek-v4-pro'>('deepseek-v4-flash')
   const { messages, setMessages, input, setInput, isSending, setIsSending } = useChatMessages(boardId)
   const { logs: operationLogs, setLogs: setOperationLogs, showLogPanel, setShowLogPanel } = useOperationLogs(boardId)
 
@@ -133,6 +135,18 @@ export function DeepSeekChatPanel({
       setCommandsLoaded(true)
     }
   }, [aiSettings?.commands, aiSettings?.toolTrigger, commandsLoaded])
+
+  // 监听外部打开 AI 面板的事件（如 LaneItem 的 AI 按钮）
+  useEffect(() => {
+    function handleOpenAI(e: CustomEvent<{ laneId?: string; prefix?: string }>) {
+      if (e.detail?.prefix) {
+        setInput(e.detail.prefix)
+        requestAnimationFrame(() => inputRef.current?.focus())
+      }
+    }
+    window.addEventListener('ai-panel-open', handleOpenAI as EventListener)
+    return () => window.removeEventListener('ai-panel-open', handleOpenAI as EventListener)
+  }, [])
 
   async function handleAiSettingsChange(settings: Partial<AiSettings>) {
     if (settings.toolTrigger) setToolTriggerConfig(settings.toolTrigger)
@@ -438,6 +452,9 @@ export function DeepSeekChatPanel({
           tools.setPendingToolCalls(toolCalls)
           toastInfo(`AI 自动执行 ${toolCalls.length} 个操作（${getToolRiskSummary(toolCalls)}）`)
           await tools.handleConfirmToolCalls({ confirmedBy: 'auto' })
+          if (aiSettings?.autoMinimizeAfterAction !== false) {
+            onRequestMinimize?.()
+          }
         } else {
           tools.setPendingToolCalls(toolCalls)
           const summary = getToolRiskSummary(toolCalls)
@@ -462,7 +479,7 @@ export function DeepSeekChatPanel({
   }
 
   const handleModelChange = useCallback(
-    async (newModel: 'deepseek-chat' | 'deepseek-reasoner') => {
+    async (newModel: 'deepseek-v4-flash' | 'deepseek-v4-pro') => {
       setModel(newModel)
       try {
         await updateAiSettings({ defaultModel: newModel })
@@ -567,7 +584,12 @@ export function DeepSeekChatPanel({
         <ToolCallConfirmation
           open={!!tools.pendingToolCalls}
           toolCalls={tools.pendingToolCalls}
-          onConfirm={tools.handleConfirmToolCalls}
+          onConfirm={async () => {
+            await tools.handleConfirmToolCalls()
+            if (aiSettings?.autoMinimizeAfterAction !== false) {
+              onRequestMinimize?.()
+            }
+          }}
           onCancel={tools.handleCancelToolCalls}
           isExecuting={tools.isExecuting}
         />
