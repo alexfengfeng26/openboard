@@ -2,7 +2,6 @@
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Settings } from 'lucide-react'
 import { AiSettingsDialog } from './AiSettingsDialog'
 import type { AiSettings } from '@/types/settings.types'
 
@@ -55,15 +54,6 @@ export function ChatHeader({
           <option value="deepseek-v4-flash">V4 Flash</option>
           <option value="deepseek-v4-pro">V4 Pro</option>
         </select>
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-8"
-          onClick={() => onSettingsOpen(true)}
-          aria-label="AI 设置"
-        >
-          <Settings className="h-4 w-4" />
-        </Button>
         {settingsOpen && (
           <AiSettingsDialog
             open={settingsOpen}

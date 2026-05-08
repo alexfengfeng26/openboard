@@ -48,6 +48,8 @@ export function DeepSeekChatPanel({
   onRequestMinimize,
   boardId,
   boardTitle,
+  externalSettingsOpen,
+  onExternalSettingsOpenChange,
 }: {
   lanes: Lane[]
   tags?: Tag[]
@@ -57,6 +59,8 @@ export function DeepSeekChatPanel({
   onRequestMinimize?: () => void
   boardId?: string
   boardTitle?: string
+  externalSettingsOpen?: boolean
+  onExternalSettingsOpenChange?: (open: boolean) => void
 }) {
   const { aiSettings, loading: settingsLoading, updateAiSettings } = useAiSettings()
   const [model, setModel] = useState<'deepseek-v4-flash' | 'deepseek-v4-pro'>('deepseek-v4-flash')
@@ -75,7 +79,15 @@ export function DeepSeekChatPanel({
     prefixes: { all: '/kb', card: '/card', lane: '/lane', board: '/board' },
   })
   const [commandsLoaded, setCommandsLoaded] = useState(false)
-  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [internalSettingsOpen, setInternalSettingsOpen] = useState(false)
+  const settingsOpen = externalSettingsOpen !== undefined ? externalSettingsOpen : internalSettingsOpen
+  const setSettingsOpen = (open: boolean) => {
+    if (onExternalSettingsOpenChange) {
+      onExternalSettingsOpenChange(open)
+    } else {
+      setInternalSettingsOpen(open)
+    }
+  }
   const inputRef = useRef<HTMLTextAreaElement | null>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
 

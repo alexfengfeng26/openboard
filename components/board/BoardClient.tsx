@@ -47,13 +47,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody } from '@/
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { KeyboardHelp } from '@/components/ui/keyboard-help'
 import { DeepSeekChatPanel } from '@/components/ai/DeepSeekChatPanel'
-import { BoardSelector } from './BoardSelector'
+import { AppSidebar } from '@/components/layout/AppSidebar'
 import { BoardTagsProvider } from './BoardTagsContext'
+import { CreateBoardDialog } from './CreateBoardDialog'
+import { BoardSelector } from './BoardSelector'
 import { cn } from '@/lib/utils'
 import { useCardSearch } from '@/lib/hooks/useCardSearch'
 import { useKeyboardShortcuts } from '@/lib/hooks/useKeyboardShortcuts'
 import { TagSelector } from '@/components/card/TagSelector'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
+import { useRouter, usePathname } from 'next/navigation'
 
 interface BoardClientProps {
   initialBoard: Board
@@ -313,6 +316,40 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
       window.removeEventListener('mouseup', onMouseUp)
     }
   }, [isDraggingChat, chatPosition])
+
+  // 路由
+  const router = useRouter()
+  const pathname = usePathname()
+
+  // 看板切换（从 BoardSelector 提取）
+  async function handleBoardSelect(boardId: string) {
+    try {
+      const response = await fetch(`/api/boards/${boardId}`)
+      if (!response.ok) throw new Error('Failed to load board')
+      const result = await response.json()
+      if (result.success) {
+        dispatch({ type: 'SET_BOARD', payload: result.data })
+        const url = new URL(window.location.href)
+        url.searchParams.set('boardId', boardId)
+        router.push(`${pathname}?${url.searchParams.toString()}`)
+      }
+    } catch {
+      toastError('加载看板失败')
+    }
+  }
+
+  // 创建看板对话框
+  const [showCreateBoard, setShowCreateBoard] = useState(false)
+
+  // 侧边栏展开状态
+  const [sidebarExpanded, setSidebarExpanded] = useState(() => {
+    if (typeof window === 'undefined') return true
+    const saved = localStorage.getItem('kanban-sidebar-expanded')
+    return saved !== 'false'
+  })
+
+  // AI 设置对话框状态
+  const [aiSettingsOpen, setAiSettingsOpen] = useState(false)
 
   useEffect(() => {
     async function fetchTags() {
@@ -797,12 +834,44 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
   return (
     <BoardTagsProvider tags={boardTags}>
       <div className="flex h-screen w-full bg-background">
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        {/* 左侧边栏 */}
+        {!isMobile && (
+          <AppSidebar
+            boards={boards.map((b) => ({
+              id: b.id,
+              title: b.title,
+              count: b.id === board.id ? board.lanes.reduce((sum, l) => sum + l.cards.length, 0) : undefined,
+            }))}
+            activeBoardId={board.id}
+            onBoardSelect={handleBoardSelect}
+            onCreateBoard={() => setShowCreateBoard(true)}
+            onOpenSettings={() => {
+              dispatch({ type: 'SET_SHOW_CHAT', payload: true })
+              setChatMinimized(false)
+              setAiSettingsOpen(true)
+            }}
+            onToggleAI={() => {
+              if (showChat) {
+                dispatch({ type: 'SET_SHOW_CHAT', payload: false })
+              } else {
+                dispatch({ type: 'SET_SHOW_CHAT', payload: true })
+                setChatMinimized(false)
+              }
+            }}
+            aiOpen={showChat}
+            expanded={sidebarExpanded}
+            onExpandedChange={setSidebarExpanded}
+          />
+        )}
+
+        {/* 中间看板主内容区 */}
+        <main className="flex min-h-0 min-w-0 flex-1 flex-col">
           {/* 顶部导航栏 */}
           <header className="relative z-50 border-b border-border bg-background px-4 py-2.5">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
+              {/* 左侧：看板标题或 BoardSelector */}
+              <div className="flex items-center gap-3">
+                {!sidebarExpanded ? (
                   <ErrorBoundary>
                     <BoardSelector
                       boards={boards}
@@ -811,11 +880,18 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                       onBoardsRefresh={refreshBoards}
                     />
                   </ErrorBoundary>
-                </div>
+                ) : (
+                  <>
+                    <h1 className="text-base font-semibold text-foreground truncate max-w-[200px]">{board.title}</h1>
+                    <span className="rounded-md bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+                      {board.lanes.length} 列表
+                    </span>
+                  </>
+                )}
               </div>
 
               {/* 搜索栏 */}
-              <div className={cn('flex items-center gap-2', isMobile ? 'w-full' : 'flex-1 max-w-md')}>
+              <div className={cn('flex items-center gap-2', isMobile ? 'w-full' : 'flex-1 max-w-md')}> 
                 <div className="relative flex-1">
                   <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -949,12 +1025,12 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
               {/* 拖放时的覆盖层 */}
               <DragOverlay>
                 {activeCard && (
-                  <div className="react-kanban-drag-overlay w-60 rounded-md bg-white p-2.5">
+                  <div className="react-kanban-drag-overlay w-60 rounded-lg bg-white p-2.5">
                     <CardItem card={activeCard} isDragging />
                   </div>
                 )}
                 {activeLane && (
-                  <div className="react-kanban-drag-overlay w-60 shrink-0 rounded-md border border-border bg-muted/60 px-2 py-2 opacity-95">
+                  <div className="react-kanban-drag-overlay w-60 shrink-0 rounded-xl border border-border bg-[#F4EFE7]/80 px-2.5 py-2.5 opacity-95 shadow-sm">
                     <div className="mb-3 flex items-center gap-2">
                       <GripVertical className="h-4 w-4 text-muted-foreground" />
                       <h2 className="font-semibold">{activeLane.title}</h2>
@@ -962,7 +1038,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                     </div>
                     <div className="space-y-2">
                       {activeLane.cards.slice(0, 3).map((card) => (
-                        <div key={card.id} className="rounded-md border bg-card p-3 shadow-sm">
+                        <div key={card.id} className="rounded-lg border bg-card p-3 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
                           <h3 className="text-sm font-medium">{card.title}</h3>
                         </div>
                       ))}
@@ -977,7 +1053,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
               </DragOverlay>
             </DndContext>
           </div>
-        </div>
+        </main>
 
         {/* AI 聊天面板 — 移动端用 Dialog，桌面端用浮动面板 */}
         {isMobile ? (
@@ -999,6 +1075,8 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                     onBoardRefresh={refreshCurrentBoard}
                     boardId={board.id}
                     boardTitle={board.title}
+                    externalSettingsOpen={aiSettingsOpen}
+                    onExternalSettingsOpenChange={setAiSettingsOpen}
                   />
                 </ErrorBoundary>
               </div>
@@ -1055,6 +1133,8 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                   onRequestMinimize={() => setChatMinimized(true)}
                   boardId={board.id}
                   boardTitle={board.title}
+                  externalSettingsOpen={aiSettingsOpen}
+                  onExternalSettingsOpenChange={setAiSettingsOpen}
                 />
               </ErrorBoundary>
             </div>
@@ -1188,6 +1268,16 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
             </div>
           </div>
         )}
+
+        {/* 创建看板对话框 */}
+        <CreateBoardDialog
+          open={showCreateBoard}
+          onOpenChange={setShowCreateBoard}
+          onBoardCreated={(newBoard) => {
+            refreshBoards()
+            handleBoardSelect(newBoard.id)
+          }}
+        />
       </div>
     </BoardTagsProvider>
   )

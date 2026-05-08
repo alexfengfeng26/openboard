@@ -133,7 +133,7 @@ const LaneContent = memo(function LaneContent({
   }
 
   return (
-    <div className={`group flex h-full w-60 shrink-0 flex-col rounded-md border border-border bg-muted/35 px-2 py-2 ${isHovered ? 'border-ring/30 bg-muted/70' : ''}`}>
+    <div className={`group flex h-full w-60 shrink-0 flex-col rounded-xl border border-border bg-[#F4EFE7]/60 px-2.5 py-2.5 shadow-sm ${isHovered ? 'border-ring/30 bg-[#F4EFE7]/90' : ''}`}>
       {/* 列表头部 */}
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -171,7 +171,7 @@ const LaneContent = memo(function LaneContent({
 
       {/* 卡片列表（拖放区域） */}
       <div className="flex-1 overflow-y-auto">
-        <div ref={setNodeRef} className={`min-h-[100px] space-y-1.5 ${isHovered ? 'rounded-md bg-background/70 p-2 -m-2' : ''}`}>
+        <div ref={setNodeRef} className={`min-h-[100px] space-y-2 ${isHovered ? 'rounded-xl bg-background/70 p-2 -m-2' : ''}`}>
           <SortableContext items={cardIds} strategy={verticalListSortingStrategy}>
             {lane.cards.map((card) => (
               <DraggableCard
@@ -186,7 +186,7 @@ const LaneContent = memo(function LaneContent({
             ))}
 
             {lane.cards.length === 0 && (
-              <div className="flex h-20 items-center justify-center rounded-md border border-dashed border-border bg-background/50 text-xs text-muted-foreground">
+              <div className="flex h-20 items-center justify-center rounded-lg border border-dashed border-border bg-background/50 text-xs text-muted-foreground">
                 暂无卡片
               </div>
             )}
