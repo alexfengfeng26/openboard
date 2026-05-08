@@ -151,10 +151,10 @@ export function useChatDrafts(options: UseChatDraftsOptions): UseChatDraftsRetur
 
   const generateDraftsFromText = useCallback(
     async (text: string, model: string, buildSystemContext: () => PromptContext): Promise<DraftParseResult> => {
-      const wantsMultiCard = ['拆分', '拆成', '多张', '多个', '子任务', '3-5张', '2-3张', '5张'].some((k) => text.includes(k))
       const prompt = [
         '请把下面内容整理为"看板卡片草稿"。',
-        wantsMultiCard ? '需要生成多张卡片（3-5张），每张卡片包含独立的标题和描述。' : '生成一张卡片，包含标题和描述。',
+        '分析内容中实际包含多少张卡片，就生成多少张，不要强行合并也不要遗漏。',
+        '每张卡片包含独立的 title 和 description。',
         '只输出 JSON 数组，不要输出任何解释文字、代码块标记或其他内容。',
         '格式示例：[{"title":"第一张卡片标题","description":"详细描述"},{"title":"第二张卡片标题","description":"详细描述"}]',
         linkedCard ? `关联卡片上下文：${linkedCard.title}` : '',
@@ -176,7 +176,7 @@ export function useChatDrafts(options: UseChatDraftsOptions): UseChatDraftsRetur
         try {
           const repairPrompt = [
             '把下面文本转换为看板卡片草稿 JSON 数组。',
-            wantsMultiCard ? '需要生成多张卡片（3-5张），每张卡片包含独立的标题和描述。' : '生成一张卡片，包含标题和描述。',
+            '分析内容中实际包含多少张卡片，就生成多少张，不要强行合并也不要遗漏。',
             '只输出严格合法的 JSON 数组：必须使用双引号，禁止代码块标记，禁止解释文字，禁止 markdown 表格。',
             '格式示例：[{"title":"卡片标题","description":"描述"}]',
             '待转换文本：',
