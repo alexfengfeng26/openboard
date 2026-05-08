@@ -14,10 +14,10 @@ const AlertDialogOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Overlay
     className={cn(
-      'fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm',
+      'fixed inset-0 z-50 bg-black/20',
       'data-[state=open]:animate-in data-[state=closed]:animate-out',
       'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
-      'transition-all duration-300',
+      'transition-all duration-200',
       className
     )}
     {...props}
@@ -37,10 +37,10 @@ const AlertDialogContent = React.forwardRef<
       className={cn(
         'fixed left-[50%] top-[50%] z-50 w-[calc(100%-2rem)] max-w-sm',
         'translate-x-[-50%] translate-y-[-50%]',
-        'rounded-2xl border border-slate-200/60 bg-white',
-        'shadow-2xl shadow-slate-900/20',
+        'rounded-lg border border-border bg-white',
+        'shadow-lg shadow-black/10',
         'p-6 gap-4 grid',
-        'duration-300',
+        'duration-200',
         'data-[state=open]:animate-in data-[state=closed]:animate-out',
         'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
         'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
@@ -68,7 +68,7 @@ const AlertDialogTitle = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Title>,
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Title>
 >(({ className, ...props }, ref) => (
-  <AlertDialogPrimitive.Title ref={ref} className={cn('text-lg font-bold text-slate-800', className)} {...props} />
+  <AlertDialogPrimitive.Title ref={ref} className={cn('text-base font-semibold text-foreground', className)} {...props} />
 ))
 AlertDialogTitle.displayName = AlertDialogPrimitive.Title.displayName
 
@@ -76,7 +76,7 @@ const AlertDialogDescription = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Description>,
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Description>
 >(({ className, ...props }, ref) => (
-  <AlertDialogPrimitive.Description ref={ref} className={cn('text-sm text-slate-500 leading-relaxed', className)} {...props} />
+  <AlertDialogPrimitive.Description ref={ref} className={cn('text-sm text-muted-foreground leading-relaxed', className)} {...props} />
 ))
 AlertDialogDescription.displayName = AlertDialogPrimitive.Description.displayName
 
@@ -87,10 +87,10 @@ const AlertDialogAction = React.forwardRef<
   <AlertDialogPrimitive.Action 
     ref={ref} 
     className={cn(
-      'inline-flex h-9 items-center justify-center rounded-lg',
-      'bg-rose-600 px-4 py-2 text-sm font-medium text-white',
-      'hover:bg-rose-700 transition-colors',
-      'focus:outline-none focus:ring-2 focus:ring-rose-500/20',
+      'inline-flex h-9 items-center justify-center rounded-md',
+      'bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground',
+      'hover:bg-destructive/90 transition-colors',
+      'focus:outline-none focus:ring-2 focus:ring-ring/20',
       'disabled:pointer-events-none disabled:opacity-50',
       className
     )} 
@@ -106,11 +106,11 @@ const AlertDialogCancel = React.forwardRef<
   <AlertDialogPrimitive.Cancel 
     ref={ref} 
     className={cn(
-      'inline-flex h-9 items-center justify-center rounded-lg',
-      'border border-slate-200 bg-white px-4 py-2 text-sm font-medium',
-      'text-slate-700 hover:bg-slate-50 hover:text-slate-900',
+      'inline-flex h-9 items-center justify-center rounded-md',
+      'border border-border bg-white px-4 py-2 text-sm font-medium',
+      'text-foreground hover:bg-muted',
       'transition-colors',
-      'focus:outline-none focus:ring-2 focus:ring-slate-500/20',
+      'focus:outline-none focus:ring-2 focus:ring-ring/20',
       'disabled:pointer-events-none disabled:opacity-50',
       className
     )} 

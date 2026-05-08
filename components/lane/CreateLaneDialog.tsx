@@ -49,7 +49,7 @@ export function CreateLaneDialog({ open, onOpenChange, onLaneCreated }: CreateLa
           <DialogBody>
             <div className="space-y-3">
               <div className="space-y-1.5">
-                <label htmlFor="lane-title" className="text-xs font-medium text-slate-700">
+                <label htmlFor="lane-title" className="text-xs font-medium text-foreground">
                   列表标题 <span className="text-rose-500">*</span>
                 </label>
                 <Input

@@ -128,40 +128,40 @@ export function BoardSelector({ boards, currentBoard, onBoardChange, onBoardsRef
         <button
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
-            'group flex items-center gap-2 rounded-xl px-3 py-2',
-            'transition-all duration-200',
-            'hover:bg-slate-100/80',
-            isOpen && 'bg-slate-100/80'
+            'group flex items-center gap-2 rounded-md px-2 py-1.5',
+            'transition-colors duration-150',
+            'hover:bg-muted',
+            isOpen && 'bg-muted'
           )}
         >
           <div className="text-left">
-            <h1 className="text-lg font-bold text-slate-800 group-hover:text-primary">
+            <h1 className="text-lg font-semibold text-foreground">
               {currentBoard.title}
             </h1>
-            <p className="text-xs text-slate-500 font-medium">
+            <p className="text-xs text-muted-foreground">
               {currentBoard.lanes.length} 个列表 · {totalCards} 个卡片
             </p>
           </div>
           <ChevronDown
             className={cn(
-              'h-4 w-4 text-slate-400 transition-transform duration-200',
+              'h-4 w-4 text-muted-foreground transition-transform duration-150',
               isOpen && 'rotate-180'
             )}
           />
         </button>
 
         {isOpen && (
-          <div className="absolute left-0 top-full z-[100] mt-2 w-80 rounded-2xl border border-slate-200/60 bg-white shadow-xl shadow-slate-900/10 overflow-hidden animate-fade-in">
+          <div className="absolute left-0 top-full z-[100] mt-2 w-80 overflow-hidden rounded-lg border border-border bg-white shadow-lg shadow-black/5 animate-fade-in">
             {/* 搜索框 */}
-            <div className="p-3 border-b border-slate-100">
+            <div className="border-b border-border p-2">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" aria-hidden="true" />
+                <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
                 <input
                   type="text"
                   placeholder="搜索看板..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full h-9 pl-9 pr-3 rounded-xl text-sm bg-slate-100 border-transparent focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                  className="h-8 w-full rounded-md border border-transparent bg-muted pl-8 pr-3 text-sm outline-none transition-colors focus:border-border focus:bg-white focus:ring-2 focus:ring-ring/10"
                   aria-label="搜索看板"
                 />
               </div>
@@ -170,7 +170,7 @@ export function BoardSelector({ boards, currentBoard, onBoardChange, onBoardsRef
             {/* 看板列表 */}
             <div className="max-h-72 overflow-auto p-2" role="listbox">
               {displayBoards.length === 0 ? (
-                <div className="py-8 text-center text-slate-400">
+              <div className="py-8 text-center text-muted-foreground">
                   <LayoutDashboard className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <p className="text-sm">没有找到看板</p>
                 </div>
@@ -181,22 +181,22 @@ export function BoardSelector({ boards, currentBoard, onBoardChange, onBoardsRef
                     role="option"
                     aria-selected={board.id === currentBoard.id}
                     className={cn(
-                      'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200',
+                      'group relative flex items-center gap-2 rounded-md px-2 py-2 transition-colors duration-150',
                       board.id === currentBoard.id
                         ? 'bg-muted'
-                        : 'hover:bg-slate-50'
+                        : 'hover:bg-muted/60'
                     )}
                     onMouseEnter={() => setHoveredBoardId(board.id)}
                     onMouseLeave={() => setHoveredBoardId(null)}
                   >
                     <div
                       className={cn(
-                        'flex h-9 w-9 items-center justify-center rounded-lg shrink-0',
+                        'flex h-7 w-7 shrink-0 items-center justify-center rounded-md',
                         board.id === currentBoard.id
-                          ? 'bg-secondary'
+                          ? 'bg-background text-foreground'
                           : board.archivedAt
-                            ? 'bg-slate-100 text-slate-400'
-                            : 'bg-slate-100 text-slate-500'
+                            ? 'bg-muted text-muted-foreground'
+                            : 'bg-muted text-muted-foreground'
                       )}
                     >
                       {board.archivedAt ? (
@@ -211,15 +211,15 @@ export function BoardSelector({ boards, currentBoard, onBoardChange, onBoardsRef
                       className="flex-1 text-left min-w-0"
                     >
                       <div className={cn(
-                        'text-sm font-semibold truncate',
+                        'truncate text-sm font-medium',
                         board.id === currentBoard.id ? 'text-primary' : 'text-foreground'
                       )}>
                         {board.title}
                         {board.archivedAt && (
-                          <span className="ml-1.5 text-[10px] text-slate-400 font-normal">已归档</span>
+                          <span className="ml-1.5 text-[10px] font-normal text-muted-foreground">已归档</span>
                         )}
                       </div>
-                      <div className="text-xs text-slate-500">
+                      <div className="text-xs text-muted-foreground">
                         {board.id === currentBoard.id
                           ? `${currentBoard.lanes.length} 列 · ${totalCards} 卡片`
                           : '点击切换看板'
@@ -234,7 +234,7 @@ export function BoardSelector({ boards, currentBoard, onBoardChange, onBoardsRef
                             e.stopPropagation()
                             handleExport(board.id, 'json')
                           }}
-                          className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-white/80 text-slate-400 hover:text-slate-600 transition-colors"
+                          className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
                           title="导出看板"
                         >
                           <Download className="h-3.5 w-3.5" />
@@ -245,7 +245,7 @@ export function BoardSelector({ boards, currentBoard, onBoardChange, onBoardsRef
                             setShowEdit(true)
                             setIsOpen(false)
                           }}
-                          className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-white/80 text-slate-400 hover:text-slate-600 transition-colors"
+                          className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
                           title="编辑看板"
                         >
                           <Settings2 className="h-3.5 w-3.5" />
@@ -256,7 +256,7 @@ export function BoardSelector({ boards, currentBoard, onBoardChange, onBoardsRef
                 ))
               )}
 
-              <div className="my-2 border-t border-slate-100" />
+              <div className="my-2 border-t border-border" />
 
               <button
                 onClick={() => {
@@ -264,12 +264,12 @@ export function BoardSelector({ boards, currentBoard, onBoardChange, onBoardsRef
                   setIsOpen(false)
                 }}
                 className={cn(
-                  'flex w-full items-center gap-3 rounded-xl px-3 py-2.5',
-                  'text-slate-600 transition-all duration-200',
+                  'flex w-full items-center gap-2 rounded-md px-2 py-2',
+                  'text-muted-foreground transition-colors duration-150',
                   'hover:bg-muted'
                 )}
               >
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary">
+                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-muted">
                   <Plus className="h-4 w-4" />
                 </div>
                 <span className="text-sm font-medium">创建新看板</span>
@@ -278,12 +278,12 @@ export function BoardSelector({ boards, currentBoard, onBoardChange, onBoardsRef
               <button
                 onClick={() => importInputRef.current?.click()}
                 className={cn(
-                  'flex w-full items-center gap-3 rounded-xl px-3 py-2.5',
-                  'text-slate-600 transition-all duration-200',
+                  'flex w-full items-center gap-2 rounded-md px-2 py-2',
+                  'text-muted-foreground transition-colors duration-150',
                   'hover:bg-muted'
                 )}
               >
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary">
+                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-muted">
                   <Upload className="h-4 w-4" />
                 </div>
                 <span className="text-sm font-medium">导入看板</span>
@@ -302,15 +302,15 @@ export function BoardSelector({ boards, currentBoard, onBoardChange, onBoardsRef
             </div>
 
             {/* 显示已归档开关 */}
-            <div className="px-3 py-2 border-t border-slate-100 bg-slate-50/50">
+            <div className="border-t border-border bg-muted/40 px-3 py-2">
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={showArchived}
                   onChange={(e) => setShowArchived(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                 />
-                <span className="text-xs text-slate-600">显示已归档看板</span>
+                <span className="text-xs text-muted-foreground">显示已归档看板</span>
               </label>
             </div>
           </div>

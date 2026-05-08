@@ -30,7 +30,6 @@ import { toastError, toastSuccess } from '@/components/ui/toast'
 import {
   Plus,
   Sparkles,
-  LayoutGrid,
   GripVertical,
   Search,
   X,
@@ -39,6 +38,7 @@ import {
   Trash2,
   Tag as TagIcon,
   Keyboard,
+  PanelRightOpen,
 } from 'lucide-react'
 import { CreateLaneDialog } from '@/components/lane/CreateLaneDialog'
 import { Button } from '@/components/ui/button'
@@ -734,16 +734,13 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
 
   return (
     <BoardTagsProvider tags={boardTags}>
-      <div className="flex h-screen w-full">
+      <div className="flex h-screen w-full bg-background">
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           {/* 顶部导航栏 */}
-          <header className="relative z-50 border-b border-slate-200/60 bg-white/70 px-4 py-3 backdrop-blur-xl">
+          <header className="relative z-50 border-b border-border bg-background px-4 py-2.5">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary">
-                    <LayoutGrid className="h-4 w-4 text-white" />
-                  </div>
                   <ErrorBoundary>
                     <BoardSelector
                       boards={boards}
@@ -758,7 +755,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
               {/* 搜索栏 */}
               <div className={cn('flex items-center gap-2', isMobile ? 'w-full' : 'flex-1 max-w-md')}>
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     ref={searchInputRef}
                     type="text"
@@ -771,19 +768,19 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                         searchInputRef.current?.blur()
                       }
                     }}
-                    className="h-9 pl-9 pr-16 bg-slate-100 border-transparent focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    className="h-8 border-transparent bg-muted pl-8 pr-14 focus:bg-white"
                   />
                   {filters.query && (
                     <button
                       onClick={clearFilters}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-slate-400 hover:text-slate-600 hover:bg-slate-200"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted-foreground hover:bg-accent hover:text-foreground"
                       aria-label="清空搜索"
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
                   )}
                   {filters.query && (
-                    <span className="absolute right-8 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">
+                    <span className="absolute right-8 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">
                       {resultCount}
                     </span>
                   )}
@@ -794,7 +791,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                 <Button
                   variant={selectionMode ? 'default' : 'outline'}
                   size="sm"
-                  className="gap-1.5"
+                  className="h-8 gap-1.5"
                   onClick={() => dispatch({ type: 'TOGGLE_SELECTION_MODE' })}
                 >
                   <CheckSquare className="h-3.5 w-3.5" />
@@ -803,16 +800,16 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="gap-1.5 md:hidden"
+                  className="h-8 gap-1.5"
                   onClick={() => dispatch({ type: 'SET_SHOW_CHAT', payload: true })}
                 >
-                  <Sparkles className="h-3.5 w-3.5 text-primary" />
-                  <span>AI 助手</span>
+                  <PanelRightOpen className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">AI</span>
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="gap-1.5"
+                  className="h-8 gap-1.5"
                   onClick={() => setShowHelp(true)}
                   aria-label="快捷键帮助"
                 >
@@ -820,7 +817,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                 </Button>
                 <Button
                   size="sm"
-                  className="gap-1.5"
+                  className="h-8 gap-1.5"
                   onClick={() => dispatch({ type: 'SET_SHOW_CREATE_LANE', payload: true })}
                 >
                   <Plus className="h-3.5 w-3.5" />
@@ -831,7 +828,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
           </header>
 
           {/* 看板主体区域 */}
-          <div className="min-h-0 min-w-0 flex-1 overflow-x-auto overflow-y-hidden p-4">
+          <div className="min-h-0 min-w-0 flex-1 overflow-x-auto overflow-y-hidden p-3">
             <DndContext
               sensors={sensors}
               onDragStart={handleDragStart}
@@ -864,17 +861,17 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                   <button
                     onClick={() => dispatch({ type: 'SET_SHOW_CREATE_LANE', payload: true })}
                     className={cn(
-                      'flex shrink-0 flex-col items-center justify-center rounded-2xl',
-                      'border-2 border-dashed border-slate-300/60',
-                      'bg-slate-50/50 text-slate-500',
-                      'transition-all duration-300',
-                      'hover:border-primary/60 hover:bg-muted hover:text-primary',
+                      'flex shrink-0 flex-col items-center justify-center rounded-md',
+                      'border border-dashed border-border',
+                      'bg-muted/25 text-muted-foreground',
+                      'transition-colors duration-150',
+                      'hover:border-ring/30 hover:bg-muted hover:text-foreground',
                       'group',
-                      isMobile ? 'w-full h-24' : 'h-full w-64'
+                      isMobile ? 'w-full h-20' : 'h-full w-60'
                     )}
                   >
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 group-hover:bg-muted transition-colors mb-3">
-                      <Plus className="h-6 w-6 group-hover:scale-110 transition-transform" />
+                    <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-md bg-background transition-colors group-hover:bg-white">
+                      <Plus className="h-4 w-4" />
                     </div>
                     <span className="text-sm font-medium">添加列表</span>
                   </button>
@@ -884,12 +881,12 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
               {/* 拖放时的覆盖层 */}
               <DragOverlay>
                 {activeCard && (
-                  <div className="react-kanban-drag-overlay w-64 rotate-2 rounded-xl bg-white p-3 shadow-2xl">
+                  <div className="react-kanban-drag-overlay w-60 rounded-md bg-white p-2.5">
                     <CardItem card={activeCard} isDragging />
                   </div>
                 )}
                 {activeLane && (
-                  <div className="react-kanban-drag-overlay w-64 shrink-0 rotate-1 rounded-lg bg-muted/50 py-3 px-2 shadow-2xl opacity-90">
+                  <div className="react-kanban-drag-overlay w-60 shrink-0 rounded-md border border-border bg-muted/60 px-2 py-2 opacity-95">
                     <div className="mb-3 flex items-center gap-2">
                       <GripVertical className="h-4 w-4 text-muted-foreground" />
                       <h2 className="font-semibold">{activeLane.title}</h2>
@@ -914,45 +911,16 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
           </div>
         </div>
 
-        {/* AI 聊天侧边栏 */}
-        <aside className="hidden h-screen w-[420px] shrink-0 flex-col border-l border-slate-200/60 bg-white/60 backdrop-blur-xl md:flex shadow-xl shadow-slate-900/5">
-          <div className="flex h-full flex-col">
-            <div className="flex items-center gap-2 border-b border-slate-200/60 px-4 py-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                <Sparkles className="h-4 w-4 text-white" />
-              </div>
-              <div>
-                <h2 className="text-sm font-semibold text-slate-800">AI 助手</h2>
-                <p className="text-[11px] text-slate-500">DeepSeek 智能助手</p>
-              </div>
-            </div>
-            <div className="flex-1 min-h-0">
-              <ErrorBoundary>
-                <DeepSeekChatPanel
-                  lanes={board.lanes}
-                  linkedCard={editingCard}
-                  onCardCreated={handleCardCreatedFromChat}
-                  onBoardRefresh={refreshCurrentBoard}
-                  boardId={board.id}
-                  boardTitle={board.title}
-                />
-              </ErrorBoundary>
-            </div>
-          </div>
-        </aside>
-
-        {/* 移动端聊天对话框 */}
+        {/* AI 聊天抽屉 */}
         <Dialog open={showChat} onOpenChange={(open) => dispatch({ type: 'SET_SHOW_CHAT', payload: open })}>
-          <DialogContent className="w-[min(92vw,640px)] sm:rounded-2xl overflow-hidden">
-            <DialogHeader className="px-4 pt-4 border-b border-slate-200/60">
-              <div className="flex items-center gap-2 pb-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                  <Sparkles className="h-4 w-4 text-white" />
-                </div>
+          <DialogContent className="left-auto right-0 top-0 h-dvh max-h-none w-[min(100vw,420px)] max-w-none translate-x-0 translate-y-0 overflow-hidden rounded-none border-y-0 border-r-0 p-0 shadow-lg">
+            <DialogHeader className="border-b border-border px-4 py-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-muted-foreground" />
                 <DialogTitle className="text-base">AI 助手</DialogTitle>
               </div>
             </DialogHeader>
-            <div className="max-h-[80dvh] h-auto">
+            <div className="h-[calc(100dvh-57px)] min-h-0">
               <ErrorBoundary>
                 <DeepSeekChatPanel
                   lanes={board.lanes}
@@ -1007,7 +975,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
               <DialogTitle className="text-base">批量移动卡片</DialogTitle>
             </DialogHeader>
             <DialogBody>
-              <p className="text-sm text-slate-500 mb-3">选择目标列表，将 {totalSelected} 张卡片移动过去：</p>
+              <p className="mb-3 text-sm text-muted-foreground">选择目标列表，将 {totalSelected} 张卡片移动过去：</p>
               <div className="space-y-2">
                 {board.lanes.map((lane) => (
                   <Button
@@ -1032,7 +1000,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
               <DialogTitle className="text-base">批量添加标签</DialogTitle>
             </DialogHeader>
             <DialogBody>
-              <p className="text-sm text-slate-500 mb-3">为选中的 {totalSelected} 张卡片添加标签：</p>
+              <p className="mb-3 text-sm text-muted-foreground">为选中的 {totalSelected} 张卡片添加标签：</p>
               <TagSelector
                 selectedTags={[]}
                 onTagsChange={(tags) => void handleBatchAddTags(tags)}
@@ -1044,8 +1012,8 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
         {/* 批量操作栏 */}
         {totalSelected > 0 && (
           <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2">
-            <div className="flex items-center gap-2 rounded-2xl border border-slate-200/60 bg-white/90 px-4 py-3 shadow-2xl shadow-slate-900/10 backdrop-blur-xl">
-              <span className="text-sm font-medium text-slate-700 mr-1">
+            <div className="flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-2 shadow-lg shadow-black/5">
+              <span className="mr-1 text-sm font-medium text-foreground">
                 已选择 {totalSelected} 张卡片
               </span>
               <Button
@@ -1075,7 +1043,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                 <Trash2 className="h-3.5 w-3.5" />
                 删除
               </Button>
-              <div className="h-6 w-px bg-slate-200 mx-1" />
+              <div className="mx-1 h-6 w-px bg-border" />
               <Button
                 variant="ghost"
                 size="sm"

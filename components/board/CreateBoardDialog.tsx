@@ -103,10 +103,10 @@ export function CreateBoardDialog({ open, onOpenChange, onBoardCreated }: Create
                     type="button"
                     onClick={() => setSelectedTemplateId(template.id)}
                     className={cn(
-                      'relative flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-all',
+                      'relative flex flex-col items-start gap-2 rounded-md border p-4 text-left transition-colors',
                       selectedTemplateId === template.id
-                        ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                        : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                        ? 'border-ring/40 bg-muted ring-1 ring-ring/20'
+                        : 'border-border hover:border-ring/30 hover:bg-muted/50'
                     )}
                   >
                     {selectedTemplateId === template.id && (
@@ -114,7 +114,7 @@ export function CreateBoardDialog({ open, onOpenChange, onBoardCreated }: Create
                         <Check className="h-2.5 w-2.5" />
                       </span>
                     )}
-                    <div className="text-slate-600">{ICON_MAP[template.icon] || <Layout className="h-6 w-6" />}</div>
+                    <div className="text-muted-foreground">{ICON_MAP[template.icon] || <Layout className="h-6 w-6" />}</div>
                     <div>
                       <div className="text-sm font-medium">{template.name}</div>
                       <div className="mt-0.5 text-[11px] text-muted-foreground leading-snug">
@@ -142,7 +142,7 @@ export function CreateBoardDialog({ open, onOpenChange, onBoardCreated }: Create
             <DialogBody>
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label htmlFor="board-title" className="text-xs font-medium text-slate-700">
+                  <label htmlFor="board-title" className="text-xs font-medium text-foreground">
                     看板名称 <span className="text-rose-500">*</span>
                   </label>
                   <Input
@@ -155,7 +155,7 @@ export function CreateBoardDialog({ open, onOpenChange, onBoardCreated }: Create
                     className="h-9 text-sm"
                   />
                 </div>
-                <p className="text-xs text-slate-500 bg-slate-50 px-3 py-2 rounded-lg">
+                <p className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
                   已选择模板：{getTemplateById(selectedTemplateId)?.name}，
                   包含 {getTemplateById(selectedTemplateId)?.lanes.length} 个列表
                 </p>

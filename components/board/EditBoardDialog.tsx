@@ -128,7 +128,7 @@ export function EditBoardDialog({
             <DialogBody>
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label htmlFor="edit-board-title" className="text-xs font-medium text-slate-700">
+                  <label htmlFor="edit-board-title" className="text-xs font-medium text-foreground">
                     看板名称
                   </label>
                   <Input

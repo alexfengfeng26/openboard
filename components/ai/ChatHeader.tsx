@@ -34,11 +34,11 @@ export function ChatHeader({
   onAiSettingsChange,
 }: ChatHeaderProps) {
   return (
-    <div className="flex items-center justify-between gap-3 border-b border-slate-200/60 px-4 py-3 bg-white/50">
+    <div className="flex items-center justify-between gap-3 border-b border-border bg-white px-3 py-2">
       <div className="flex items-center gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="h-5 px-2 text-[10px] rounded-full">
+            <Badge variant="secondary" className="h-5 rounded px-1.5 text-[10px]">
               {model === 'deepseek-reasoner' ? 'Reasoner' : 'Chat'}
             </Badge>
           </div>
@@ -49,7 +49,7 @@ export function ChatHeader({
         <select
           value={model}
           onChange={(e) => onModelChange(e.target.value as 'deepseek-chat' | 'deepseek-reasoner')}
-          className="h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-600 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+          className="h-8 rounded-md border border-border bg-white px-2 text-xs font-medium text-muted-foreground outline-none transition-colors focus:border-ring/40 focus:ring-2 focus:ring-ring/10"
           aria-label="选择 AI 模型"
         >
           <option value="deepseek-chat">deepseek-chat</option>
@@ -58,7 +58,7 @@ export function ChatHeader({
         <Button
           variant="outline"
           size="sm"
-          className="rounded-lg"
+          className="h-8"
           onClick={() => onSettingsOpen(true)}
           aria-label="AI 设置"
         >

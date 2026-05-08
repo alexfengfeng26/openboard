@@ -35,7 +35,7 @@ export function ChatInputArea({
   onInputKeyDownCapture,
 }: ChatInputAreaProps) {
   return (
-    <div className="border-t border-slate-200/60 bg-white/50 px-4 py-3">
+    <div className="border-t border-border bg-white px-3 py-3">
       {(!toolTriggerConfig.gateByPrefix || toolTriggerConfig.showQuickTemplatesInChat) && (
         <div className="mb-3 flex flex-wrap gap-2">
           {quickbarCommands.map((c) => (
@@ -45,7 +45,7 @@ export function ChatInputArea({
               variant="outline"
               size="sm"
               onClick={() => onApplyTemplate(c.insertText)}
-              className="rounded-full text-xs"
+              className="h-7 rounded text-xs"
             >
               {formatQuickbarLabel(c.label)}
             </Button>
@@ -59,7 +59,7 @@ export function ChatInputArea({
           value={input}
           onChange={(e) => onInputChange(e.target.value)}
           placeholder="输入你的问题…（Enter 发送，Shift+Enter 换行）"
-          className="min-h-[52px] resize-none text-sm bg-white rounded-xl border-slate-200 focus:border-primary"
+          className="min-h-[48px] resize-none rounded-md bg-white text-sm"
           onKeyDownCapture={(e) => {
             onInputKeyDownCapture?.(e)
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -72,7 +72,7 @@ export function ChatInputArea({
         <Button
           onClick={onSend}
           disabled={!input.trim() || isSending}
-          className="h-[52px] px-6 rounded-xl"
+          className="h-12 rounded-md px-5"
           aria-label="发送消息"
         >
           {isSending ? '发送中…' : '发送'}

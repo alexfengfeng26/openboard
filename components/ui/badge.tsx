@@ -3,24 +3,24 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const badgeVariants = cva(
-  'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+  'inline-flex items-center rounded border px-2 py-0.5 text-xs font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-ring/20',
   {
     variants: {
       variant: {
         default: 
-          'border-transparent bg-indigo-100 text-indigo-700 hover:bg-indigo-200',
+          'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
         secondary: 
-          'border-transparent bg-slate-100 text-slate-700 hover:bg-slate-200',
+          'border-transparent bg-muted text-muted-foreground hover:bg-accent',
         destructive: 
-          'border-transparent bg-rose-100 text-rose-700 hover:bg-rose-200',
+          'border-transparent bg-red-50 text-red-700 hover:bg-red-100',
         outline: 
-          'text-slate-600 border-slate-200 hover:bg-slate-50',
+          'text-muted-foreground border-border hover:bg-muted',
         success:
-          'border-transparent bg-emerald-100 text-emerald-700 hover:bg-emerald-200',
+          'border-transparent bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
         warning:
-          'border-transparent bg-amber-100 text-amber-700 hover:bg-amber-200',
+          'border-transparent bg-amber-50 text-amber-700 hover:bg-amber-100',
         ghost:
-          'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-100',
+          'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted',
       },
     },
     defaultVariants: {

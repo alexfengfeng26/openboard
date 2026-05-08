@@ -78,23 +78,23 @@ const LaneContent = memo(function LaneContent({
   }
 
   return (
-    <div className={`flex h-full w-64 shrink-0 flex-col rounded-lg bg-muted/50 py-3 px-2 ${isHovered ? 'ring-2 ring-primary/50 bg-muted' : ''}`}>
+    <div className={`group flex h-full w-60 shrink-0 flex-col rounded-md border border-border bg-muted/35 px-2 py-2 ${isHovered ? 'border-ring/30 bg-muted/70' : ''}`}>
       {/* 列表头部 */}
-      <div className="mb-3 flex items-center justify-between">
+      <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
+          <GripVertical className="h-3.5 w-3.5 text-muted-foreground/70 cursor-grab" />
           <h2
-            className="font-semibold cursor-pointer hover:text-primary"
+            className="cursor-pointer text-sm font-medium text-foreground hover:text-primary"
             onDoubleClick={() => setShowEditLane(true)}
           >
             {lane.title}
           </h2>
-          <span className="text-xs text-muted-foreground">{lane.cards.length}</span>
+          <span className="rounded bg-background px-1.5 py-0.5 text-[11px] text-muted-foreground">{lane.cards.length}</span>
         </div>
         <Button
           variant="ghost"
           size="icon"
-          className="h-6 w-6"
+          className="h-6 w-6 opacity-0 group-hover:opacity-100"
           onClick={() => setShowEditLane(true)}
           aria-label="编辑列表"
         >
@@ -104,7 +104,7 @@ const LaneContent = memo(function LaneContent({
 
       {/* 卡片列表（拖放区域） */}
       <div className="flex-1 overflow-y-auto">
-        <div ref={setNodeRef} className={`min-h-[100px] space-y-2 ${isHovered ? 'bg-primary/5 rounded-md p-2 -m-2' : ''}`}>
+        <div ref={setNodeRef} className={`min-h-[100px] space-y-1.5 ${isHovered ? 'rounded-md bg-background/70 p-2 -m-2' : ''}`}>
           <SortableContext items={cardIds} strategy={verticalListSortingStrategy}>
             {lane.cards.map((card) => (
               <DraggableCard
@@ -119,7 +119,7 @@ const LaneContent = memo(function LaneContent({
             ))}
 
             {lane.cards.length === 0 && (
-              <div className="flex h-20 items-center justify-center rounded-md border border-dashed border-muted-foreground/20 text-xs text-muted-foreground">
+              <div className="flex h-20 items-center justify-center rounded-md border border-dashed border-border bg-background/50 text-xs text-muted-foreground">
                 暂无卡片
               </div>
             )}
@@ -131,12 +131,12 @@ const LaneContent = memo(function LaneContent({
       {!isQuickAdding ? (
         <Button
           variant="ghost"
-          className="mt-2 justify-start"
+          className="mt-2 h-8 justify-start px-2 text-muted-foreground hover:text-foreground"
           onClick={() => setIsQuickAdding(true)}
           aria-label="添加卡片"
           data-quick-add-btn
         >
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="mr-1.5 h-3.5 w-3.5" />
           添加卡片
         </Button>
       ) : (

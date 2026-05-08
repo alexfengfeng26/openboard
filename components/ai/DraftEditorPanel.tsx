@@ -49,12 +49,12 @@ export function DraftEditorPanel({
   if (!draft && !draftError) return null
 
   return (
-    <div className="border-t border-slate-200/60 bg-white/70 px-4 py-3">
+    <div className="border-t border-border bg-white px-3 py-3">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <div className="text-xs font-bold text-slate-700">卡片草稿</div>
+          <div className="text-xs font-semibold text-foreground">卡片草稿</div>
           {draftQueue && draftQueue.length > 1 && (
-            <div className="text-[11px] font-medium text-primary bg-muted px-2 py-0.5 rounded-full">
+            <div className="rounded bg-muted px-2 py-0.5 text-[11px] font-medium text-primary">
               {draftIndex + 1}/{draftQueue.length}
             </div>
           )}

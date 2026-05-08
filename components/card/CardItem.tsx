@@ -73,10 +73,10 @@ export const CardItem = memo(function CardItem({
   return (
     <div
       className={cn(
-        'rounded-md border bg-card p-3 shadow-sm transition-shadow hover:shadow-md group relative',
+        'group relative rounded-md border border-border bg-card p-2.5 transition-colors duration-150 hover:border-ring/25 hover:bg-white',
         isDragging && 'opacity-50',
-        overdue && 'border-l-4 border-l-red-500',
-        selected && 'ring-2 ring-primary border-primary',
+        overdue && 'border-l-2 border-l-red-500',
+        selected && 'border-primary ring-2 ring-primary/10',
         (card as Card & { _matches?: boolean })._matches === false && 'opacity-40'
       )}
       onDoubleClick={() => {
@@ -110,7 +110,7 @@ export const CardItem = memo(function CardItem({
               e.stopPropagation()
               onSelectToggle?.(card.id)
             }}
-            className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer"
+            className="h-4 w-4 cursor-pointer rounded border-border text-primary focus:ring-primary"
             aria-label={`选择卡片 ${card.title}`}
           />
         </div>
@@ -118,14 +118,14 @@ export const CardItem = memo(function CardItem({
 
       {/* 操作按钮 */}
       {onEdit && !selectionMode && (
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute top-1.5 right-1.5 opacity-0 transition-opacity group-hover:opacity-100">
           <button
             type="button"
             onClick={(e) => {
               e.stopPropagation()
               onEdit(card)
             }}
-            className="rounded p-1 hover:bg-muted text-muted-foreground"
+            className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
             title="编辑"
             aria-label="编辑卡片"
           >
@@ -141,11 +141,10 @@ export const CardItem = memo(function CardItem({
             <Badge
               key={tag.id}
               variant="secondary"
-              className="text-[10px] h-5 px-1.5 py-0"
+              className="h-4 rounded-sm border-0 px-1.5 py-0 text-[10px] font-medium"
               style={{
-                backgroundColor: tag.color + '20',
+                backgroundColor: tag.color + '16',
                 color: tag.color,
-                border: `1px solid ${tag.color}40`,
               }}
             >
               {tag.name}
@@ -155,7 +154,7 @@ export const CardItem = memo(function CardItem({
       )}
 
       {/* 标题 */}
-      <h3 className={cn('mb-1.5 text-sm font-medium leading-tight', selectionMode && 'pl-6')}>
+      <h3 className={cn('mb-1.5 pr-4 text-sm font-medium leading-snug text-foreground', selectionMode && 'pl-6')}>
         {card.title}
       </h3>
 
@@ -163,7 +162,7 @@ export const CardItem = memo(function CardItem({
       {card.description && (
         <p
           className={cn(
-            'mb-2 text-xs text-muted-foreground leading-relaxed',
+            'mb-2 text-xs leading-relaxed text-muted-foreground',
             !isExpanded && 'line-clamp-3'
           )}
         >
@@ -176,7 +175,7 @@ export const CardItem = memo(function CardItem({
         <button
           type="button"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="text-[10px] text-muted-foreground hover:text-foreground mb-1.5"
+          className="mb-1.5 text-[10px] text-muted-foreground hover:text-foreground"
         >
           {isExpanded ? '收起' : '展开'}
         </button>
@@ -188,7 +187,7 @@ export const CardItem = memo(function CardItem({
           {card.attachments.slice(0, 3).map((att) => (
             <div
               key={att.id}
-              className="flex h-6 items-center gap-1 rounded bg-slate-100 px-1.5 text-[10px] text-slate-600"
+              className="flex h-5 items-center gap-1 rounded bg-muted px-1.5 text-[10px] text-muted-foreground"
               title={att.originalName}
             >
               {att.mimeType.startsWith('image/') ? (
@@ -200,7 +199,7 @@ export const CardItem = memo(function CardItem({
             </div>
           ))}
           {card.attachments.length > 3 && (
-            <span className="text-[10px] text-slate-400">+{card.attachments.length - 3}</span>
+            <span className="text-[10px] text-muted-foreground">+{card.attachments.length - 3}</span>
           )}
         </div>
       )}

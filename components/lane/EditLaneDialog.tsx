@@ -104,7 +104,7 @@ export function EditLaneDialog({ open, onOpenChange, lane, onLaneUpdated, onLane
             <DialogBody>
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label htmlFor="edit-lane-title" className="text-xs font-medium text-slate-700">
+                  <label htmlFor="edit-lane-title" className="text-xs font-medium text-foreground">
                     列表标题
                   </label>
                   <Input
@@ -117,8 +117,8 @@ export function EditLaneDialog({ open, onOpenChange, lane, onLaneUpdated, onLane
                   />
                 </div>
 
-                <div className="inline-flex items-center gap-1.5 text-xs text-slate-500 bg-slate-100 px-2.5 py-1.5 rounded-lg">
-                  <span className="font-medium text-slate-700">{lane.cards.length}</span>
+                <div className="inline-flex items-center gap-1.5 rounded-md bg-muted px-2.5 py-1.5 text-xs text-muted-foreground">
+                  <span className="font-medium text-foreground">{lane.cards.length}</span>
                   <span>个卡片</span>
                 </div>
               </div>

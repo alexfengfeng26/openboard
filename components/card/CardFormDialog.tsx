@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogBody, DialogFooter, DialogHeader, DialogTi
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Trash2, Paperclip, X, ImageIcon } from 'lucide-react'
+import { Trash2, Paperclip, X } from 'lucide-react'
 import { TagSelector } from '@/components/card/TagSelector'
 import { toastSuccess, toastError } from '@/components/ui/toast'
 import type { Card, Tag, Attachment } from '@/lib/db'
@@ -231,7 +231,7 @@ export function CardFormDialog({
             <DialogBody>
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label htmlFor={inputId} className="text-xs font-medium text-slate-700">
+                  <label htmlFor={inputId} className="text-xs font-medium text-foreground">
                     标题 <span className="text-rose-500">*</span>
                   </label>
                   <Input
@@ -246,7 +246,7 @@ export function CardFormDialog({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label htmlFor={descriptionId} className="text-xs font-medium text-slate-700">
+                  <label htmlFor={descriptionId} className="text-xs font-medium text-foreground">
                     描述
                   </label>
                   <Textarea
@@ -261,19 +261,19 @@ export function CardFormDialog({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-slate-700">标签</label>
+                  <label className="text-xs font-medium text-foreground">标签</label>
                   <TagSelector selectedTags={tags} onTagsChange={setTags} disabled={isSubmitting} />
                 </div>
 
                 {/* 附件区域 */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-slate-700">附件</label>
+                  <label className="text-xs font-medium text-foreground">附件</label>
                   <div
                     className={[
-                      'rounded-xl border-2 border-dashed p-4 transition-colors',
+                      'rounded-md border border-dashed p-4 transition-colors',
                       isDraggingOver
-                        ? 'border-primary bg-primary/5'
-                        : 'border-slate-200 bg-slate-50/50 hover:border-slate-300',
+                        ? 'border-ring/30 bg-muted'
+                        : 'border-border bg-muted/40 hover:border-ring/30',
                     ].join(' ')}
                     onDragOver={(e) => {
                       e.preventDefault()
@@ -286,7 +286,7 @@ export function CardFormDialog({
                       void handleFileSelect(e.dataTransfer.files)
                     }}
                   >
-                    <div className="flex flex-col items-center justify-center gap-2 text-slate-500">
+                    <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
                       <UploadIcon />
                       <p className="text-xs">拖拽文件到此处，或</p>
                       <label className="cursor-pointer">
@@ -299,7 +299,7 @@ export function CardFormDialog({
                           disabled={isSubmitting}
                         />
                       </label>
-                      <p className="text-[10px] text-slate-400">单个文件最大 5MB</p>
+                      <p className="text-[10px] text-muted-foreground">单个文件最大 5MB</p>
                     </div>
                   </div>
 
@@ -309,7 +309,7 @@ export function CardFormDialog({
                       {attachments.map((att) => (
                         <div
                           key={att.id}
-                          className="flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-sm"
+                          className="flex items-center gap-2 rounded-md border border-border bg-white px-3 py-2 text-sm"
                         >
                           {att.mimeType.startsWith('image/') ? (
                             <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md border">
@@ -320,18 +320,18 @@ export function CardFormDialog({
                               />
                             </div>
                           ) : (
-                            <Paperclip className="h-4 w-4 shrink-0 text-slate-400" />
+                            <Paperclip className="h-4 w-4 shrink-0 text-muted-foreground" />
                           )}
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-xs font-medium">{att.originalName}</p>
-                            <p className="text-[10px] text-slate-400">
+                            <p className="text-[10px] text-muted-foreground">
                               {(att.size / 1024).toFixed(1)} KB
                             </p>
                           </div>
                           <button
                             type="button"
                             onClick={() => void handleRemoveAttachment(att.id)}
-                            className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                            className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
                             disabled={isSubmitting}
                             aria-label={`删除附件 ${att.originalName}`}
                           >
@@ -387,7 +387,7 @@ export function CardFormDialog({
 
 function UploadIcon() {
   return (
-    <svg className="h-6 w-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg className="h-6 w-6 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
     </svg>
   )
