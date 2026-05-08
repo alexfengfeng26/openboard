@@ -25,6 +25,14 @@ export interface AiToolTriggerConfig {
 }
 
 /**
+ * AI 信任模式
+ * - confirm_all: 所有操作都需要确认
+ * - confirm_high_risk: 仅高风险操作需要确认（推荐）
+ * - auto_execute: 自动执行所有操作（谨慎使用）
+ */
+export type AiTrustMode = 'confirm_all' | 'confirm_high_risk' | 'auto_execute'
+
+/**
  * AI 设置
  */
 export interface AiSettings {
@@ -34,6 +42,8 @@ export interface AiSettings {
   toolTrigger: AiToolTriggerConfig
   /** AI 命令/模板列表 */
   commands: AiCommand[]
+  /** 信任模式：控制AI操作的自动执行策略 */
+  trustMode: AiTrustMode
 }
 
 /**
@@ -146,6 +156,7 @@ export function createDefaultSettings(): AppSettings {
         },
       },
       commands: [], // 默认命令在初始化时从 createDefaultAiCommands 填充
+      trustMode: 'confirm_high_risk',
     },
     boardView: {
       cardDensity: 'normal',

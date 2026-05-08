@@ -9,6 +9,7 @@ interface ChatRequestBody {
   system?: string
   messages?: IncomingMessage[]
   temperature?: number
+  stream?: boolean
 }
 
 interface DeepSeekErrorResponse {
@@ -38,6 +39,7 @@ export async function POST(request: Request) {
     const system = typeof body?.system === 'string' ? body.system : ''
     const messages = Array.isArray(body?.messages) ? body!.messages : []
     const temperature = typeof body?.temperature === 'number' ? body.temperature : 0.4
+    const useStream = body?.stream === true
 
     const sanitized = messages
       .filter((m) => m && (m.role === 'user' || m.role === 'assistant' || m.role === 'system') && typeof m.content === 'string')
@@ -46,7 +48,7 @@ export async function POST(request: Request) {
     const outgoing = system ? [{ role: 'system' as const, content: system }, ...sanitized] : sanitized
 
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 30000)
+    const timeoutId = setTimeout(() => controller.abort(), 60000)
 
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
@@ -57,7 +59,7 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         model,
         messages: outgoing,
-        stream: false,
+        stream: useStream,
         temperature,
       }),
       signal: controller.signal,
@@ -65,6 +67,27 @@ export async function POST(request: Request) {
 
     clearTimeout(timeoutId)
 
+    // 流式模式：直接透传 SSE 流
+    if (useStream) {
+      if (!response.ok) {
+        const data = await response.json().catch(() => null) as DeepSeekErrorResponse | null
+        const message = typeof data?.error?.message === 'string' ? data.error.message : 'DeepSeek 请求失败'
+        return NextResponse.json({ error: message }, { status: 502 })
+      }
+      if (!response.body) {
+        return NextResponse.json({ error: '无法获取响应流' }, { status: 502 })
+      }
+      return new Response(response.body, {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/event-stream; charset=utf-8',
+          'Cache-Control': 'no-cache, no-transform',
+          Connection: 'keep-alive',
+        },
+      })
+    }
+
+    // 非流式模式：解析完整响应
     const data = await response.json().catch(() => null) as DeepSeekErrorResponse | DeepSeekSuccessResponse | null
     if (!response.ok) {
       const errorData = data as DeepSeekErrorResponse
@@ -86,4 +109,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'AI 服务异常' }, { status: 500 })
   }
 }
-

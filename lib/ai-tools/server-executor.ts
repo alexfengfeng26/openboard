@@ -56,6 +56,184 @@ export class ServerToolExecutor {
    */
   private static async executeTool(toolName: string, params: Record<string, unknown>): Promise<ToolExecutionResult> {
     switch (toolName) {
+      // ===== 卡片查询操作 =====
+      case 'search_cards': {
+        const { boardId, query } = params as { boardId: string; query: string }
+        const board = await dbHelpers.getBoard(boardId)
+        if (!board) {
+          return {
+            success: false,
+            toolName,
+            params,
+            error: `看板 ${boardId} 不存在`,
+            timestamp: new Date().toISOString()
+          }
+        }
+        const searchTerm = query.toLowerCase().trim()
+        const results: Array<{ id: string; title: string; description?: string; laneTitle: string }> = []
+        for (const lane of board.lanes) {
+          for (const card of lane.cards) {
+            const titleMatch = card.title.toLowerCase().includes(searchTerm)
+            const descMatch = card.description?.toLowerCase().includes(searchTerm) ?? false
+            const tagMatch = card.tags?.some((t) => t.name.toLowerCase().includes(searchTerm)) ?? false
+            if (titleMatch || descMatch || tagMatch) {
+              results.push({ id: card.id, title: card.title, description: card.description, laneTitle: lane.title })
+            }
+          }
+        }
+        return {
+          success: true,
+          toolName,
+          params,
+          result: { count: results.length, cards: results },
+          timestamp: new Date().toISOString()
+        }
+      }
+
+      // ===== 卡片批量操作 =====
+      case 'batch_update_cards': {
+        const { boardId, cardIds, title, description } = params as {
+          boardId: string
+          cardIds: string[]
+          title?: string
+          description?: string
+        }
+        const updateData: { title?: string; description?: string } = {}
+        if (title !== undefined) updateData.title = title
+        if (description !== undefined) updateData.description = description
+
+        let successCount = 0
+        let failCount = 0
+        for (const cardId of cardIds) {
+          try {
+            await dbHelpers.updateCard(boardId, cardId, updateData)
+            successCount++
+          } catch {
+            failCount++
+          }
+        }
+        return {
+          success: failCount === 0,
+          toolName,
+          params,
+          result: { updated: successCount, failed: failCount },
+          error: failCount > 0 ? `${failCount} 张卡片更新失败` : undefined,
+          timestamp: new Date().toISOString()
+        }
+      }
+
+      case 'add_tag_to_card': {
+        const { boardId, cardId, tagName, tagColor } = params as {
+          boardId: string
+          cardId: string
+          tagName: string
+          tagColor?: string
+        }
+        const board = await dbHelpers.getBoard(boardId)
+        if (!board) {
+          return { success: false, toolName, params, error: `看板 ${boardId} 不存在`, timestamp: new Date().toISOString() }
+        }
+        let card: import('@/types').Card | undefined
+        for (const lane of board.lanes) {
+          card = lane.cards.find((c) => c.id === cardId)
+          if (card) break
+        }
+        if (!card) {
+          return { success: false, toolName, params, error: `卡片 ${cardId} 不存在`, timestamp: new Date().toISOString() }
+        }
+        const globalTags = await dbHelpers.getTags()
+        let tag = globalTags.find((t) => t.name === tagName)
+        if (!tag) {
+          tag = { id: `tag-${Date.now()}-${Math.random().toString(16).slice(2, 6)}`, name: tagName, color: tagColor || '#6b7280' }
+        }
+        const currentTags = card.tags || []
+        if (currentTags.some((t) => t.name === tagName)) {
+          return { success: true, toolName, params, result: { cardId, tagName, alreadyExists: true }, timestamp: new Date().toISOString() }
+        }
+        await dbHelpers.updateCard(boardId, cardId, { tags: [...currentTags, tag] })
+        return {
+          success: true,
+          toolName,
+          params,
+          result: { cardId, tagName, tagId: tag.id },
+          timestamp: new Date().toISOString()
+        }
+      }
+
+      case 'remove_tag_from_card': {
+        const { boardId, cardId, tagName } = params as {
+          boardId: string
+          cardId: string
+          tagName: string
+        }
+        const board = await dbHelpers.getBoard(boardId)
+        if (!board) {
+          return { success: false, toolName, params, error: `看板 ${boardId} 不存在`, timestamp: new Date().toISOString() }
+        }
+        let card: import('@/types').Card | undefined
+        for (const lane of board.lanes) {
+          card = lane.cards.find((c) => c.id === cardId)
+          if (card) break
+        }
+        if (!card) {
+          return { success: false, toolName, params, error: `卡片 ${cardId} 不存在`, timestamp: new Date().toISOString() }
+        }
+        const currentTags = card.tags || []
+        const newTags = currentTags.filter((t) => t.name !== tagName)
+        if (newTags.length === currentTags.length) {
+          return { success: true, toolName, params, result: { cardId, tagName, notFound: true }, timestamp: new Date().toISOString() }
+        }
+        await dbHelpers.updateCard(boardId, cardId, { tags: newTags })
+        return {
+          success: true,
+          toolName,
+          params,
+          result: { cardId, tagName, removed: true },
+          timestamp: new Date().toISOString()
+        }
+      }
+
+      case 'copy_card': {
+        const { boardId, cardId, targetLaneId, count = 1 } = params as {
+          boardId: string
+          cardId: string
+          targetLaneId?: string
+          count?: number
+        }
+        const board = await dbHelpers.getBoard(boardId)
+        if (!board) {
+          return { success: false, toolName, params, error: `看板 ${boardId} 不存在`, timestamp: new Date().toISOString() }
+        }
+        let sourceCard: import('@/types').Card | undefined
+        for (const lane of board.lanes) {
+          sourceCard = lane.cards.find((c) => c.id === cardId)
+          if (sourceCard) break
+        }
+        if (!sourceCard) {
+          return { success: false, toolName, params, error: `卡片 ${cardId} 不存在`, timestamp: new Date().toISOString() }
+        }
+        const toLaneId = targetLaneId || sourceCard.laneId
+        const copiedIds: string[] = []
+        for (let i = 0; i < Math.min(count, 10); i++) {
+          const newCard = await dbHelpers.createCard(
+            boardId,
+            toLaneId,
+            `${sourceCard.title}${count > 1 ? ` (复制${i + 1})` : ' (复制)'}`,
+            sourceCard.description,
+            sourceCard.tags,
+            sourceCard.attachments
+          )
+          copiedIds.push(newCard.id)
+        }
+        return {
+          success: true,
+          toolName,
+          params,
+          result: { originalCardId: cardId, copiedIds, targetLaneId: toLaneId },
+          timestamp: new Date().toISOString()
+        }
+      }
+
       // ===== 卡片操作 =====
       case 'create_card': {
         const { boardId, laneId, title, description } = params as {

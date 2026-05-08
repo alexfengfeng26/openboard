@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogBody, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { TagSettingsPanel } from './TagSettingsPanel'
-import type { AiSettings } from '@/types/settings.types'
+import type { AiSettings, AiTrustMode } from '@/types/settings.types'
 import type { AiCommand, AiCommandScope, AiCommandPlacement } from '@/types/ai-commands.types'
 import {
   createDefaultAiCommands,
@@ -38,6 +38,7 @@ export function AiSettingsDialog({
 }: AiSettingsDialogProps) {
   const [settingsActiveTab, setSettingsActiveTab] = useState<'trigger' | 'tags'>('trigger')
   const [settingsDraft, setSettingsDraft] = useState(aiSettings?.toolTrigger ?? null)
+  const [trustModeDraft, setTrustModeDraft] = useState<AiTrustMode>(aiSettings?.trustMode ?? 'confirm_high_risk')
   const [commandsDraft, setCommandsDraft] = useState<AiCommand[] | null>(() => {
     const commands = aiSettings?.commands && aiSettings.commands.length > 0
       ? aiSettings.commands
@@ -96,7 +97,7 @@ export function AiSettingsDialog({
     if (normalized.length !== commandsDraft.length) {
       toastWarning('部分 command 被忽略：可能是重复触发词或缺少必要字段')
     }
-    await onAiSettingsChange({ commands: normalized, toolTrigger: settingsDraft })
+    await onAiSettingsChange({ commands: normalized, toolTrigger: settingsDraft, trustMode: trustModeDraft })
     onOpenChange(false)
     toastSuccess('已保存设置')
   }, [settingsDraft, commandsDraft, onAiSettingsChange, onOpenChange])
@@ -169,6 +170,54 @@ export function AiSettingsDialog({
               />
               普通聊天中显示&quot;创建为卡片/编辑后创建&quot;
             </label>
+
+            <div className="space-y-1 rounded-md border p-3">
+              <div className="text-sm font-medium">AI 操作信任模式</div>
+              <div className="space-y-2">
+                <label className="flex items-start gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="trustMode"
+                    className="mt-0.5 h-4 w-4"
+                    value="confirm_all"
+                    checked={trustModeDraft === 'confirm_all'}
+                    onChange={(e) => setTrustModeDraft(e.target.value as AiTrustMode)}
+                  />
+                  <div>
+                    <div className="font-medium">全部确认</div>
+                    <div className="text-xs text-muted-foreground">每个 AI 操作都需要手动确认</div>
+                  </div>
+                </label>
+                <label className="flex items-start gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="trustMode"
+                    className="mt-0.5 h-4 w-4"
+                    value="confirm_high_risk"
+                    checked={trustModeDraft === 'confirm_high_risk'}
+                    onChange={(e) => setTrustModeDraft(e.target.value as AiTrustMode)}
+                  />
+                  <div>
+                    <div className="font-medium">仅确认高风险（推荐）</div>
+                    <div className="text-xs text-muted-foreground">创建、移动等低风险操作自动执行，删除等高风险操作需要确认</div>
+                  </div>
+                </label>
+                <label className="flex items-start gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="trustMode"
+                    className="mt-0.5 h-4 w-4"
+                    value="auto_execute"
+                    checked={trustModeDraft === 'auto_execute'}
+                    onChange={(e) => setTrustModeDraft(e.target.value as AiTrustMode)}
+                  />
+                  <div>
+                    <div className="font-medium">自动执行（谨慎）</div>
+                    <div className="text-xs text-muted-foreground">几乎所有操作都自动执行，仅删除操作仍需确认</div>
+                  </div>
+                </label>
+              </div>
+            </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">

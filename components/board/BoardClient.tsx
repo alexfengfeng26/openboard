@@ -924,6 +924,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
               <ErrorBoundary>
                 <DeepSeekChatPanel
                   lanes={board.lanes}
+                  tags={board.tags}
                   linkedCard={editingCard}
                   onCardCreated={handleCardCreatedFromChat}
                   onBoardRefresh={refreshCurrentBoard}

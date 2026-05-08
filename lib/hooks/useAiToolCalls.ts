@@ -13,7 +13,7 @@ export interface UseAiToolCallsReturn {
   pendingToolCalls: ToolCallRequest[] | null
   pendingToolLogIds: string[] | null
   isExecuting: boolean
-  handleConfirmToolCalls: () => Promise<void>
+  handleConfirmToolCalls: (options?: { confirmedBy?: 'user' | 'auto' }) => Promise<void>
   handleCancelToolCalls: () => void
   setPendingToolCalls: React.Dispatch<React.SetStateAction<ToolCallRequest[] | null>>
   setPendingToolLogIds: React.Dispatch<React.SetStateAction<string[] | null>>
@@ -26,8 +26,9 @@ export function useAiToolCalls(options: UseAiToolCallsOptions): UseAiToolCallsRe
   const [pendingToolLogIds, setPendingToolLogIds] = useState<string[] | null>(null)
   const [isExecuting, setIsExecuting] = useState(false)
 
-  const handleConfirmToolCalls = useCallback(async () => {
+  const handleConfirmToolCalls = useCallback(async (options?: { confirmedBy?: 'user' | 'auto' }) => {
     if (!pendingToolCalls || isExecuting) return
+    const confirmedBy = options?.confirmedBy || 'user'
     setIsExecuting(true)
     try {
       const affectedLogIds = pendingToolLogIds || []
@@ -35,7 +36,7 @@ export function useAiToolCalls(options: UseAiToolCallsOptions): UseAiToolCallsRe
         setOperationLogs((prev) =>
           prev.map((log) =>
             affectedLogIds.includes(log.id)
-              ? { ...log, status: 'confirmed' as const, confirmedBy: 'user' as const, timestamp: new Date().toISOString() }
+              ? { ...log, status: 'confirmed' as const, confirmedBy, timestamp: new Date().toISOString() }
               : log
           )
         )
@@ -82,9 +83,15 @@ export function useAiToolCalls(options: UseAiToolCallsOptions): UseAiToolCallsRe
 
       const successCount = results.filter((r: { success?: boolean }) => r.success).length
       const failCount = results.filter((r: { success?: boolean }) => !r.success).length
-      if (failCount === 0) toastSuccess(`执行完成：成功 ${successCount} 个`)
-      else if (successCount > 0) toastWarning(`执行完成：成功 ${successCount} 个，失败 ${failCount} 个`)
-      else toastError(`执行失败：${failCount} 个`)
+      if (confirmedBy === 'auto') {
+        if (failCount === 0) toastSuccess(`AI 已自动执行：成功 ${successCount} 个`)
+        else if (successCount > 0) toastWarning(`AI 自动执行：成功 ${successCount} 个，失败 ${failCount} 个`)
+        else toastError(`AI 自动执行失败：${failCount} 个`)
+      } else {
+        if (failCount === 0) toastSuccess(`执行完成：成功 ${successCount} 个`)
+        else if (successCount > 0) toastWarning(`执行完成：成功 ${successCount} 个，失败 ${failCount} 个`)
+        else toastError(`执行失败：${failCount} 个`)
+      }
 
       setPendingToolCalls(null)
       setPendingToolLogIds(null)

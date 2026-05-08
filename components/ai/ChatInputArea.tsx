@@ -16,6 +16,7 @@ interface ChatInputAreaProps {
   toolTriggerConfig: AiToolTriggerConfig
   onApplyTemplate: (text: string) => void
   onInputKeyDownCapture?: (e: React.KeyboardEvent) => void
+  onStop?: () => void
 }
 
 function formatQuickbarLabel(label: string) {
@@ -33,6 +34,7 @@ export function ChatInputArea({
   toolTriggerConfig,
   onApplyTemplate,
   onInputKeyDownCapture,
+  onStop,
 }: ChatInputAreaProps) {
   return (
     <div className="border-t border-border bg-white px-3 py-3">
@@ -69,14 +71,25 @@ export function ChatInputArea({
           }}
           disabled={isSending}
         />
-        <Button
-          onClick={onSend}
-          disabled={!input.trim() || isSending}
-          className="h-12 rounded-md px-5"
-          aria-label="发送消息"
-        >
-          {isSending ? '发送中…' : '发送'}
-        </Button>
+        {isSending && onStop ? (
+          <Button
+            onClick={onStop}
+            variant="secondary"
+            className="h-12 rounded-md px-5"
+            aria-label="停止生成"
+          >
+            停止
+          </Button>
+        ) : (
+          <Button
+            onClick={onSend}
+            disabled={!input.trim() || isSending}
+            className="h-12 rounded-md px-5"
+            aria-label="发送消息"
+          >
+            发送
+          </Button>
+        )}
       </div>
     </div>
   )

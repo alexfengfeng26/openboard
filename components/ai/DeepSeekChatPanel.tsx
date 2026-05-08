@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
-import type { Card, Lane } from '@/lib/db'
+import type { Card, Lane, Tag } from '@/lib/db'
 import { toastInfo, toastWarning } from '@/components/ui/toast'
 import { ToolCallConfirmation } from './ToolCallConfirmation'
 import { OperationLogPanel } from './OperationLogPanel'
@@ -27,6 +27,7 @@ import {
   buildSystemContext,
   sanitizeToolCalls,
 } from '@/lib/ai/chat-helpers'
+import { canAutoExecute, getToolRiskSummary } from '@/lib/ai/tool-risk'
 
 const guideMessage =
   'AI 创建卡片超快：\n' +
@@ -40,6 +41,7 @@ type ToolTriggerConfig = AiToolTriggerConfig
 
 export function DeepSeekChatPanel({
   lanes,
+  tags,
   linkedCard,
   onCardCreated,
   onBoardRefresh,
@@ -47,6 +49,7 @@ export function DeepSeekChatPanel({
   boardTitle,
 }: {
   lanes: Lane[]
+  tags?: Tag[]
   linkedCard: Card | null
   onCardCreated: (laneId: string, card: Card) => void
   onBoardRefresh?: () => void | Promise<void>
@@ -72,6 +75,7 @@ export function DeepSeekChatPanel({
   const [commandsLoaded, setCommandsLoaded] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const inputRef = useRef<HTMLTextAreaElement | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   const defaultLaneId = linkedCard?.laneId || lanes[0]?.id || ''
 
@@ -270,11 +274,69 @@ export function DeepSeekChatPanel({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
+      signal: abortControllerRef.current?.signal,
     })
     const data = await response.json().catch(() => ({}))
     if (!response.ok) throw new Error(typeof data?.error === 'string' ? data.error : 'AI 请求失败')
     if (typeof data?.content !== 'string') throw new Error('AI 返回格式异常')
     return data.content
+  }
+
+  async function callChatApiStream(payload: unknown): Promise<ReadableStream<Uint8Array>> {
+    const response = await fetch('/api/ai/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...((payload ?? {}) as Record<string, unknown>), stream: true }),
+      signal: abortControllerRef.current?.signal,
+    })
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}))
+      throw new Error(typeof data?.error === 'string' ? data.error : 'AI 请求失败')
+    }
+    if (!response.body) throw new Error('无法获取响应流')
+    return response.body
+  }
+
+  async function readStream(
+    stream: ReadableStream<Uint8Array>,
+    onChunk: (content: string) => void
+  ): Promise<string> {
+    const reader = stream.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+    let fullContent = ''
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
+
+        for (const line of lines) {
+          const trimmed = line.trim()
+          if (!trimmed.startsWith('data: ')) continue
+          const data = trimmed.slice(6)
+          if (data === '[DONE]') continue
+          try {
+            const parsed = JSON.parse(data)
+            const content = parsed.choices?.[0]?.delta?.content
+            if (typeof content === 'string') {
+              fullContent += content
+              onChunk(fullContent)
+            }
+          } catch {
+            // ignore parse error
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock()
+    }
+
+    return fullContent
   }
 
   async function handleSend() {
@@ -295,7 +357,12 @@ export function DeepSeekChatPanel({
     setIsSending(true)
 
     try {
-      const context = buildSystemContext(boardId, boardTitle, lanes)
+      // 取消之前的请求
+      abortControllerRef.current?.abort()
+      abortControllerRef.current = new AbortController()
+
+      const recentLogs = operationLogs.slice(0, 10)
+      const context = buildSystemContext(boardId, boardTitle, lanes, tags, recentLogs)
       const toolTriggerHelp = toolTriggerConfig.gateByPrefix
         ? [
             '如需执行看板操作，请在消息开头加触发前缀：',
@@ -310,20 +377,33 @@ export function DeepSeekChatPanel({
             .join('\n')
         : undefined
 
-      const aiContent = await callChatApi({
+      const payload = {
         model,
         system:
           trigger.scope === 'none'
             ? PromptBuilder.buildChatSystemPrompt(context, { toolTriggerHelp })
             : PromptBuilder.buildToolSystemPrompt(context, { allowedToolNames: getAllowedToolNames(trigger.scope) }),
         messages: nextMessages.map((m) => ({ role: m.role, content: m.content })),
-      })
+      }
 
       if (trigger.scope === 'none') {
-        const id = createChatId()
-        setMessages((prev) => [...prev, { id, role: 'assistant', content: aiContent }])
+        // 普通聊天模式：流式输出，实时显示
+        const assistantId = createChatId()
+        setMessages((prev) => [...prev, { id: assistantId, role: 'assistant', content: '' }])
+
+        const stream = await callChatApiStream(payload)
+        const fullContent = await readStream(stream, (content) => {
+          setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content } : m)))
+        })
+
+        setActionableAssistantMessageIds((prev) =>
+          prev.includes(assistantId) ? prev : [...prev, assistantId]
+        )
         return
       }
+
+      // 工具模式：非流式，快速获取完整响应后解析
+      const aiContent = await callChatApi(payload)
 
       FallbackToolParser.setDefaultLaneId(defaultLaneId)
       const parseResult = FallbackToolParser.parse(aiContent)
@@ -333,7 +413,16 @@ export function DeepSeekChatPanel({
         const sanitized = sanitizeToolCalls(parseResult.data as ToolCallRequest[], existingCardTitles, cardById)
         const toolCalls = allowed && allowed.length > 0 ? sanitized.filter((c) => allowed.includes(c.toolName)) : sanitized
         const removedCount = (parseResult.data as ToolCallRequest[]).length - toolCalls.length
-        tools.setPendingToolCalls(toolCalls)
+
+        if (toolCalls.length === 0) {
+          if (removedCount > 0) toastWarning(`已忽略 ${removedCount} 个可疑/重复操作`)
+          return
+        }
+
+        // 信任模式：低风险操作自动执行
+        const trustMode = aiSettings?.trustMode || 'confirm_high_risk'
+        const autoExecute = canAutoExecute(toolCalls, trustMode)
+
         const newLogIds: string[] = []
         const newLogs = toolCalls.map((call) => {
           const id = createChatId()
@@ -342,8 +431,18 @@ export function DeepSeekChatPanel({
         })
         tools.setPendingToolLogIds(newLogIds)
         setOperationLogs((prev) => [...newLogs, ...prev])
+
         if (removedCount > 0) toastWarning(`已忽略 ${removedCount} 个可疑/重复操作`)
-        else toastInfo(`已生成 ${toolCalls.length} 个操作，等待确认`)
+
+        if (autoExecute) {
+          tools.setPendingToolCalls(toolCalls)
+          toastInfo(`AI 自动执行 ${toolCalls.length} 个操作（${getToolRiskSummary(toolCalls)}）`)
+          await tools.handleConfirmToolCalls({ confirmedBy: 'auto' })
+        } else {
+          tools.setPendingToolCalls(toolCalls)
+          const summary = getToolRiskSummary(toolCalls)
+          toastInfo(`已生成 ${toolCalls.length} 个操作，${summary}，等待确认`)
+        }
       } else if (parseResult.type === 'draft' && parseResult.data.length > 0) {
         await drafts.handleDraftsFromSend(parseResult.data as CardDraft[])
       } else {
@@ -353,9 +452,12 @@ export function DeepSeekChatPanel({
       }
     } catch (e) {
       const message = e instanceof Error ? e.message : 'AI 请求失败'
+      // 流式模式下如果是因为主动取消（组件卸载或新请求），不显示错误
+      if (message.includes('aborted') || message.includes('取消')) return
       setMessages((prev) => [...prev, { id: createChatId(), role: 'assistant', content: `请求失败：${message}` }])
     } finally {
       setIsSending(false)
+      abortControllerRef.current = null
     }
   }
 
@@ -372,12 +474,15 @@ export function DeepSeekChatPanel({
   )
 
   const handleClearChat = useCallback(() => {
+    abortControllerRef.current?.abort()
+    abortControllerRef.current = null
+    setIsSending(false)
     setMessages([{ id: createChatId(), role: 'assistant', content: guideMessage }])
     setActionableAssistantMessageIds([])
     drafts.closeDraftPanel()
     drafts.setDraftError(null)
     drafts.setDraftSourceId(null)
-  }, [setMessages, drafts])
+  }, [setMessages, setIsSending, drafts])
 
   return (
     <div className="flex h-full flex-col">
@@ -398,8 +503,8 @@ export function DeepSeekChatPanel({
         messages={messages}
         isSending={isSending}
         shouldShowAssistantActions={shouldShowAssistantActions}
-        onQuickCreate={(m) => drafts.handleQuickCreate(m, model, () => buildSystemContext(boardId, boardTitle, lanes))}
-        onGenerateDraft={(m) => drafts.handleGenerateDraft(m, model, () => buildSystemContext(boardId, boardTitle, lanes))}
+        onQuickCreate={(m) => drafts.handleQuickCreate(m, model, () => buildSystemContext(boardId, boardTitle, lanes, tags, operationLogs.slice(0, 10)))}
+        onGenerateDraft={(m) => drafts.handleGenerateDraft(m, model, () => buildSystemContext(boardId, boardTitle, lanes, tags, operationLogs.slice(0, 10)))}
         draftSubmitting={drafts.draftSubmitting}
         draftSourceId={drafts.draftSourceId}
       />
@@ -442,6 +547,11 @@ export function DeepSeekChatPanel({
         toolTriggerConfig={toolTriggerConfig}
         onApplyTemplate={applyTemplate}
         onInputKeyDownCapture={handleSlashMenuKeyDown}
+        onStop={() => {
+          abortControllerRef.current?.abort()
+          abortControllerRef.current = null
+          setIsSending(false)
+        }}
       >
         <SlashCommandMenu
           open={slashMenuOpen}
