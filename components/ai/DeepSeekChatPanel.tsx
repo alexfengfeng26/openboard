@@ -64,6 +64,14 @@ export function DeepSeekChatPanel({
 }) {
   const { aiSettings, loading: settingsLoading, updateAiSettings } = useAiSettings()
   const [model, setModel] = useState<'deepseek-v4-flash' | 'deepseek-v4-pro'>('deepseek-v4-flash')
+
+  // 同步设置中的默认模型
+  useEffect(() => {
+    if (aiSettings?.defaultModel) {
+      setModel(aiSettings.defaultModel)
+    }
+  }, [aiSettings?.defaultModel])
+
   const { messages, setMessages, input, setInput, isSending, setIsSending } = useChatMessages(boardId)
   const { logs: operationLogs, setLogs: setOperationLogs, showLogPanel, setShowLogPanel } = useOperationLogs(boardId)
 

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { getSettingsStorage } from '@/lib/storage/SettingsStorage'
 
 export const runtime = 'nodejs'
 
@@ -26,11 +27,71 @@ interface DeepSeekSuccessResponse {
   }>
 }
 
+/**
+ * 格式化 DeepSeek 错误信息，给用户提供更友好的中文提示
+ */
+function formatDeepSeekError(message: string): string {
+  const lower = message.toLowerCase()
+  if (lower.includes('too busy') || lower.includes('service unavailable') || lower.includes('overloaded')) {
+    return 'DeepSeek 服务器繁忙，请稍后重试，或切换到其他模型（如 V4 Flash）'
+  }
+  if (lower.includes('rate limit') || lower.includes('too many requests')) {
+    return '请求频率过快，请稍等片刻再试'
+  }
+  if (lower.includes('invalid api key') || lower.includes('authentication')) {
+    return 'API Key 无效，请检查设置中的 DeepSeek API Key'
+  }
+  if (lower.includes('context length') || lower.includes('too long')) {
+    return '对话内容过长，请尝试清空对话或缩短输入'
+  }
+  return message
+}
+
+/**
+ * 带重试的 DeepSeek 请求
+ */
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit,
+  maxRetries = 2
+): Promise<Response> {
+  let lastError: Error | null = null
+  for (let i = 0; i <= maxRetries; i++) {
+    try {
+      const response = await fetch(url, options)
+      // 如果是 502/503/429，且还有重试次数，则等待后重试
+      if ((response.status === 502 || response.status === 503 || response.status === 429) && i < maxRetries) {
+        const delay = 1000 * Math.pow(2, i) // 指数退避: 1s, 2s
+        await new Promise((resolve) => setTimeout(resolve, delay))
+        continue
+      }
+      return response
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error))
+      if (i < maxRetries) {
+        const delay = 1000 * Math.pow(2, i)
+        await new Promise((resolve) => setTimeout(resolve, delay))
+      }
+    }
+  }
+  throw lastError || new Error('请求失败')
+}
+
 export async function POST(request: Request) {
   try {
-    const apiKey = process.env.DEEPSEEK_API_KEY
+    // 优先使用用户设置的 API Key
+    let apiKey = process.env.DEEPSEEK_API_KEY
+    try {
+      const settingsStorage = await getSettingsStorage()
+      const aiSettings = await settingsStorage.getAiSettings()
+      if (aiSettings.apiKey?.trim()) {
+        apiKey = aiSettings.apiKey.trim()
+      }
+    } catch {
+      // 忽略设置读取失败，使用环境变量
+    }
     if (!apiKey) {
-      return NextResponse.json({ error: '缺少 DEEPSEEK_API_KEY 环境变量' }, { status: 500 })
+      return NextResponse.json({ error: '缺少 DeepSeek API Key，请在设置中配置或设置 DEEPSEEK_API_KEY 环境变量' }, { status: 500 })
     }
 
     const body = (await request.json().catch(() => null)) as ChatRequestBody | null
@@ -50,7 +111,7 @@ export async function POST(request: Request) {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 60000)
 
-    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    const response = await fetchWithRetry('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -71,7 +132,8 @@ export async function POST(request: Request) {
     if (useStream) {
       if (!response.ok) {
         const data = await response.json().catch(() => null) as DeepSeekErrorResponse | null
-        const message = typeof data?.error?.message === 'string' ? data.error.message : 'DeepSeek 请求失败'
+        const rawMessage = typeof data?.error?.message === 'string' ? data.error.message : 'DeepSeek 请求失败'
+        const message = formatDeepSeekError(rawMessage)
         return NextResponse.json({ error: message }, { status: 502 })
       }
       if (!response.body) {
@@ -91,7 +153,8 @@ export async function POST(request: Request) {
     const data = await response.json().catch(() => null) as DeepSeekErrorResponse | DeepSeekSuccessResponse | null
     if (!response.ok) {
       const errorData = data as DeepSeekErrorResponse
-      const message = typeof errorData?.error?.message === 'string' ? errorData.error.message : 'DeepSeek 请求失败'
+      const rawMessage = typeof errorData?.error?.message === 'string' ? errorData.error.message : 'DeepSeek 请求失败'
+      const message = formatDeepSeekError(rawMessage)
       return NextResponse.json({ error: message }, { status: 502 })
     }
 

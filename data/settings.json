@@ -15,7 +15,7 @@
     },
     "commands": [
       {
-        "id": "1770963657023-1337608b1b1d",
+        "id": "1778232719829-ffb5613e5b79e",
         "trigger": "/kb",
         "kind": "tool_prefix",
         "scope": "all",
@@ -26,7 +26,7 @@
         "placement": "slash"
       },
       {
-        "id": "1770963657023-2c5573a26b287",
+        "id": "1778232719829-5c99edd50f21e",
         "trigger": "/card",
         "kind": "tool_prefix",
         "scope": "card",
@@ -37,7 +37,7 @@
         "placement": "slash"
       },
       {
-        "id": "1770963657023-7f21dc8087a02",
+        "id": "1778232719829-8a7fd652a6167",
         "trigger": "/lane",
         "kind": "tool_prefix",
         "scope": "lane",
@@ -48,7 +48,7 @@
         "placement": "slash"
       },
       {
-        "id": "1770963657023-2143d8e46ebcc",
+        "id": "1778232719829-fde844561c29",
         "trigger": "/board",
         "kind": "tool_prefix",
         "scope": "board",
@@ -59,7 +59,7 @@
         "placement": "slash"
       },
       {
-        "id": "1770963657023-f30c895add44",
+        "id": "1778232719829-143ac2c75ad66",
         "trigger": "/模板：生成待办任务",
         "kind": "snippet",
         "label": "/模板：生成待办任务",
@@ -69,7 +69,7 @@
         "placement": "both"
       },
       {
-        "id": "1770963657023-9ab9bc91ed086",
+        "id": "1778232719829-86b78adecaf14",
         "trigger": "/模板：拆分为子任务",
         "kind": "snippet",
         "label": "/模板：拆分为子任务",
@@ -79,7 +79,7 @@
         "placement": "both"
       },
       {
-        "id": "1770963657023-c14bdd51fdb8c",
+        "id": "1778232719829-9dcabc1e8f7ac",
         "trigger": "/模板：总结为卡片",
         "kind": "snippet",
         "label": "/模板：总结为卡片",
@@ -89,14 +89,44 @@
         "placement": "both"
       },
       {
-        "id": "1770963917988-78a02fe25922f",
-        "trigger": "/hello",
+        "id": "1778232719829-a2f57f7310885",
+        "trigger": "/站会",
         "kind": "snippet",
-        "label": "/hello",
-        "description": "",
-        "insertText": "helloworld",
+        "label": "/站会 — 每日站会模板",
+        "description": "生成每日站会三张卡片：昨日完成 / 今日计划 / 阻塞项",
+        "insertText": "帮我生成每日站会的 3 张卡片：\n1. 昨日完成的工作\n2. 今日计划\n3. 当前的阻塞或风险\n每张卡片包含标题和简短描述。",
         "enabled": true,
-        "placement": "slash"
+        "placement": "both"
+      },
+      {
+        "id": "1778232719829-59b4bccd16c02",
+        "trigger": "/sprint",
+        "kind": "snippet",
+        "label": "/sprint — Sprint 规划",
+        "description": "生成本 Sprint 的规划卡片",
+        "insertText": "帮我生成本 Sprint 的规划卡片，包含：\n1. Sprint 目标\n2. 关键任务（3-5 张）\n3. 验收标准\n每张卡片给出标题和描述。",
+        "enabled": true,
+        "placement": "both"
+      },
+      {
+        "id": "1778232719829-3bf68f816e631",
+        "trigger": "/review",
+        "kind": "snippet",
+        "label": "/review — 代码审查待办",
+        "description": "生成代码审查相关的检查清单卡片",
+        "insertText": "帮我生成代码审查的检查清单卡片，包含：\n1. 代码规范性检查\n2. 逻辑正确性检查\n3. 性能影响评估\n4. 测试覆盖检查\n每张卡片给出标题和关键检查点。",
+        "enabled": true,
+        "placement": "both"
+      },
+      {
+        "id": "1778232719829-643ca514caf1c",
+        "trigger": "/bug",
+        "kind": "snippet",
+        "label": "/bug — Bug 报告模板",
+        "description": "生成标准的 Bug 报告卡片",
+        "insertText": "帮我生成一张 Bug 报告卡片，包含以下信息：\n- 问题描述\n- 复现步骤\n- 期望结果\n- 实际结果\n- 环境信息",
+        "enabled": true,
+        "placement": "both"
       }
     ],
     "trustMode": "confirm_high_risk",
@@ -162,5 +192,5 @@
       "#374151"
     ]
   },
-  "updatedAt": "2026-05-08T06:31:02.982Z"
+  "updatedAt": "2026-05-08T09:31:59.828Z"
 }

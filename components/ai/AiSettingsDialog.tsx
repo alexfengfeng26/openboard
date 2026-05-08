@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { Eye, EyeOff } from 'lucide-react'
 import { Dialog, DialogContent, DialogBody, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { TagSettingsPanel } from './TagSettingsPanel'
 import type { AiSettings, AiTrustMode } from '@/types/settings.types'
@@ -36,10 +37,13 @@ export function AiSettingsDialog({
   onAiSettingsChange,
   loading,
 }: AiSettingsDialogProps) {
-  const [settingsActiveTab, setSettingsActiveTab] = useState<'trigger' | 'tags'>('trigger')
+  const [settingsActiveTab, setSettingsActiveTab] = useState<'general' | 'trigger' | 'tags'>('general')
   const [settingsDraft, setSettingsDraft] = useState(aiSettings?.toolTrigger ?? null)
   const [trustModeDraft, setTrustModeDraft] = useState<AiTrustMode>(aiSettings?.trustMode ?? 'confirm_high_risk')
   const [autoMinimizeDraft, setAutoMinimizeDraft] = useState(aiSettings?.autoMinimizeAfterAction ?? true)
+  const [apiKeyDraft, setApiKeyDraft] = useState(aiSettings?.apiKey ?? '')
+  const [showApiKey, setShowApiKey] = useState(false)
+  const [modelDraft, setModelDraft] = useState<'deepseek-v4-flash' | 'deepseek-v4-pro'>(aiSettings?.defaultModel ?? 'deepseek-v4-flash')
   const [commandsDraft, setCommandsDraft] = useState<AiCommand[] | null>(() => {
     const commands = aiSettings?.commands && aiSettings.commands.length > 0
       ? aiSettings.commands
@@ -98,10 +102,17 @@ export function AiSettingsDialog({
     if (normalized.length !== commandsDraft.length) {
       toastWarning('部分 command 被忽略：可能是重复触发词或缺少必要字段')
     }
-    await onAiSettingsChange({ commands: normalized, toolTrigger: settingsDraft, trustMode: trustModeDraft, autoMinimizeAfterAction: autoMinimizeDraft })
+    await onAiSettingsChange({
+      commands: normalized,
+      toolTrigger: settingsDraft,
+      trustMode: trustModeDraft,
+      autoMinimizeAfterAction: autoMinimizeDraft,
+      apiKey: apiKeyDraft.trim() || undefined,
+      defaultModel: modelDraft,
+    })
     onOpenChange(false)
     toastSuccess('已保存设置')
-  }, [settingsDraft, commandsDraft, onAiSettingsChange, onOpenChange])
+  }, [settingsDraft, commandsDraft, onAiSettingsChange, onOpenChange, apiKeyDraft, modelDraft, trustModeDraft, autoMinimizeDraft])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -112,6 +123,16 @@ export function AiSettingsDialog({
 
         {/* Tab 导航 */}
         <div className="flex border-b">
+          <button
+            className={`px-4 py-2 text-sm font-medium transition-colors ${
+              settingsActiveTab === 'general'
+                ? 'border-b-2 border-primary text-primary'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+            onClick={() => setSettingsActiveTab('general')}
+          >
+            通用设置
+          </button>
           <button
             className={`px-4 py-2 text-sm font-medium transition-colors ${
               settingsActiveTab === 'trigger'
@@ -133,6 +154,108 @@ export function AiSettingsDialog({
             标签管理
           </button>
         </div>
+
+        {settingsActiveTab === 'general' && (
+          <DialogBody className="space-y-4">
+            <div className="space-y-3 rounded-md border p-3">
+              <div className="text-sm font-medium">DeepSeek 配置</div>
+              <div className="space-y-2">
+                <div className="grid gap-1">
+                  <label className="text-xs text-muted-foreground">API Key</label>
+                  <div className="relative">
+                    <Input
+                      type={showApiKey ? 'text' : 'password'}
+                      placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                      value={apiKeyDraft}
+                      onChange={(e) => setApiKeyDraft(e.target.value)}
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowApiKey((v) => !v)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                      title={showApiKey ? '隐藏' : '显示'}
+                    >
+                      {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    留空则使用服务器环境变量中的 DEEPSEEK_API_KEY
+                  </p>
+                </div>
+                <div className="grid gap-1">
+                  <label className="text-xs text-muted-foreground">默认模型</label>
+                  <select
+                    value={modelDraft}
+                    onChange={(e) => setModelDraft(e.target.value as 'deepseek-v4-flash' | 'deepseek-v4-pro')}
+                    className="h-9 rounded-md border bg-background px-2 text-sm"
+                  >
+                    <option value="deepseek-v4-flash">DeepSeek V4 Flash</option>
+                    <option value="deepseek-v4-pro">DeepSeek V4 Pro</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1 rounded-md border p-3">
+              <div className="text-sm font-medium">AI 操作信任模式</div>
+              <div className="space-y-2">
+                <label className="flex items-start gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="trustMode"
+                    className="mt-0.5 h-4 w-4"
+                    value="confirm_all"
+                    checked={trustModeDraft === 'confirm_all'}
+                    onChange={(e) => setTrustModeDraft(e.target.value as AiTrustMode)}
+                  />
+                  <div>
+                    <div className="font-medium">全部确认</div>
+                    <div className="text-xs text-muted-foreground">每个 AI 操作都需要手动确认</div>
+                  </div>
+                </label>
+                <label className="flex items-start gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="trustMode"
+                    className="mt-0.5 h-4 w-4"
+                    value="confirm_high_risk"
+                    checked={trustModeDraft === 'confirm_high_risk'}
+                    onChange={(e) => setTrustModeDraft(e.target.value as AiTrustMode)}
+                  />
+                  <div>
+                    <div className="font-medium">仅确认高风险（推荐）</div>
+                    <div className="text-xs text-muted-foreground">创建、移动等低风险操作自动执行，删除等高风险操作需要确认</div>
+                  </div>
+                </label>
+                <label className="flex items-start gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="trustMode"
+                    className="mt-0.5 h-4 w-4"
+                    value="auto_execute"
+                    checked={trustModeDraft === 'auto_execute'}
+                    onChange={(e) => setTrustModeDraft(e.target.value as AiTrustMode)}
+                  />
+                  <div>
+                    <div className="font-medium">自动执行（谨慎）</div>
+                    <div className="text-xs text-muted-foreground">几乎所有操作都自动执行，仅删除操作仍需确认</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="h-4 w-4"
+                checked={autoMinimizeDraft}
+                onChange={(e) => setAutoMinimizeDraft(e.target.checked)}
+              />
+              AI 操作完成后自动最小化面板
+            </label>
+          </DialogBody>
+        )}
 
         {settingsActiveTab === 'trigger' && settingsDraft && commandsDraft && (
           <DialogBody className="space-y-4">
@@ -382,7 +505,7 @@ export function AiSettingsDialog({
           </DialogBody>
         )}
 
-        {settingsActiveTab === 'trigger' && (
+        {(settingsActiveTab === 'general' || settingsActiveTab === 'trigger') && (
           <DialogFooter>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               取消
