@@ -13,7 +13,11 @@ export interface UseAiToolCallsReturn {
   pendingToolCalls: ToolCallRequest[] | null
   pendingToolLogIds: string[] | null
   isExecuting: boolean
-  handleConfirmToolCalls: (options?: { confirmedBy?: 'user' | 'auto' }) => Promise<void>
+  handleConfirmToolCalls: (options?: {
+    confirmedBy?: 'user' | 'auto'
+    toolCalls?: ToolCallRequest[]
+    toolLogIds?: string[]
+  }) => Promise<void>
   handleCancelToolCalls: () => void
   setPendingToolCalls: React.Dispatch<React.SetStateAction<ToolCallRequest[] | null>>
   setPendingToolLogIds: React.Dispatch<React.SetStateAction<string[] | null>>
@@ -26,12 +30,19 @@ export function useAiToolCalls(options: UseAiToolCallsOptions): UseAiToolCallsRe
   const [pendingToolLogIds, setPendingToolLogIds] = useState<string[] | null>(null)
   const [isExecuting, setIsExecuting] = useState(false)
 
-  const handleConfirmToolCalls = useCallback(async (options?: { confirmedBy?: 'user' | 'auto' }) => {
-    if (!pendingToolCalls || isExecuting) return
+  const handleConfirmToolCalls = useCallback(async (options?: {
+    confirmedBy?: 'user' | 'auto'
+    toolCalls?: ToolCallRequest[]
+    toolLogIds?: string[]
+  }) => {
+    const toolCallsToExecute = options?.toolCalls ?? pendingToolCalls
+    const logIdsToUpdate = options?.toolLogIds ?? pendingToolLogIds
+
+    if (!toolCallsToExecute || isExecuting) return
     const confirmedBy = options?.confirmedBy || 'user'
     setIsExecuting(true)
     try {
-      const affectedLogIds = pendingToolLogIds || []
+      const affectedLogIds = logIdsToUpdate || []
       if (affectedLogIds.length > 0) {
         setOperationLogs((prev) =>
           prev.map((log) =>
@@ -44,7 +55,7 @@ export function useAiToolCalls(options: UseAiToolCallsOptions): UseAiToolCallsRe
       const response = await fetch('/api/ai/tools/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ toolCalls: pendingToolCalls }),
+        body: JSON.stringify({ toolCalls: toolCallsToExecute }),
       })
       const data = await response.json().catch(() => ({}))
       if (!response.ok) throw new Error(data.error || '执行失败')
@@ -54,7 +65,7 @@ export function useAiToolCalls(options: UseAiToolCallsOptions): UseAiToolCallsRe
 
       setOperationLogs((prev) => {
         const updated = [...prev]
-        const ids = pendingToolLogIds || []
+        const ids = logIdsToUpdate || []
         if (ids.length === results.length && ids.length > 0) {
           const map = new Map(updated.map((l) => [l.id, l]))
           for (let i = 0; i < results.length; i++) {
@@ -99,7 +110,7 @@ export function useAiToolCalls(options: UseAiToolCallsOptions): UseAiToolCallsRe
     } catch (e) {
       const message = e instanceof Error ? e.message : '执行失败'
       toastError(`执行失败：${message}`)
-      const affectedLogIds = pendingToolLogIds || []
+      const affectedLogIds = logIdsToUpdate || []
       if (affectedLogIds.length > 0) {
         setOperationLogs((prev) =>
           prev.map((log) =>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -41,7 +41,8 @@ export function AiSettingsDialog({
   const [settingsDraft, setSettingsDraft] = useState(aiSettings?.toolTrigger ?? null)
   const [trustModeDraft, setTrustModeDraft] = useState<AiTrustMode>(aiSettings?.trustMode ?? 'confirm_high_risk')
   const [autoMinimizeDraft, setAutoMinimizeDraft] = useState(aiSettings?.autoMinimizeAfterAction ?? true)
-  const [apiKeyDraft, setApiKeyDraft] = useState(aiSettings?.apiKey ?? '')
+  const [apiKeyDraft, setApiKeyDraft] = useState('')
+  const [apiKeyDirty, setApiKeyDirty] = useState(false)
   const [showApiKey, setShowApiKey] = useState(false)
   const [modelDraft, setModelDraft] = useState<'deepseek-v4-flash' | 'deepseek-v4-pro'>(aiSettings?.defaultModel ?? 'deepseek-v4-flash')
   const [commandsDraft, setCommandsDraft] = useState<AiCommand[] | null>(() => {
@@ -102,17 +103,20 @@ export function AiSettingsDialog({
     if (normalized.length !== commandsDraft.length) {
       toastWarning('部分 command 被忽略：可能是重复触发词或缺少必要字段')
     }
-    await onAiSettingsChange({
+    const updates: Partial<AiSettings> = {
       commands: normalized,
       toolTrigger: settingsDraft,
       trustMode: trustModeDraft,
       autoMinimizeAfterAction: autoMinimizeDraft,
-      apiKey: apiKeyDraft.trim() || undefined,
       defaultModel: modelDraft,
-    })
+    }
+    if (apiKeyDirty) {
+      updates.apiKey = apiKeyDraft.trim() || undefined
+    }
+    await onAiSettingsChange(updates)
     onOpenChange(false)
     toastSuccess('已保存设置')
-  }, [settingsDraft, commandsDraft, onAiSettingsChange, onOpenChange, apiKeyDraft, modelDraft, trustModeDraft, autoMinimizeDraft])
+  }, [settingsDraft, commandsDraft, onAiSettingsChange, onOpenChange, apiKeyDraft, apiKeyDirty, modelDraft, trustModeDraft, autoMinimizeDraft])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -165,9 +169,17 @@ export function AiSettingsDialog({
                   <div className="relative">
                     <Input
                       type={showApiKey ? 'text' : 'password'}
-                      placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                      name="deepseek-api-key"
+                      autoComplete="new-password"
+                      autoCorrect="off"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      placeholder={aiSettings?.apiKey ? '已保存 API Key；输入新 key 才会替换' : 'sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'}
                       value={apiKeyDraft}
-                      onChange={(e) => setApiKeyDraft(e.target.value)}
+                      onChange={(e) => {
+                        setApiKeyDraft(e.target.value)
+                        setApiKeyDirty(true)
+                      }}
                       className="pr-10"
                     />
                     <button

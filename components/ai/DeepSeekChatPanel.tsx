@@ -166,7 +166,7 @@ export function DeepSeekChatPanel({
     }
     window.addEventListener('ai-panel-open', handleOpenAI as EventListener)
     return () => window.removeEventListener('ai-panel-open', handleOpenAI as EventListener)
-  }, [])
+  }, [setInput])
 
   async function handleAiSettingsChange(settings: Partial<AiSettings>) {
     if (settings.toolTrigger) setToolTriggerConfig(settings.toolTrigger)
@@ -429,6 +429,12 @@ export function DeepSeekChatPanel({
         const fullContent = await readStream(stream, (content) => {
           setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content } : m)))
         })
+        if (!fullContent.trim()) {
+          setMessages((prev) =>
+            prev.map((m) => (m.id === assistantId ? { ...m, content: '请求失败：AI 返回为空，请稍后重试。' } : m))
+          )
+          return
+        }
 
         setActionableAssistantMessageIds((prev) =>
           prev.includes(assistantId) ? prev : [...prev, assistantId]
@@ -469,9 +475,12 @@ export function DeepSeekChatPanel({
         if (removedCount > 0) toastWarning(`已忽略 ${removedCount} 个可疑/重复操作`)
 
         if (autoExecute) {
-          tools.setPendingToolCalls(toolCalls)
           toastInfo(`AI 自动执行 ${toolCalls.length} 个操作（${getToolRiskSummary(toolCalls)}）`)
-          await tools.handleConfirmToolCalls({ confirmedBy: 'auto' })
+          await tools.handleConfirmToolCalls({
+            confirmedBy: 'auto',
+            toolCalls,
+            toolLogIds: newLogIds,
+          })
           if (aiSettings?.autoMinimizeAfterAction !== false) {
             onRequestMinimize?.()
           }

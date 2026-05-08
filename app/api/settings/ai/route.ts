@@ -20,6 +20,10 @@ function migrateModelName(model: string): 'deepseek-v4-flash' | 'deepseek-v4-pro
   return legacyMap[model] || (model as 'deepseek-v4-flash' | 'deepseek-v4-pro')
 }
 
+function isValidDeepSeekApiKey(apiKey: string): boolean {
+  return /^sk-[A-Za-z0-9_-]{16,}$/.test(apiKey.trim())
+}
+
 export async function GET(): Promise<NextResponse> {
   try {
     const storage = await getSettingsStorage()
@@ -53,7 +57,21 @@ export async function GET(): Promise<NextResponse> {
  */
 export async function PUT(request: NextRequest): Promise<NextResponse> {
   try {
-    const body = await request.json()
+    const body = await request.json() as Partial<AiSettings>
+    if (typeof body.apiKey === 'string') {
+      const apiKey = body.apiKey.trim()
+      if (apiKey && !isValidDeepSeekApiKey(apiKey)) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'API Key 格式无效，请填写 DeepSeek 的 sk- 开头密钥',
+          },
+          { status: 400 }
+        )
+      }
+      body.apiKey = apiKey || undefined
+    }
+
     const storage = await getSettingsStorage()
     
     const settings = await storage.updateAiSettings(body)

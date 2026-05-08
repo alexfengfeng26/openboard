@@ -27,6 +27,14 @@ interface DeepSeekSuccessResponse {
   }>
 }
 
+function shouldDisableThinking(model: string): boolean {
+  return model === 'deepseek-v4-flash' || model === 'deepseek-v4-pro'
+}
+
+function isValidDeepSeekApiKey(apiKey: string): boolean {
+  return /^sk-[A-Za-z0-9_-]{16,}$/.test(apiKey.trim())
+}
+
 /**
  * 格式化 DeepSeek 错误信息，给用户提供更友好的中文提示
  */
@@ -84,8 +92,9 @@ export async function POST(request: Request) {
     try {
       const settingsStorage = await getSettingsStorage()
       const aiSettings = await settingsStorage.getAiSettings()
-      if (aiSettings.apiKey?.trim()) {
-        apiKey = aiSettings.apiKey.trim()
+      const savedApiKey = aiSettings.apiKey?.trim()
+      if (savedApiKey && isValidDeepSeekApiKey(savedApiKey)) {
+        apiKey = savedApiKey
       }
     } catch {
       // 忽略设置读取失败，使用环境变量
@@ -122,6 +131,7 @@ export async function POST(request: Request) {
         messages: outgoing,
         stream: useStream,
         temperature,
+        ...(shouldDisableThinking(model) ? { thinking: { type: 'disabled' } } : {}),
       }),
       signal: controller.signal,
     })

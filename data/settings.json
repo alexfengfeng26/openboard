@@ -130,7 +130,8 @@
       }
     ],
     "trustMode": "confirm_high_risk",
-    "autoMinimizeAfterAction": true
+    "autoMinimizeAfterAction": true,
+    "apiKey": "sk-8bdac01ae6f747f5bee407d5e2447f48"
   },
   "boardView": {
     "cardDensity": "normal",
@@ -192,5 +193,5 @@
       "#374151"
     ]
   },
-  "updatedAt": "2026-05-08T09:31:59.828Z"
+  "updatedAt": "2026-05-08T09:43:47.632Z"
 }

@@ -54,7 +54,7 @@ export function ChatHeader({
           <option value="deepseek-v4-flash">V4 Flash</option>
           <option value="deepseek-v4-pro">V4 Pro</option>
         </select>
-        {settingsOpen && (
+        {settingsOpen && aiSettings && (
           <AiSettingsDialog
             open={settingsOpen}
             onOpenChange={onSettingsOpen}
