@@ -153,9 +153,25 @@ export class StorageAdapter {
   /**
    * 创建新看板
    */
-  async createBoard(title: string, lanes?: Pick<Lane, 'title'>[]): Promise<Board> {
+  async createBoard(title: string, lanes?: Pick<Lane, 'title'>[], icon?: string): Promise<Board> {
     const now = new Date().toISOString()
     const boardId = this.createBoardId()
+
+    // 如果没有指定图标，从图标库中随机选一个
+    let selectedIcon = icon
+    if (!selectedIcon) {
+      try {
+        const settingsStorage = SettingsStorage.getInstance()
+        await settingsStorage.initialize()
+        const iconSettings = await settingsStorage.getIconSettings()
+        if (iconSettings.icons.length > 0) {
+          const randomIndex = Math.floor(Math.random() * iconSettings.icons.length)
+          selectedIcon = iconSettings.icons[randomIndex].url
+        }
+      } catch {
+        // 忽略设置读取失败
+      }
+    }
 
     const defaultLanes = lanes && lanes.length > 0
       ? lanes
@@ -171,6 +187,7 @@ export class StorageAdapter {
       createdAt: now,
       updatedAt: now,
       tags: [],
+      icon: selectedIcon,
       lanes: defaultLanes.map((l, index) => ({
         id: this.createLaneId(boardId, index),
         boardId,
@@ -906,7 +923,7 @@ export async function dbHelpersWrapper() {
     // 看板操作
     getBoards: (includeArchived?: boolean) => storage.getBoards(includeArchived),
     getBoard: (boardId: string) => storage.getBoard(boardId),
-    createBoard: (title: string, lanes?: Pick<Lane, 'title'>[]) => storage.createBoard(title, lanes),
+    createBoard: (title: string, lanes?: Pick<Lane, 'title'>[], icon?: string) => storage.createBoard(title, lanes, icon),
     updateBoard: (boardId: string, data: { title?: string; lanes?: Lane[]; archivedAt?: string | null; icon?: string | null }) => storage.updateBoard(boardId, data),
     deleteBoard: (boardId: string) => storage.deleteBoard(boardId),
     getDefaultBoard: () => storage.getDefaultBoard(),
