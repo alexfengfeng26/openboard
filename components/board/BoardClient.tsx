@@ -39,6 +39,7 @@ import {
   Tag as TagIcon,
   Keyboard,
   PanelRightOpen,
+  Workflow,
 } from 'lucide-react'
 import { CreateLaneDialog } from '@/components/lane/CreateLaneDialog'
 import { Button } from '@/components/ui/button'
@@ -48,6 +49,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { KeyboardHelp } from '@/components/ui/keyboard-help'
 import { DeepSeekChatPanel } from '@/components/ai/DeepSeekChatPanel'
 import { AiInsightsPanel } from '@/components/ai/AiInsightsPanel'
+import { AutomationPanel } from '@/components/automation/AutomationPanel'
 import { AppSidebar } from '@/components/layout/AppSidebar'
 import { BoardTagsProvider } from './BoardTagsContext'
 import { CreateBoardDialog } from './CreateBoardDialog'
@@ -265,6 +267,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
   const [boardTags, setBoardTags] = useState<Tag[]>([])
   const [isMobile, setIsMobile] = useState(false)
   const [showBatchDeleteConfirm, setShowBatchDeleteConfirm] = useState(false)
+  const [showAutomation, setShowAutomation] = useState(false)
 
   // AI 浮动面板状态
   const [chatMinimized, setChatMinimized] = useState(false)
@@ -922,6 +925,10 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
         setShowBatchDeleteConfirm(false)
         return true
       }
+      if (showAutomation) {
+        setShowAutomation(false)
+        return true
+      }
       return false
     },
   })
@@ -1079,6 +1086,15 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                 >
                   <CheckSquare className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline">{selectionMode ? '退出选择' : '选择'}</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-1.5"
+                  onClick={() => setShowAutomation(true)}
+                >
+                  <Workflow className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">自动化</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -1345,6 +1361,13 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
 
         {/* 快捷键帮助面板 */}
         <KeyboardHelp open={showHelp} onOpenChange={setShowHelp} />
+
+        {/* 自动化规则面板 */}
+        <AutomationPanel
+          boardId={board.id}
+          open={showAutomation}
+          onOpenChange={setShowAutomation}
+        />
 
         {/* 批量删除确认对话框 */}
         <ConfirmDialog

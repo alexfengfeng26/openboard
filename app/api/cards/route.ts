@@ -3,6 +3,7 @@ import { CreateCardSchema, UpdateCardSchema } from '@/lib/validation/schema'
 import { validateBody } from '@/lib/validation/api'
 import { withValidation } from '@/lib/api/validate'
 import { successResponse, errorResponse, notFoundResponse } from '@/lib/api/response'
+import { triggerAutomation } from '@/lib/automation/trigger'
 import { z } from 'zod'
 
 /**
@@ -29,6 +30,15 @@ export async function POST(request: Request) {
     const { boardId, laneId, title, description, tags } = data
     const { attachments, dueDate, priority } = rawBody
     const card = await dbHelpers.createCard(boardId, laneId, title, description, tags, attachments, dueDate, priority)
+
+    // 异步触发自动化规则
+    void triggerAutomation('card_created', {
+      boardId,
+      cardId: card.id,
+      laneId,
+      cardTitle: title,
+    })
+
     return successResponse(card, 201)
   })(request)
 }
@@ -50,6 +60,13 @@ export async function DELETE(request: Request) {
 
     const { cardId, boardId } = queryResult.data
     await dbHelpers.deleteCard(boardId, cardId)
+
+    // 异步触发自动化规则
+    void triggerAutomation('card_deleted', {
+      boardId,
+      cardId,
+    })
+
     return successResponse(null)
   } catch (error) {
     console.error('Error deleting card:', error)
@@ -85,6 +102,14 @@ export async function PATCH(request: Request) {
     const { cardId, boardId, ...updates } = result.data
     const { attachments, dueDate, priority } = body
     await dbHelpers.updateCard(boardId, cardId, { ...updates, attachments, dueDate, priority })
+
+    // 异步触发自动化规则
+    void triggerAutomation('card_updated', {
+      boardId,
+      cardId,
+      cardTitle: updates.title,
+    })
+
     return successResponse(null)
   } catch (error) {
     console.error('Error updating card:', error)

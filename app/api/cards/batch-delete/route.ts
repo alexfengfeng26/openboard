@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getStorage } from '@/lib/storage/StorageAdapter'
+import { triggerAutomation } from '@/lib/automation/trigger'
 
 interface BatchDeleteRequestBody {
   boardId: string
@@ -17,6 +18,14 @@ export async function POST(request: Request) {
 
     const storage = await getStorage()
     await storage.batchDeleteCards(boardId, cardIds)
+
+    // 异步触发自动化规则
+    for (const cardId of cardIds) {
+      void triggerAutomation('card_deleted', {
+        boardId,
+        cardId,
+      })
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {
