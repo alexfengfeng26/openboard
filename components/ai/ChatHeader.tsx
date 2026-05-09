@@ -3,11 +3,11 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { AiSettingsDialog } from './AiSettingsDialog'
-import type { AiSettings } from '@/types/settings.types'
+import type { AiSettings, AiModel } from '@/types/settings.types'
 
 interface ChatHeaderProps {
-  model: 'deepseek-v4-flash' | 'deepseek-v4-pro'
-  onModelChange: (model: 'deepseek-v4-flash' | 'deepseek-v4-pro') => void
+  model: AiModel
+  onModelChange: (model: AiModel) => void
   showLogPanel: boolean
   onToggleLogPanel: () => void
   operationLogsCount: number
@@ -47,7 +47,7 @@ export function ChatHeader({
       <div className="flex items-center gap-1.5">
         <select
           value={model}
-          onChange={(e) => onModelChange(e.target.value as 'deepseek-v4-flash' | 'deepseek-v4-pro')}
+          onChange={(e) => onModelChange(e.target.value as AiModel)}
           className="h-8 rounded-md border border-border bg-white px-2 text-xs font-medium text-muted-foreground outline-none transition-colors focus:border-ring/40 focus:ring-2 focus:ring-ring/10"
           aria-label="选择 AI 模型"
         >

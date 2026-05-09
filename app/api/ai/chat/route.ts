@@ -87,8 +87,9 @@ async function fetchWithRetry(
 
 export async function POST(request: Request) {
   try {
-    // 优先使用用户设置的 API Key
+    // 优先使用用户设置的 API Key 和默认模型
     let apiKey = process.env.DEEPSEEK_API_KEY
+    let defaultModel = 'deepseek-v4-flash'
     try {
       const settingsStorage = await getSettingsStorage()
       const aiSettings = await settingsStorage.getAiSettings()
@@ -96,8 +97,11 @@ export async function POST(request: Request) {
       if (savedApiKey && isValidDeepSeekApiKey(savedApiKey)) {
         apiKey = savedApiKey
       }
+      if (aiSettings.defaultModel) {
+        defaultModel = aiSettings.defaultModel
+      }
     } catch {
-      // 忽略设置读取失败，使用环境变量
+      // 忽略设置读取失败，使用环境变量和硬编码默认值
     }
     if (!apiKey) {
       return NextResponse.json({ error: '缺少 DeepSeek API Key，请在设置中配置或设置 DEEPSEEK_API_KEY 环境变量' }, { status: 500 })
@@ -105,7 +109,7 @@ export async function POST(request: Request) {
 
     const body = (await request.json().catch(() => null)) as ChatRequestBody | null
 
-    const model = typeof body?.model === 'string' ? body.model : 'deepseek-v4-flash'
+    const model = typeof body?.model === 'string' ? body.model : defaultModel
     const system = typeof body?.system === 'string' ? body.system : ''
     const messages = Array.isArray(body?.messages) ? body!.messages : []
     const temperature = typeof body?.temperature === 'number' ? body.temperature : 0.4

@@ -14,7 +14,7 @@ import { PromptBuilder, FallbackToolParser } from '@/lib/ai-tools'
 import type { ToolCallRequest, ChatMessage } from '@/types/ai-tools.types'
 import type { AiCommand } from '@/types/ai-commands.types'
 import type { CardDraft } from '@/lib/ai-tools/parser/card-draft-types'
-import type { AiSettings, AiToolTriggerConfig } from '@/types/settings.types'
+import type { AiSettings, AiModel, AiToolTriggerConfig } from '@/types/settings.types'
 import { createDefaultAiCommands } from '@/lib/ai/commands'
 import { useAiSettings } from '@/lib/hooks/useSettings'
 import { useChatMessages } from '@/lib/hooks/useChatMessages'
@@ -63,14 +63,7 @@ export function DeepSeekChatPanel({
   onExternalSettingsOpenChange?: (open: boolean) => void
 }) {
   const { aiSettings, loading: settingsLoading, updateAiSettings } = useAiSettings()
-  const [model, setModel] = useState<'deepseek-v4-flash' | 'deepseek-v4-pro'>('deepseek-v4-flash')
-
-  // 同步设置中的默认模型
-  useEffect(() => {
-    if (aiSettings?.defaultModel) {
-      setModel(aiSettings.defaultModel)
-    }
-  }, [aiSettings?.defaultModel])
+  const model = aiSettings?.defaultModel ?? 'deepseek-v4-flash'
 
   const { messages, setMessages, input, setInput, isSending, setIsSending } = useChatMessages(boardId)
   const { logs: operationLogs, setLogs: setOperationLogs, showLogPanel, setShowLogPanel } = useOperationLogs(boardId)
@@ -136,8 +129,7 @@ export function DeepSeekChatPanel({
 
   useEffect(() => {
     if (aiSettings?.toolTrigger) setToolTriggerConfig(aiSettings.toolTrigger)
-    if (aiSettings?.defaultModel) setModel(aiSettings.defaultModel)
-  }, [aiSettings?.toolTrigger, aiSettings?.defaultModel])
+  }, [aiSettings?.toolTrigger])
 
   useEffect(() => {
     if (aiSettings?.commands && !commandsLoaded) {
@@ -508,8 +500,7 @@ export function DeepSeekChatPanel({
   }
 
   const handleModelChange = useCallback(
-    async (newModel: 'deepseek-v4-flash' | 'deepseek-v4-pro') => {
-      setModel(newModel)
+    async (newModel: AiModel) => {
       try {
         await updateAiSettings({ defaultModel: newModel })
       } catch {

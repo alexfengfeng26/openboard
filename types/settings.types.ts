@@ -33,11 +33,16 @@ export interface AiToolTriggerConfig {
 export type AiTrustMode = 'confirm_all' | 'confirm_high_risk' | 'auto_execute'
 
 /**
+ * AI 模型
+ */
+export type AiModel = 'deepseek-v4-flash' | 'deepseek-v4-pro'
+
+/**
  * AI 设置
  */
 export interface AiSettings {
   /** 默认使用的模型 */
-  defaultModel: 'deepseek-v4-flash' | 'deepseek-v4-pro'
+  defaultModel: AiModel
   /** DeepSeek API Key（用户自定义，优先级高于环境变量） */
   apiKey?: string
   /** 工具触发配置 */

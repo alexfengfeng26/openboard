@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Eye, EyeOff } from 'lucide-react'
 import { Dialog, DialogContent, DialogBody, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { TagSettingsPanel } from './TagSettingsPanel'
-import type { AiSettings, AiTrustMode } from '@/types/settings.types'
+import type { AiSettings, AiModel, AiTrustMode } from '@/types/settings.types'
 import type { AiCommand, AiCommandScope, AiCommandPlacement } from '@/types/ai-commands.types'
 import {
   createDefaultAiCommands,
@@ -44,7 +44,14 @@ export function AiSettingsDialog({
   const [apiKeyDraft, setApiKeyDraft] = useState('')
   const [apiKeyDirty, setApiKeyDirty] = useState(false)
   const [showApiKey, setShowApiKey] = useState(false)
-  const [modelDraft, setModelDraft] = useState<'deepseek-v4-flash' | 'deepseek-v4-pro'>(aiSettings?.defaultModel ?? 'deepseek-v4-flash')
+  const [modelDraft, setModelDraft] = useState<AiModel>(aiSettings?.defaultModel ?? 'deepseek-v4-flash')
+
+  // 当外部设置变化时同步模型草稿（用户未手动修改时）
+  useEffect(() => {
+    if (aiSettings?.defaultModel) {
+      setModelDraft(aiSettings.defaultModel)
+    }
+  }, [aiSettings?.defaultModel])
   const [commandsDraft, setCommandsDraft] = useState<AiCommand[] | null>(() => {
     const commands = aiSettings?.commands && aiSettings.commands.length > 0
       ? aiSettings.commands
@@ -199,7 +206,7 @@ export function AiSettingsDialog({
                   <label className="text-xs text-muted-foreground">默认模型</label>
                   <select
                     value={modelDraft}
-                    onChange={(e) => setModelDraft(e.target.value as 'deepseek-v4-flash' | 'deepseek-v4-pro')}
+                    onChange={(e) => setModelDraft(e.target.value as AiModel)}
                     className="h-9 rounded-md border bg-background px-2 text-sm"
                   >
                     <option value="deepseek-v4-flash">DeepSeek V4 Flash</option>
