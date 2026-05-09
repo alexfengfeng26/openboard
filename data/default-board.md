@@ -2,15 +2,17 @@
 id: default-board
 title: 我的看板
 createdAt: '2026-02-11T07:06:35.423Z'
-updatedAt: '2026-05-08T11:11:33.986Z'
+updatedAt: '2026-05-09T10:24:03.421Z'
 tags:
   - id: tag-0
     name: 紧急
     color: '#ef4444'
-  - id: tag-1
+  - &ref_0
+    id: tag-1
     name: 功能
     color: '#3b82f6'
-  - id: tag-2
+  - &ref_1
+    id: tag-2
     name: Bug
     color: '#f59e0b'
   - id: tag-3
@@ -22,12 +24,39 @@ tags:
   - id: tag-5
     name: 设计
     color: '#ec4899'
+  - id: tag-topic
+    name: 选题
+    color: '#f97316'
+  - id: tag-shoot
+    name: 拍摄
+    color: '#84cc16'
+  - id: tag-edit
+    name: 剪辑
+    color: '#14b8a6'
+  - id: tag-copy
+    name: 文案
+    color: '#0ea5e9'
+  - id: tag-publish
+    name: 发布
+    color: '#6366f1'
+  - id: tag-data
+    name: 数据分析
+    color: '#a855f7'
+  - id: tag-hot
+    name: 热点
+    color: '#f43f5e'
+  - id: tag-growth
+    name: 涨粉
+    color: '#22c55e'
+  - id: tag-monetize
+    name: 变现
+    color: '#d946ef'
 lanes:
   - id: lane-todo
     title: 待办
     position: 0
     createdAt: '2026-02-11T07:06:35.423Z'
-    updatedAt: '2026-05-06T07:32:33.758Z'
+    updatedAt: '2026-05-09T10:24:03.421Z'
     cards:
       - id: card-3
         laneId: lane-todo
@@ -53,6 +82,30 @@ lanes:
         createdAt: '2026-02-12T10:17:26.534Z'
         updatedAt: '2026-02-12T10:17:26.534Z'
         description: "你好！\U0001F44B 欢迎来到看板系统！\n\n我看到你当前的看板中有几个列表和卡片，包括：\n- **待办**：有3个任务，比如“搭建管理后台”\n- **进行中**：有3个任务，比如“撰写 DeepSeek 介绍文档”\n- **已完成2**：有2个已完成任务\n- **归档**：有2个已归档任务\n\n我可以帮你：\n1. **梳理任务** - 分析当前看板状态，给出优化建议\n2. **创建新任务** - 帮你生成详细的卡片标题和描述\n3. **管理看板** - 移动卡片、创建列表等（需要你明确指令）\n4. **总结进度** - 分析当前工作完成情况\n\n你想让我帮你做什么呢？比如：\n- “帮我分析一下当前看板的进度情况”\n- “我想创建一个新任务：优化用户界面”\n- “把‘开发中’卡片移动到进行中列表”\n\n请告诉我你的需求！"
+      - id: card-1778321897747-t58ym4
+        laneId: lane-todo
+        title: 这是一个Bug修复任务
+        position: 3
+        createdAt: '2026-05-09T10:18:17.747Z'
+        updatedAt: '2026-05-09T10:18:17.759Z'
+        description: 需要修复登录功能的bug
+        tags:
+          - id: bug
+            name: ''
+            color: ''
+      - id: card-1778322243343-27gvxy
+        laneId: lane-todo
+        title: 修复登录Bug
+        position: 4
+        createdAt: '2026-05-09T10:24:03.343Z'
+        updatedAt: '2026-05-09T10:24:03.421Z'
+        description: 需要修复登录功能的bug
+        tags:
+          - id: bug
+            name: ''
+            color: ''
+          - *ref_0
+          - *ref_1
   - id: lane-inprogress
     title: 进行中
     position: 1

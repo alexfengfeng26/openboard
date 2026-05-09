@@ -153,12 +153,23 @@ export const DEFAULT_TAG_COLORS = [
  */
 export function createDefaultTags(): Tag[] {
   return [
+    // 通用标签
     { id: 'tag-urgent', name: '紧急', color: '#ef4444' },
     { id: 'tag-feature', name: '功能', color: '#3b82f6' },
     { id: 'tag-bug', name: 'Bug', color: '#f59e0b' },
     { id: 'tag-optimize', name: '优化', color: '#10b981' },
     { id: 'tag-docs', name: '文档', color: '#8b5cf6' },
     { id: 'tag-design', name: '设计', color: '#ec4899' },
+    // 自媒体运营标签
+    { id: 'tag-topic', name: '选题', color: '#f97316' },
+    { id: 'tag-shoot', name: '拍摄', color: '#84cc16' },
+    { id: 'tag-edit', name: '剪辑', color: '#14b8a6' },
+    { id: 'tag-copy', name: '文案', color: '#0ea5e9' },
+    { id: 'tag-publish', name: '发布', color: '#6366f1' },
+    { id: 'tag-data', name: '数据分析', color: '#a855f7' },
+    { id: 'tag-hot', name: '热点', color: '#f43f5e' },
+    { id: 'tag-growth', name: '涨粉', color: '#22c55e' },
+    { id: 'tag-monetize', name: '变现', color: '#d946ef' },
   ]
 }
 

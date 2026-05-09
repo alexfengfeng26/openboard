@@ -92,21 +92,23 @@ export class RuleStorage {
 
   /**
    * 获取所有规则
+   * 每次都从文件重新加载，确保多 worker 环境下数据一致性
    */
   async getAllRules(boardId?: string): Promise<AutomationRule[]> {
-    await this.ensureInitialized()
+    const rules = (await this.loadFromFile()) || this.rules
     if (boardId) {
-      return this.rules.filter((r) => !r.boardId || r.boardId === boardId)
+      return rules.filter((r) => !r.boardId || r.boardId === boardId)
     }
-    return [...this.rules]
+    return [...rules]
   }
 
   /**
    * 根据ID获取规则
+   * 每次都从文件重新加载，确保多 worker 环境下数据一致性
    */
   async getRuleById(id: string): Promise<AutomationRule | undefined> {
-    await this.ensureInitialized()
-    return this.rules.find((r) => r.id === id)
+    const rules = (await this.loadFromFile()) || this.rules
+    return rules.find((r) => r.id === id)
   }
 
   /**

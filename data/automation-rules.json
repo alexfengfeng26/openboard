@@ -98,5 +98,87 @@
     "id": "rule-1778317673194-66p3ncv2c",
     "createdAt": "2026-05-09T09:07:53.194Z",
     "updatedAt": "2026-05-09T09:07:53.194Z"
+  },
+  {
+    "name": "测试自动匹配标签",
+    "description": "测试auto_tag功能",
+    "enabled": true,
+    "trigger": {
+      "type": "card_created",
+      "conditions": []
+    },
+    "actions": [
+      {
+        "type": "auto_tag",
+        "params": {}
+      }
+    ],
+    "boardId": "default-board",
+    "id": "rule-1778321897224-n0rf7e0ny",
+    "createdAt": "2026-05-09T10:18:17.224Z",
+    "updatedAt": "2026-05-09T10:18:17.224Z"
+  },
+  {
+    "name": "自动匹配标签",
+    "description": "根据内容自动匹配标签",
+    "enabled": true,
+    "trigger": {
+      "type": "card_created",
+      "conditions": []
+    },
+    "actions": [
+      {
+        "type": "auto_tag",
+        "params": {}
+      }
+    ],
+    "boardId": "board-1778321965175-8vuqkq",
+    "id": "rule-1778321965999-d1mqarcz0",
+    "createdAt": "2026-05-09T10:19:25.999Z",
+    "updatedAt": "2026-05-09T10:19:25.999Z"
+  },
+  {
+    "name": "自动匹配标签",
+    "description": "根据内容自动匹配标签",
+    "enabled": true,
+    "trigger": {
+      "type": "card_created",
+      "conditions": []
+    },
+    "actions": [
+      {
+        "type": "auto_tag",
+        "params": {}
+      }
+    ],
+    "boardId": "default-board",
+    "id": "rule-1778322242547-or0uw8h67",
+    "createdAt": "2026-05-09T10:24:02.547Z",
+    "updatedAt": "2026-05-09T10:24:02.547Z"
+  },
+  {
+    "name": "创建时自动匹配标签",
+    "description": "新创建卡片时，根据标题和描述内容自动匹配并添加看板现有标签",
+    "enabled": true,
+    "trigger": {
+      "type": "card_created",
+      "conditions": [
+        {
+          "field": "boardId",
+          "operator": "eq",
+          "value": "board-1778316846374-vr7n3h"
+        }
+      ]
+    },
+    "actions": [
+      {
+        "type": "auto_tag",
+        "params": {}
+      }
+    ],
+    "boardId": "board-1778316846374-vr7n3h",
+    "id": "rule-1778323077393-wcx58qjfb",
+    "createdAt": "2026-05-09T10:37:57.393Z",
+    "updatedAt": "2026-05-09T10:37:57.393Z"
   }
 ]
