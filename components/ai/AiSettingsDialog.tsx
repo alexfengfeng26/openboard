@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Eye, EyeOff } from 'lucide-react'
 import { Dialog, DialogContent, DialogBody, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { TagSettingsPanel } from './TagSettingsPanel'
+import { IconSettingsPanel } from './IconSettingsPanel'
 import type { AiSettings, AiModel, AiTrustMode } from '@/types/settings.types'
 import type { AiCommand, AiCommandScope, AiCommandPlacement } from '@/types/ai-commands.types'
 import {
@@ -37,7 +38,7 @@ export function AiSettingsDialog({
   onAiSettingsChange,
   loading,
 }: AiSettingsDialogProps) {
-  const [settingsActiveTab, setSettingsActiveTab] = useState<'general' | 'trigger' | 'tags'>('general')
+  const [settingsActiveTab, setSettingsActiveTab] = useState<'general' | 'trigger' | 'tags' | 'icons'>('general')
   const [settingsDraft, setSettingsDraft] = useState(aiSettings?.toolTrigger ?? null)
   const [trustModeDraft, setTrustModeDraft] = useState<AiTrustMode>(aiSettings?.trustMode ?? 'confirm_high_risk')
   const [autoMinimizeDraft, setAutoMinimizeDraft] = useState(aiSettings?.autoMinimizeAfterAction ?? true)
@@ -163,6 +164,16 @@ export function AiSettingsDialog({
             onClick={() => setSettingsActiveTab('tags')}
           >
             标签管理
+          </button>
+          <button
+            className={`px-4 py-2 text-sm font-medium transition-colors ${
+              settingsActiveTab === 'icons'
+                ? 'border-b-2 border-primary text-primary'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+            onClick={() => setSettingsActiveTab('icons')}
+          >
+            图标管理
           </button>
         </div>
 
@@ -524,7 +535,13 @@ export function AiSettingsDialog({
           </DialogBody>
         )}
 
-        {(settingsActiveTab === 'general' || settingsActiveTab === 'trigger') && (
+        {settingsActiveTab === 'icons' && (
+          <DialogBody>
+            <IconSettingsPanel />
+          </DialogBody>
+        )}
+
+        {(settingsActiveTab === 'general' || settingsActiveTab === 'trigger' || settingsActiveTab === 'icons') && (
           <DialogFooter>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               取消

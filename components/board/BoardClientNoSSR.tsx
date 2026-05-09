@@ -22,7 +22,7 @@ export function BoardClientNoSSR({
   initialBoards,
 }: {
   initialBoard: Board
-  initialBoards: Array<{ id: string; title: string; createdAt: string; updatedAt: string }>
+  initialBoards: Array<{ id: string; title: string; createdAt: string; updatedAt: string; archivedAt?: string; favoritedAt?: string; icon?: string }>
 }) {
   return (
     <div suppressHydrationWarning>

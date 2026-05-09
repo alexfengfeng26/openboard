@@ -63,7 +63,7 @@ export interface DbHelpers {
   getBoards: (includeArchived?: boolean) => Promise<Array<{ id: string; title: string; createdAt: string; updatedAt: string; archivedAt?: string; favoritedAt?: string }>>
   getBoard: (boardId: string) => Promise<import('@/types').Board | null>
   createBoard: (title: string, lanes?: Pick<import('@/types').Lane, 'title'>[]) => Promise<import('@/types').Board>
-  updateBoard: (boardId: string, data: { title?: string; lanes?: import('@/types').Lane[]; archivedAt?: string | null }) => Promise<import('@/types').Board | null>
+  updateBoard: (boardId: string, data: { title?: string; lanes?: import('@/types').Lane[]; archivedAt?: string | null; icon?: string | null }) => Promise<import('@/types').Board | null>
   deleteBoard: (boardId: string) => Promise<boolean>
   archiveBoard: (boardId: string) => Promise<import('@/types').Board | null>
   unarchiveBoard: (boardId: string) => Promise<import('@/types').Board | null>

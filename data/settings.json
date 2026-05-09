@@ -193,5 +193,229 @@
       "#374151"
     ]
   },
-  "updatedAt": "2026-05-08T09:43:47.632Z"
+  "icons": {
+    "icons": [
+      {
+        "id": "AI.png",
+        "name": "AI",
+        "url": "/icon/AI.png"
+      },
+      {
+        "id": "AI助手.png",
+        "name": "AI助手",
+        "url": "/icon/AI助手.png"
+      },
+      {
+        "id": "AI洞察.png",
+        "name": "AI洞察",
+        "url": "/icon/AI洞察.png"
+      },
+      {
+        "id": "API.png",
+        "name": "API",
+        "url": "/icon/API.png"
+      },
+      {
+        "id": "中优先级.png",
+        "name": "中优先级",
+        "url": "/icon/中优先级.png"
+      },
+      {
+        "id": "任务.png",
+        "name": "任务",
+        "url": "/icon/任务.png"
+      },
+      {
+        "id": "优化.png",
+        "name": "优化",
+        "url": "/icon/优化.png"
+      },
+      {
+        "id": "低优先级.png",
+        "name": "低优先级",
+        "url": "/icon/低优先级.png"
+      },
+      {
+        "id": "创建看板.png",
+        "name": "创建看板",
+        "url": "/icon/创建看板.png"
+      },
+      {
+        "id": "删除.png",
+        "name": "删除",
+        "url": "/icon/删除.png"
+      },
+      {
+        "id": "功能.png",
+        "name": "功能",
+        "url": "/icon/功能.png"
+      },
+      {
+        "id": "参数.png",
+        "name": "参数",
+        "url": "/icon/参数.png"
+      },
+      {
+        "id": "团队.png",
+        "name": "团队",
+        "url": "/icon/团队.png"
+      },
+      {
+        "id": "已完成.png",
+        "name": "已完成",
+        "url": "/icon/已完成.png"
+      },
+      {
+        "id": "归档.png",
+        "name": "归档",
+        "url": "/icon/归档.png"
+      },
+      {
+        "id": "待办.png",
+        "name": "待办",
+        "url": "/icon/待办.png"
+      },
+      {
+        "id": "快捷键.png",
+        "name": "快捷键",
+        "url": "/icon/快捷键.png"
+      },
+      {
+        "id": "我的看板.png",
+        "name": "我的看板",
+        "url": "/icon/我的看板.png"
+      },
+      {
+        "id": "搜索.png",
+        "name": "搜索",
+        "url": "/icon/搜索.png"
+      },
+      {
+        "id": "收藏.png",
+        "name": "收藏",
+        "url": "/icon/收藏.png"
+      },
+      {
+        "id": "文档.png",
+        "name": "文档",
+        "url": "/icon/文档.png"
+      },
+      {
+        "id": "日历.png",
+        "name": "日历",
+        "url": "/icon/日历.png"
+      },
+      {
+        "id": "更多.png",
+        "name": "更多",
+        "url": "/icon/更多.png"
+      },
+      {
+        "id": "查看.png",
+        "name": "查看",
+        "url": "/icon/查看.png"
+      },
+      {
+        "id": "标签.png",
+        "name": "标签",
+        "url": "/icon/标签.png"
+      },
+      {
+        "id": "标记.png",
+        "name": "标记",
+        "url": "/icon/标记.png"
+      },
+      {
+        "id": "看板列表.png",
+        "name": "看板列表",
+        "url": "/icon/看板列表.png"
+      },
+      {
+        "id": "筛选.png",
+        "name": "筛选",
+        "url": "/icon/筛选.png"
+      },
+      {
+        "id": "紧急.png",
+        "name": "紧急",
+        "url": "/icon/紧急.png"
+      },
+      {
+        "id": "编辑.png",
+        "name": "编辑",
+        "url": "/icon/编辑.png"
+      },
+      {
+        "id": "置顶.png",
+        "name": "置顶",
+        "url": "/icon/置顶.png"
+      },
+      {
+        "id": "自动化.png",
+        "name": "自动化",
+        "url": "/icon/自动化.png"
+      },
+      {
+        "id": "设置.png",
+        "name": "设置",
+        "url": "/icon/设置.png"
+      },
+      {
+        "id": "设计.png",
+        "name": "设计",
+        "url": "/icon/设计.png"
+      },
+      {
+        "id": "评论.png",
+        "name": "评论",
+        "url": "/icon/评论.png"
+      },
+      {
+        "id": "进行中.png",
+        "name": "进行中",
+        "url": "/icon/进行中.png"
+      },
+      {
+        "id": "选择.png",
+        "name": "选择",
+        "url": "/icon/选择.png"
+      },
+      {
+        "id": "通知.png",
+        "name": "通知",
+        "url": "/icon/通知.png"
+      },
+      {
+        "id": "重构.png",
+        "name": "重构",
+        "url": "/icon/重构.png"
+      },
+      {
+        "id": "链接.png",
+        "name": "链接",
+        "url": "/icon/链接.png"
+      },
+      {
+        "id": "阻塞.png",
+        "name": "阻塞",
+        "url": "/icon/阻塞.png"
+      },
+      {
+        "id": "附件.png",
+        "name": "附件",
+        "url": "/icon/附件.png"
+      },
+      {
+        "id": "项目.png",
+        "name": "项目",
+        "url": "/icon/项目.png"
+      },
+      {
+        "id": "高优先级.png",
+        "name": "高优先级",
+        "url": "/icon/高优先级.png"
+      }
+    ]
+  },
+  "updatedAt": "2026-05-09T08:32:26.609Z"
 }

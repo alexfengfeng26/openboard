@@ -64,13 +64,13 @@ import { useRouter, usePathname } from 'next/navigation'
 
 interface BoardClientProps {
   initialBoard: Board
-  initialBoards: Array<{ id: string; title: string; createdAt: string; updatedAt: string; archivedAt?: string; favoritedAt?: string }>
+  initialBoards: Array<{ id: string; title: string; createdAt: string; updatedAt: string; archivedAt?: string; favoritedAt?: string; icon?: string }>
 }
 
 // State type
 type BoardClientState = {
   board: Board
-  boards: Array<{ id: string; title: string; createdAt: string; updatedAt: string; archivedAt?: string; favoritedAt?: string }>
+  boards: Array<{ id: string; title: string; createdAt: string; updatedAt: string; archivedAt?: string; favoritedAt?: string; icon?: string }>
   activeId: string | null
   activeType: 'CARD' | 'LANE' | null
   showCreateLane: boolean
@@ -952,6 +952,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
               count: b.id === board.id ? board.lanes.reduce((sum, l) => sum + l.cards.length, 0) : undefined,
               archivedAt: b.archivedAt,
               favoritedAt: b.favoritedAt,
+              icon: b.icon,
             }))}
             activeBoardId={board.id}
             onBoardSelect={handleBoardSelect}
@@ -1489,7 +1490,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
               dispatch({ type: 'SET_BOARD', payload: updatedBoard })
               dispatch({
                 type: 'SET_BOARDS',
-                payload: boards.map((b) => (b.id === updatedBoard.id ? { ...b, title: updatedBoard.title, archivedAt: updatedBoard.archivedAt, favoritedAt: updatedBoard.favoritedAt } : b)),
+                payload: boards.map((b) => (b.id === updatedBoard.id ? { ...b, title: updatedBoard.title, archivedAt: updatedBoard.archivedAt, favoritedAt: updatedBoard.favoritedAt, icon: updatedBoard.icon } : b)),
               })
             }}
             onBoardDeleted={(deletedId) => {

@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogBody, DialogFooter, DialogHeader, DialogTi
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Trash2, Archive, RotateCcw } from 'lucide-react'
+import { BoardIconPicker } from './BoardIconPicker'
 import { toastSuccess, toastError } from '@/components/ui/toast'
 import type { Board } from '@/lib/db'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
@@ -27,12 +28,16 @@ export function EditBoardDialog({
   onBoardArchived,
 }: EditBoardDialogProps) {
   const [title, setTitle] = useState('')
+  const [icon, setIcon] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false)
 
   useEffect(() => {
-    if (board) setTitle(board.title)
+    if (board) {
+      setTitle(board.title)
+      setIcon(board.icon ?? null)
+    }
   }, [board])
 
   async function handleSubmit(e: React.FormEvent) {
@@ -45,7 +50,7 @@ export function EditBoardDialog({
       const response = await fetch(`/api/boards/${board.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: title.trim() }),
+        body: JSON.stringify({ title: title.trim(), icon }),
       })
 
       if (!response.ok) throw new Error('Failed to update board')
@@ -139,6 +144,10 @@ export function EditBoardDialog({
                     disabled={isSubmitting}
                     className="h-9 text-sm"
                   />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-foreground">看板图标</label>
+                  <BoardIconPicker selectedIcon={icon} onSelect={setIcon} />
                 </div>
               </div>
             </DialogBody>

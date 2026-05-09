@@ -8,7 +8,9 @@ import type {
   AppSettings, 
   AiSettings, 
   BoardViewSettings, 
-  AiToolTriggerConfig 
+  AiToolTriggerConfig,
+  IconSettings,
+  BoardIcon,
 } from '@/types/settings.types'
 import type { AiCommand } from '@/types/ai-commands.types'
 
@@ -217,5 +219,84 @@ export function useToolTriggerConfig() {
     error,
     fetchConfig,
     updateConfig,
+  }
+}
+
+/**
+ * 使用图标设置的 Hook
+ */
+export function useIconSettings() {
+  const {
+    data: iconSettings,
+    loading,
+    error,
+    fetchData: fetchIconSettings,
+    updateData: _updateIconSettings,
+  } = useApiResource<IconSettings>('/api/settings/icons', '/api/settings/icons', {
+    initialData: { icons: [] },
+  })
+
+  const updateIcons = useCallback(async (icons: BoardIcon[]) => {
+    return _updateIconSettings({ icons })
+  }, [_updateIconSettings])
+
+  const addIcon = useCallback(async (icon: BoardIcon) => {
+    const current = iconSettings ?? { icons: [] }
+    return _updateIconSettings({ icons: [...current.icons, icon] })
+  }, [_updateIconSettings, iconSettings])
+
+  const removeIcon = useCallback(async (iconId: string) => {
+    const current = iconSettings ?? { icons: [] }
+    return _updateIconSettings({ icons: current.icons.filter((i) => i.id !== iconId) })
+  }, [_updateIconSettings, iconSettings])
+
+  const scanIcons = useCallback(async () => {
+    const response = await fetch('/api/settings/icons/scan')
+    const result = await response.json()
+    if (!response.ok || !result.success) {
+      throw new Error(result.error || '扫描失败')
+    }
+    return result.data?.newIcons as BoardIcon[] || []
+  }, [])
+
+  const uploadIcon = useCallback(async (file: File) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    const response = await fetch('/api/settings/icons/upload', {
+      method: 'POST',
+      body: formData,
+    })
+    const result = await response.json()
+    if (!response.ok || !result.success) {
+      throw new Error(result.error || '上传失败')
+    }
+    return result.data as BoardIcon
+  }, [])
+
+  const deleteIcon = useCallback(async (iconId: string) => {
+    const response = await fetch(`/api/settings/icons/${encodeURIComponent(iconId)}`, {
+      method: 'DELETE',
+    })
+    const result = await response.json()
+    if (!response.ok || !result.success) {
+      throw new Error(result.error || '删除失败')
+    }
+    // 同步本地状态
+    const current = iconSettings ?? { icons: [] }
+    await _updateIconSettings({ icons: current.icons.filter((i) => i.id !== iconId) })
+  }, [iconSettings, _updateIconSettings])
+
+  return {
+    iconSettings: iconSettings ?? { icons: [] },
+    icons: iconSettings?.icons ?? [],
+    loading,
+    error,
+    fetchIconSettings,
+    updateIcons,
+    addIcon,
+    removeIcon,
+    scanIcons,
+    uploadIcon,
+    deleteIcon,
   }
 }

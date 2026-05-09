@@ -37,9 +37,9 @@ export async function PATCH(
 
   try {
     const body = await request.json()
-    const { title, favoritedAt } = body
+    const { title, favoritedAt, icon } = body
 
-    const updateData: { title?: string; favoritedAt?: string | null } = {}
+    const updateData: { title?: string; favoritedAt?: string | null; icon?: string | null } = {}
 
     if (title !== undefined) {
       if (typeof title !== 'string' || title.trim().length === 0) {
@@ -53,6 +53,10 @@ export async function PATCH(
 
     if (favoritedAt !== undefined) {
       updateData.favoritedAt = favoritedAt === null ? null : favoritedAt
+    }
+
+    if (icon !== undefined) {
+      updateData.icon = icon === null ? null : (typeof icon === 'string' ? icon : undefined)
     }
 
     if (Object.keys(updateData).length === 0) {

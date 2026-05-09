@@ -21,7 +21,7 @@ import {
 export interface BoardItem {
   id: string
   title: string
-  icon?: React.ReactNode
+  icon?: string
   count?: number
   archivedAt?: string
   favoritedAt?: string
@@ -368,8 +368,10 @@ function BoardMenuItem({
         <span className="flex h-5 w-5 shrink-0 items-center justify-center">
           {isFavorited ? (
             <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+          ) : board.icon ? (
+            <img src={board.icon} alt="" className="h-4 w-4 object-contain" />
           ) : (
-            board.icon || <LayoutDashboard className="h-4 w-4" style={{ color: active ? '#A84F2A' : '#7B746C' }} />
+            <LayoutDashboard className="h-4 w-4" style={{ color: active ? '#A84F2A' : '#7B746C' }} />
           )}
         </span>
         <span className={cn("min-w-0 flex-1 truncate text-left", isArchived && "line-through opacity-50")}>

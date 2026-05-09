@@ -14,6 +14,7 @@ export interface Board {
   archivedAt?: string
   favoritedAt?: string
   operationLogs?: OperationLogEntry[]
+  icon?: string
 }
 
 export interface BoardWithLanes extends Board {
@@ -28,6 +29,7 @@ export interface UpdateBoardInput {
   title?: string
   archivedAt?: string
   favoritedAt?: string | null
+  icon?: string | null
 }
 
 /**

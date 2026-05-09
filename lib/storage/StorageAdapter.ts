@@ -33,6 +33,7 @@ interface BoardIndexEntry {
   updatedAt: string
   archivedAt?: string
   favoritedAt?: string
+  icon?: string
   cardCount: number
 }
 
@@ -70,7 +71,7 @@ export class StorageAdapter {
   /**
    * 获取所有看板列表（轻量级）
    */
-  async getBoards(includeArchived = false): Promise<Array<{ id: string; title: string; createdAt: string; updatedAt: string; archivedAt?: string; favoritedAt?: string }>> {
+  async getBoards(includeArchived = false): Promise<Array<{ id: string; title: string; createdAt: string; updatedAt: string; archivedAt?: string; favoritedAt?: string; icon?: string }>> {
     // 首先尝试从索引文件加载
     const index = await this.loadIndex()
     if (index) {
@@ -83,12 +84,13 @@ export class StorageAdapter {
           updatedAt: entry.updatedAt,
           archivedAt: entry.archivedAt,
           favoritedAt: entry.favoritedAt,
+          icon: entry.icon,
         }))
     }
 
     // 索引不存在，回退到扫描 Markdown 文件
     const boardIds = await MarkdownBoard.listAll()
-    const result: Array<{ id: string; title: string; createdAt: string; updatedAt: string; archivedAt?: string; favoritedAt?: string }> = []
+    const result: Array<{ id: string; title: string; createdAt: string; updatedAt: string; archivedAt?: string; favoritedAt?: string; icon?: string }> = []
     const indexEntries: BoardIndexEntry[] = []
 
     for (const boardId of boardIds) {
@@ -120,6 +122,7 @@ export class StorageAdapter {
             updatedAt: board.updatedAt,
             archivedAt: board.archivedAt,
             favoritedAt: board.favoritedAt,
+            icon: board.icon,
           })
         }
         indexEntries.push(this.buildIndexEntry(board))
@@ -189,7 +192,7 @@ export class StorageAdapter {
   /**
    * 更新看板
    */
-  async updateBoard(boardId: string, data: { title?: string; lanes?: Lane[]; archivedAt?: string | null; favoritedAt?: string | null }): Promise<Board | null> {
+  async updateBoard(boardId: string, data: { title?: string; lanes?: Lane[]; archivedAt?: string | null; favoritedAt?: string | null; icon?: string | null }): Promise<Board | null> {
     const board = await this.getBoard(boardId)
     if (!board) return null
 
@@ -204,6 +207,9 @@ export class StorageAdapter {
     }
     if (data.favoritedAt === null) {
       delete updated.favoritedAt
+    }
+    if (data.icon === null) {
+      delete updated.icon
     }
 
     await MarkdownBoard.write(updated)
@@ -758,6 +764,7 @@ export class StorageAdapter {
       updatedAt: board.updatedAt,
       archivedAt: board.archivedAt,
       favoritedAt: board.favoritedAt,
+      icon: board.icon,
       cardCount: board.lanes.reduce((sum, lane) => sum + lane.cards.length, 0),
     }
   }
@@ -900,7 +907,7 @@ export async function dbHelpersWrapper() {
     getBoards: (includeArchived?: boolean) => storage.getBoards(includeArchived),
     getBoard: (boardId: string) => storage.getBoard(boardId),
     createBoard: (title: string, lanes?: Pick<Lane, 'title'>[]) => storage.createBoard(title, lanes),
-    updateBoard: (boardId: string, data: { title?: string; lanes?: Lane[]; archivedAt?: string | null }) => storage.updateBoard(boardId, data),
+    updateBoard: (boardId: string, data: { title?: string; lanes?: Lane[]; archivedAt?: string | null; icon?: string | null }) => storage.updateBoard(boardId, data),
     deleteBoard: (boardId: string) => storage.deleteBoard(boardId),
     getDefaultBoard: () => storage.getDefaultBoard(),
     getTags: () => storage.getTags(),

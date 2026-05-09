@@ -33,6 +33,23 @@ export interface AiToolTriggerConfig {
 export type AiTrustMode = 'confirm_all' | 'confirm_high_risk' | 'auto_execute'
 
 /**
+ * 看板图标
+ */
+export interface BoardIcon {
+  id: string
+  name: string
+  url: string
+  category?: string
+}
+
+/**
+ * 图标设置
+ */
+export interface IconSettings {
+  icons: BoardIcon[]
+}
+
+/**
  * AI 模型
  */
 export type AiModel = 'deepseek-v4-flash' | 'deepseek-v4-pro'
@@ -93,6 +110,8 @@ export interface AppSettings {
   boardView: BoardViewSettings
   /** 标签配置设置 */
   tags: TagsSettings
+  /** 图标设置 */
+  icons: IconSettings
   /** 更新时间 */
   updatedAt: string
 }
@@ -177,6 +196,9 @@ export function createDefaultSettings(): AppSettings {
       globalTags: createDefaultTags(),
       allowCustomTags: true,
       colorOptions: DEFAULT_TAG_COLORS,
+    },
+    icons: {
+      icons: [],
     },
     updatedAt: now,
   }

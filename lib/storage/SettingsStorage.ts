@@ -5,7 +5,7 @@
 
 import { promises as fs } from 'fs'
 import path from 'path'
-import type { AppSettings, AiSettings, BoardViewSettings, TagsSettings } from '@/types/settings.types'
+import type { AppSettings, AiSettings, BoardViewSettings, TagsSettings, IconSettings } from '@/types/settings.types'
 import type { Tag } from '@/types/card.types'
 import { createDefaultSettings, createDefaultTags, SettingsStorageError } from '@/types/settings.types'
 import { createDefaultAiCommands, normalizeAiCommands } from '@/lib/ai/commands'
@@ -103,6 +103,14 @@ export class SettingsStorage {
   }
 
   /**
+   * 获取图标设置
+   */
+  async getIconSettings(): Promise<IconSettings> {
+    await this.ensureInitialized()
+    return this.cloneSettings(this.settings!.icons)
+  }
+
+  /**
    * 获取所有全局标签
    */
   async getGlobalTags(): Promise<Tag[]> {
@@ -171,6 +179,22 @@ export class SettingsStorage {
 
     await this.saveToFile()
     return this.cloneSettings(this.settings!.boardView)
+  }
+
+  /**
+   * 更新图标设置
+   */
+  async updateIconSettings(iconSettings: Partial<IconSettings>): Promise<IconSettings> {
+    await this.ensureInitialized()
+
+    this.settings!.icons = {
+      ...this.settings!.icons,
+      ...iconSettings,
+    }
+    this.settings!.updatedAt = new Date().toISOString()
+
+    await this.saveToFile()
+    return this.cloneSettings(this.settings!.icons)
   }
 
   /**
@@ -321,6 +345,10 @@ export class SettingsStorage {
       boardView: {
         ...defaults.boardView,
         ...saved.boardView,
+      },
+      icons: {
+        ...defaults.icons,
+        ...saved.icons,
       },
       tags: {
         ...defaults.tags,
