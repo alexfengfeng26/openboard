@@ -7,24 +7,34 @@ import {
   Sparkles,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Settings,
   Plus,
   PanelRightOpen,
   PanelRightClose,
+  Pencil,
+  Archive,
+  Star,
+  ArchiveRestore,
 } from 'lucide-react'
 
-interface BoardItem {
+export interface BoardItem {
   id: string
   title: string
   icon?: React.ReactNode
   count?: number
+  archivedAt?: string
+  favoritedAt?: string
 }
 
-interface AppSidebarProps {
+export interface AppSidebarProps {
   boards?: BoardItem[]
   recentBoards?: BoardItem[]
   activeBoardId?: string
   onBoardSelect?: (boardId: string) => void
+  onBoardEdit?: (boardId: string) => void
+  onBoardArchive?: (boardId: string) => void
+  onBoardFavorite?: (boardId: string, favorited: boolean) => void
   onCreateBoard?: () => void
   onOpenSettings?: () => void
   onToggleAI?: () => void
@@ -34,12 +44,16 @@ interface AppSidebarProps {
 }
 
 const STORAGE_KEY = 'kanban-sidebar-expanded'
+const SHOW_ARCHIVED_KEY = 'kanban-sidebar-show-archived'
 
 export function AppSidebar({
   boards,
   recentBoards,
   activeBoardId,
   onBoardSelect,
+  onBoardEdit,
+  onBoardArchive,
+  onBoardFavorite,
   onCreateBoard,
   onOpenSettings,
   onToggleAI,
@@ -65,6 +79,34 @@ export function AppSidebar({
       localStorage.setItem(STORAGE_KEY, String(next))
     }
     onExpandedChange?.(next)
+  }
+
+  // 对看板排序：收藏的置顶，然后按标题排序
+  const sortedBoards = React.useMemo(() => {
+    const list = [...(boards || [])]
+    list.sort((a, b) => {
+      const aFav = a.favoritedAt ? 1 : 0
+      const bFav = b.favoritedAt ? 1 : 0
+      if (aFav !== bFav) return bFav - aFav
+      return a.title.localeCompare(b.title, 'zh-CN')
+    })
+    return list
+  }, [boards])
+
+  // 分离活跃和已归档看板
+  const activeBoards = sortedBoards.filter((b) => !b.archivedAt)
+  const archivedBoards = sortedBoards.filter((b) => b.archivedAt)
+
+  // 已归档看板展开状态
+  const [showArchived, setShowArchived] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return localStorage.getItem(SHOW_ARCHIVED_KEY) === 'true'
+  })
+
+  const toggleArchived = () => {
+    const next = !showArchived
+    setShowArchived(next)
+    localStorage.setItem(SHOW_ARCHIVED_KEY, String(next))
   }
 
   // 折叠时只渲染一个窄条
@@ -182,29 +224,71 @@ export function AppSidebar({
           看板
         </div>
         <nav className="space-y-0.5 px-2">
-          {(boards || []).map((board) => (
+          {activeBoards.map((board) => (
             <BoardMenuItem
               key={board.id}
               board={board}
               active={board.id === activeBoardId}
               onClick={() => onBoardSelect?.(board.id)}
+              onEdit={() => onBoardEdit?.(board.id)}
+              onArchive={() => onBoardArchive?.(board.id)}
+              onFavorite={() => onBoardFavorite?.(board.id, !board.favoritedAt)}
             />
           ))}
         </nav>
 
-        {/* 最近访问 */}
-        {recentBoards && recentBoards.length > 0 && (
+        {/* 已归档看板 — 可折叠 */}
+        {archivedBoards.length > 0 && (
+          <div className="mt-2">
+            <button
+              onClick={toggleArchived}
+              className="flex w-full items-center justify-between px-4 py-2 text-[11px] font-medium uppercase tracking-wider transition-colors hover:text-[#A84F2A]"
+              style={{ color: '#7B746C' }}
+            >
+              <span>已归档</span>
+              <span className="flex items-center gap-1">
+                <span className="rounded-full px-1.5 py-0 text-[10px]" style={{ backgroundColor: '#F0E8DE', color: '#7B746C' }}>
+                  {archivedBoards.length}
+                </span>
+                <ChevronDown
+                  className={cn('h-3 w-3 transition-transform', showArchived && 'rotate-180')}
+                />
+              </span>
+            </button>
+            {showArchived && (
+              <nav className="space-y-0.5 px-2">
+                {archivedBoards.map((board) => (
+                  <BoardMenuItem
+                    key={board.id}
+                    board={board}
+                    active={board.id === activeBoardId}
+                    onClick={() => onBoardSelect?.(board.id)}
+                    onEdit={() => onBoardEdit?.(board.id)}
+                    onArchive={() => onBoardArchive?.(board.id)}
+                    onFavorite={() => onBoardFavorite?.(board.id, !board.favoritedAt)}
+                  />
+                ))}
+              </nav>
+            )}
+          </div>
+        )}
+
+        {/* 最近访问 — 过滤掉已归档的 */}
+        {recentBoards && recentBoards.filter((b) => !b.archivedAt).length > 0 && (
           <>
             <div className="mt-4 px-4 py-2 text-[11px] font-medium uppercase tracking-wider" style={{ color: '#7B746C' }}>
               最近访问
             </div>
             <nav className="space-y-0.5 px-2">
-              {recentBoards.map((board) => (
+              {recentBoards.filter((b) => !b.archivedAt).map((board) => (
                 <BoardMenuItem
                   key={board.id}
                   board={board}
                   active={board.id === activeBoardId}
                   onClick={() => onBoardSelect?.(board.id)}
+                  onEdit={() => onBoardEdit?.(board.id)}
+                  onArchive={() => onBoardArchive?.(board.id)}
+                  onFavorite={() => onBoardFavorite?.(board.id, !board.favoritedAt)}
                 />
               ))}
             </nav>
@@ -244,16 +328,24 @@ function BoardMenuItem({
   board,
   active,
   onClick,
+  onEdit,
+  onArchive,
+  onFavorite,
 }: {
   board: BoardItem
   active: boolean
   onClick?: () => void
+  onEdit?: () => void
+  onArchive?: () => void
+  onFavorite?: () => void
 }) {
+  const isArchived = !!board.archivedAt
+  const isFavorited = !!board.favoritedAt
+
   return (
-    <button
-      onClick={onClick}
+    <div
       className={cn(
-        'group flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-sm transition-colors',
+        'group relative flex w-full items-center rounded-md text-sm transition-colors',
         active
           ? 'font-medium'
           : 'font-normal hover:bg-[#F0E8DE]'
@@ -268,22 +360,80 @@ function BoardMenuItem({
           : { color: '#26211C' }
       }
     >
-      <span className="flex h-5 w-5 shrink-0 items-center justify-center">
-        {board.icon || <LayoutDashboard className="h-4 w-4" style={{ color: active ? '#A84F2A' : '#7B746C' }} />}
-      </span>
-      <span className="min-w-0 flex-1 truncate text-left">{board.title}</span>
-      {board.count !== undefined && (
-        <span
-          className="shrink-0 rounded-full px-1.5 py-0 text-[10px]"
-          style={{
-            backgroundColor: active ? '#EFE3D7' : '#F0E8DE',
-            color: active ? '#A84F2A' : '#7B746C',
-          }}
-        >
-          {board.count}
+      {/* 主按钮区域 */}
+      <button
+        onClick={onClick}
+        className="flex flex-1 items-center gap-3 px-2.5 py-2 min-w-0"
+      >
+        <span className="flex h-5 w-5 shrink-0 items-center justify-center">
+          {isFavorited ? (
+            <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+          ) : (
+            board.icon || <LayoutDashboard className="h-4 w-4" style={{ color: active ? '#A84F2A' : '#7B746C' }} />
+          )}
         </span>
-      )}
-    </button>
+        <span className={cn("min-w-0 flex-1 truncate text-left", isArchived && "line-through opacity-50")}>
+          {board.title}
+        </span>
+        {board.count !== undefined && (
+          <span
+            className="shrink-0 rounded-full px-1.5 py-0 text-[10px]"
+            style={{
+              backgroundColor: active ? '#EFE3D7' : '#F0E8DE',
+              color: active ? '#A84F2A' : '#7B746C',
+            }}
+          >
+            {board.count}
+          </span>
+        )}
+      </button>
+
+      {/* 操作按钮 — hover 时显示 */}
+      <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+        {/* 收藏 */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            onFavorite?.()
+          }}
+          className="flex h-6 w-6 items-center justify-center rounded hover:bg-black/5"
+          title={isFavorited ? '取消收藏' : '收藏'}
+          aria-label={isFavorited ? '取消收藏' : '收藏'}
+        >
+          <Star
+            className={cn("h-3.5 w-3.5", isFavorited ? "fill-amber-400 text-amber-400" : "text-[#7B746C]")}
+          />
+        </button>
+        {/* 编辑 */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            onEdit?.()
+          }}
+          className="flex h-6 w-6 items-center justify-center rounded hover:bg-black/5"
+          title="编辑看板"
+          aria-label="编辑看板"
+        >
+          <Pencil className="h-3.5 w-3.5 text-[#7B746C]" />
+        </button>
+        {/* 归档/恢复 */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            onArchive?.()
+          }}
+          className="flex h-6 w-6 items-center justify-center rounded hover:bg-black/5"
+          title={isArchived ? '恢复看板' : '归档看板'}
+          aria-label={isArchived ? '恢复看板' : '归档看板'}
+        >
+          {isArchived ? (
+            <ArchiveRestore className="h-3.5 w-3.5 text-emerald-600" />
+          ) : (
+            <Archive className="h-3.5 w-3.5 text-[#7B746C]" />
+          )}
+        </button>
+      </div>
+    </div>
   )
 }
 

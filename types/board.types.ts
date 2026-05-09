@@ -12,6 +12,7 @@ export interface Board {
   lanes: Lane[]
   tags?: Tag[]
   archivedAt?: string
+  favoritedAt?: string
   operationLogs?: OperationLogEntry[]
 }
 
@@ -26,6 +27,7 @@ export interface CreateBoardInput {
 export interface UpdateBoardInput {
   title?: string
   archivedAt?: string
+  favoritedAt?: string | null
 }
 
 /**

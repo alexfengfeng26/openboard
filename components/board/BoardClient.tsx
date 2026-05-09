@@ -51,6 +51,7 @@ import { AppSidebar } from '@/components/layout/AppSidebar'
 import { BoardTagsProvider } from './BoardTagsContext'
 import { CreateBoardDialog } from './CreateBoardDialog'
 import { BoardSelector } from './BoardSelector'
+import { EditBoardDialog } from './EditBoardDialog'
 import { cn } from '@/lib/utils'
 import { useCardSearch } from '@/lib/hooks/useCardSearch'
 import { useKeyboardShortcuts } from '@/lib/hooks/useKeyboardShortcuts'
@@ -60,13 +61,13 @@ import { useRouter, usePathname } from 'next/navigation'
 
 interface BoardClientProps {
   initialBoard: Board
-  initialBoards: Array<{ id: string; title: string; createdAt: string; updatedAt: string; archivedAt?: string }>
+  initialBoards: Array<{ id: string; title: string; createdAt: string; updatedAt: string; archivedAt?: string; favoritedAt?: string }>
 }
 
 // State type
 type BoardClientState = {
   board: Board
-  boards: Array<{ id: string; title: string; createdAt: string; updatedAt: string; archivedAt?: string }>
+  boards: Array<{ id: string; title: string; createdAt: string; updatedAt: string; archivedAt?: string; favoritedAt?: string }>
   activeId: string | null
   activeType: 'CARD' | 'LANE' | null
   showCreateLane: boolean
@@ -82,7 +83,7 @@ type BoardClientState = {
 // Action types
 type BoardClientAction =
   | { type: 'SET_BOARD'; payload: Board }
-  | { type: 'SET_BOARDS'; payload: Array<{ id: string; title: string; createdAt: string; updatedAt: string; archivedAt?: string }> }
+  | { type: 'SET_BOARDS'; payload: Array<{ id: string; title: string; createdAt: string; updatedAt: string; archivedAt?: string; favoritedAt?: string }> }
   | { type: 'SET_ACTIVE_ID'; payload: string | null }
   | { type: 'SET_ACTIVE_TYPE'; payload: 'CARD' | 'LANE' | null }
   | { type: 'SET_SHOW_CREATE_LANE'; payload: boolean }
@@ -360,6 +361,77 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
     }
   }
 
+  // 编辑看板
+  async function handleBoardEdit(boardId: string) {
+    if (boardId === board.id) {
+      setEditingBoard(board)
+      return
+    }
+    try {
+      const response = await fetch(`/api/boards/${boardId}`)
+      if (!response.ok) throw new Error('Failed to load board')
+      const result = await response.json()
+      if (result.success) {
+        setEditingBoard(result.data)
+      }
+    } catch {
+      toastError('加载看板失败')
+    }
+  }
+
+  // 归档/恢复看板
+  async function handleBoardArchive(boardId: string) {
+    const target = boards.find((b) => b.id === boardId)
+    if (!target) return
+    const archived = !target.archivedAt
+    try {
+      const response = await fetch(`/api/boards/${boardId}/archive`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ archived }),
+      })
+      if (!response.ok) throw new Error('Failed to archive board')
+      const result = await response.json()
+      if (result.success) {
+        dispatch({
+          type: 'SET_BOARDS',
+          payload: boards.map((b) => (b.id === boardId ? { ...b, archivedAt: archived ? new Date().toISOString() : undefined } : b)),
+        })
+        if (boardId === board.id) {
+          dispatch({ type: 'SET_BOARD', payload: result.data })
+        }
+        toastSuccess(archived ? '看板已归档' : '看板已恢复')
+      }
+    } catch {
+      toastError(archived ? '归档看板失败' : '恢复看板失败')
+    }
+  }
+
+  // 收藏/取消收藏看板
+  async function handleBoardFavorite(boardId: string, favorited: boolean) {
+    try {
+      const response = await fetch(`/api/boards/${boardId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ favoritedAt: favorited ? new Date().toISOString() : null }),
+      })
+      if (!response.ok) throw new Error('Failed to favorite board')
+      const result = await response.json()
+      if (result.success) {
+        dispatch({
+          type: 'SET_BOARDS',
+          payload: boards.map((b) => (b.id === boardId ? { ...b, favoritedAt: favorited ? new Date().toISOString() : undefined } : b)),
+        })
+        if (boardId === board.id) {
+          dispatch({ type: 'SET_BOARD', payload: result.data })
+        }
+        toastSuccess(favorited ? '已收藏看板' : '已取消收藏')
+      }
+    } catch {
+      toastError(favorited ? '收藏看板失败' : '取消收藏失败')
+    }
+  }
+
   // 创建看板对话框
   const [showCreateBoard, setShowCreateBoard] = useState(false)
 
@@ -372,6 +444,9 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
 
   // AI 设置对话框状态
   const [aiSettingsOpen, setAiSettingsOpen] = useState(false)
+
+  // 编辑看板对话框
+  const [editingBoard, setEditingBoard] = useState<Board | null>(null)
 
   useEffect(() => {
     async function fetchTags() {
@@ -863,9 +938,14 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
               id: b.id,
               title: b.title,
               count: b.id === board.id ? board.lanes.reduce((sum, l) => sum + l.cards.length, 0) : undefined,
+              archivedAt: b.archivedAt,
+              favoritedAt: b.favoritedAt,
             }))}
             activeBoardId={board.id}
             onBoardSelect={handleBoardSelect}
+            onBoardEdit={handleBoardEdit}
+            onBoardArchive={handleBoardArchive}
+            onBoardFavorite={handleBoardFavorite}
             onCreateBoard={() => setShowCreateBoard(true)}
             onOpenSettings={() => {
               dispatch({ type: 'SET_SHOW_CHAT', payload: true })
@@ -1310,6 +1390,41 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
             handleBoardSelect(newBoard.id)
           }}
         />
+
+        {/* 编辑看板对话框 */}
+        {editingBoard && (
+          <EditBoardDialog
+            open={!!editingBoard}
+            onOpenChange={(open) => {
+              if (!open) setEditingBoard(null)
+            }}
+            board={editingBoard}
+            onBoardUpdated={(updatedBoard) => {
+              dispatch({ type: 'SET_BOARD', payload: updatedBoard })
+              dispatch({
+                type: 'SET_BOARDS',
+                payload: boards.map((b) => (b.id === updatedBoard.id ? { ...b, title: updatedBoard.title, archivedAt: updatedBoard.archivedAt, favoritedAt: updatedBoard.favoritedAt } : b)),
+              })
+            }}
+            onBoardDeleted={(deletedId) => {
+              const remaining = boards.filter((b) => b.id !== deletedId)
+              if (remaining.length > 0) {
+                handleBoardSelect(remaining[0].id)
+              }
+              dispatch({ type: 'SET_BOARDS', payload: remaining })
+              setEditingBoard(null)
+            }}
+            onBoardArchived={(archivedBoard) => {
+              dispatch({
+                type: 'SET_BOARDS',
+                payload: boards.map((b) => (b.id === archivedBoard.id ? { ...b, archivedAt: archivedBoard.archivedAt, favoritedAt: archivedBoard.favoritedAt } : b)),
+              })
+              if (archivedBoard.id === board.id) {
+                dispatch({ type: 'SET_BOARD', payload: archivedBoard })
+              }
+            }}
+          />
+        )}
       </div>
     </BoardTagsProvider>
   )

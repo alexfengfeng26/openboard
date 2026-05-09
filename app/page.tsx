@@ -9,7 +9,7 @@ export default async function HomePage({
   const { boardId } = await searchParams
 
   // 获取所有看板列表
-  const boards = await dbHelpers.getBoards()
+  const boards = await dbHelpers.getBoards(true)
 
   // 确定要显示的看板
   let targetBoardId = boardId

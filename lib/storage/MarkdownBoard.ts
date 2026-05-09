@@ -211,6 +211,7 @@ export class MarkdownBoard {
         tags: frontmatter.tags || [],
         lanes,
         archivedAt: frontmatter.archivedAt,
+        favoritedAt: frontmatter.favoritedAt,
         operationLogs: frontmatter.operationLogs,
       }
     } catch (error) {
@@ -282,6 +283,9 @@ export class MarkdownBoard {
 
     if (board.archivedAt !== undefined) {
       frontmatter.archivedAt = board.archivedAt
+    }
+    if (board.favoritedAt !== undefined) {
+      frontmatter.favoritedAt = board.favoritedAt
     }
     if (board.operationLogs !== undefined && board.operationLogs.length > 0) {
       frontmatter.operationLogs = board.operationLogs

@@ -37,16 +37,32 @@ export async function PATCH(
 
   try {
     const body = await request.json()
-    const { title } = body
+    const { title, favoritedAt } = body
 
-    if (title !== undefined && (typeof title !== 'string' || title.trim().length === 0)) {
+    const updateData: { title?: string; favoritedAt?: string | null } = {}
+
+    if (title !== undefined) {
+      if (typeof title !== 'string' || title.trim().length === 0) {
+        return NextResponse.json(
+          { success: false, error: 'Invalid title' },
+          { status: 400 }
+        )
+      }
+      updateData.title = title
+    }
+
+    if (favoritedAt !== undefined) {
+      updateData.favoritedAt = favoritedAt === null ? null : favoritedAt
+    }
+
+    if (Object.keys(updateData).length === 0) {
       return NextResponse.json(
-        { success: false, error: 'Invalid title' },
+        { success: false, error: 'No valid fields to update' },
         { status: 400 }
       )
     }
 
-    const board = await dbHelpers.updateBoard(boardId, { title })
+    const board = await dbHelpers.updateBoard(boardId, updateData)
 
     if (!board) {
       return NextResponse.json(
@@ -88,12 +104,9 @@ export async function DELETE(
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting board:', error)
-    const message = error instanceof Error && error.message.includes('last board')
-      ? error.message
-      : 'Failed to delete board'
     return NextResponse.json(
-      { success: false, error: message },
-      { status: error instanceof Error && error.message.includes('last board') ? 400 : 500 }
+      { success: false, error: 'Failed to delete board' },
+      { status: 500 }
     )
   }
 }

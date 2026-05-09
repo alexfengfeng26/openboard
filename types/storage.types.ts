@@ -16,6 +16,7 @@ export interface BoardFrontmatter {
   tags?: Tag[]
   lanes?: LaneFrontmatter[]
   archivedAt?: string
+  favoritedAt?: string
   operationLogs?: OperationLogEntry[]
 }
 

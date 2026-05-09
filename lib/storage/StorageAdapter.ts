@@ -31,8 +31,9 @@ interface BoardIndexEntry {
   title: string
   createdAt: string
   updatedAt: string
-  cardCount: number
   archivedAt?: string
+  favoritedAt?: string
+  cardCount: number
 }
 
 /**
@@ -69,7 +70,7 @@ export class StorageAdapter {
   /**
    * 获取所有看板列表（轻量级）
    */
-  async getBoards(includeArchived = false): Promise<Array<{ id: string; title: string; createdAt: string; updatedAt: string; archivedAt?: string }>> {
+  async getBoards(includeArchived = false): Promise<Array<{ id: string; title: string; createdAt: string; updatedAt: string; archivedAt?: string; favoritedAt?: string }>> {
     // 首先尝试从索引文件加载
     const index = await this.loadIndex()
     if (index) {
@@ -81,12 +82,13 @@ export class StorageAdapter {
           createdAt: entry.createdAt,
           updatedAt: entry.updatedAt,
           archivedAt: entry.archivedAt,
+          favoritedAt: entry.favoritedAt,
         }))
     }
 
     // 索引不存在，回退到扫描 Markdown 文件
     const boardIds = await MarkdownBoard.listAll()
-    const result: Array<{ id: string; title: string; createdAt: string; updatedAt: string; archivedAt?: string }> = []
+    const result: Array<{ id: string; title: string; createdAt: string; updatedAt: string; archivedAt?: string; favoritedAt?: string }> = []
     const indexEntries: BoardIndexEntry[] = []
 
     for (const boardId of boardIds) {
@@ -117,6 +119,7 @@ export class StorageAdapter {
             createdAt: board.createdAt,
             updatedAt: board.updatedAt,
             archivedAt: board.archivedAt,
+            favoritedAt: board.favoritedAt,
           })
         }
         indexEntries.push(this.buildIndexEntry(board))
@@ -186,7 +189,7 @@ export class StorageAdapter {
   /**
    * 更新看板
    */
-  async updateBoard(boardId: string, data: { title?: string; lanes?: Lane[]; archivedAt?: string | null }): Promise<Board | null> {
+  async updateBoard(boardId: string, data: { title?: string; lanes?: Lane[]; archivedAt?: string | null; favoritedAt?: string | null }): Promise<Board | null> {
     const board = await this.getBoard(boardId)
     if (!board) return null
 
@@ -198,6 +201,9 @@ export class StorageAdapter {
 
     if (data.archivedAt === null) {
       delete updated.archivedAt
+    }
+    if (data.favoritedAt === null) {
+      delete updated.favoritedAt
     }
 
     await MarkdownBoard.write(updated)
@@ -219,6 +225,20 @@ export class StorageAdapter {
    */
   async unarchiveBoard(boardId: string): Promise<Board | null> {
     return this.updateBoard(boardId, { archivedAt: null })
+  }
+
+  /**
+   * 收藏看板
+   */
+  async favoriteBoard(boardId: string): Promise<Board | null> {
+    return this.updateBoard(boardId, { favoritedAt: new Date().toISOString() })
+  }
+
+  /**
+   * 取消收藏看板
+   */
+  async unfavoriteBoard(boardId: string): Promise<Board | null> {
+    return this.updateBoard(boardId, { favoritedAt: null })
   }
 
   /**
@@ -736,8 +756,9 @@ export class StorageAdapter {
       title: board.title,
       createdAt: board.createdAt,
       updatedAt: board.updatedAt,
-      cardCount: board.lanes.reduce((sum, lane) => sum + lane.cards.length, 0),
       archivedAt: board.archivedAt,
+      favoritedAt: board.favoritedAt,
+      cardCount: board.lanes.reduce((sum, lane) => sum + lane.cards.length, 0),
     }
   }
 
@@ -876,7 +897,7 @@ export async function dbHelpersWrapper() {
   const storage = await getStorage()
   return {
     // 看板操作
-    getBoards: () => storage.getBoards(),
+    getBoards: (includeArchived?: boolean) => storage.getBoards(includeArchived),
     getBoard: (boardId: string) => storage.getBoard(boardId),
     createBoard: (title: string, lanes?: Pick<Lane, 'title'>[]) => storage.createBoard(title, lanes),
     updateBoard: (boardId: string, data: { title?: string; lanes?: Lane[]; archivedAt?: string | null }) => storage.updateBoard(boardId, data),

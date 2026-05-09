@@ -2,7 +2,7 @@
 id: default-board
 title: 我的看板
 createdAt: '2026-02-11T07:06:35.423Z'
-updatedAt: '2026-05-06T07:32:33.758Z'
+updatedAt: '2026-05-08T11:11:33.986Z'
 tags:
   - id: tag-0
     name: 紧急
@@ -186,5 +186,6 @@ lanes:
         createdAt: '2026-02-11T09:15:23.725Z'
         updatedAt: '2026-02-11T15:33:11.367Z'
         description: 启动点餐小程序的开发项目，需明确功能需求、技术选型和开发排期。
+favoritedAt: '2026-05-08T11:11:33.958Z'
 ---
 
