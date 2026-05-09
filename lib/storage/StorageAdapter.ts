@@ -142,7 +142,21 @@ export class StorageAdapter {
     // 先查缓存
     const cached = this.cache.get(boardId)
     if (cached) {
-      return cached
+      // 检查文件是否被其他进程修改（通过比较 mtime 和缓存时间戳）
+      try {
+        const filePath = path.join(DATA_DIR, `${boardId.replace(/[\/\\\.]/g, '-')}.md`)
+        const stat = await fs.stat(filePath)
+        const mtime = stat.mtimeMs
+        const cacheEntry = this.cache.getEntry(boardId)
+        if (cacheEntry && mtime <= cacheEntry.timestamp + 100) {
+          // 文件未修改，返回缓存
+          return cached
+        }
+        // 文件已修改，继续从文件读取
+      } catch {
+        // 文件不存在，返回缓存
+        return cached
+      }
     }
 
     const board = await MarkdownBoard.read(boardId)
@@ -918,36 +932,35 @@ export function resetStorage(): void {
  * 为了兼容性，导出与 dbHelpers 相同的接口
  */
 export async function dbHelpersWrapper() {
-  const storage = await getStorage()
   return {
     // 看板操作
-    getBoards: (includeArchived?: boolean) => storage.getBoards(includeArchived),
-    getBoard: (boardId: string) => storage.getBoard(boardId),
-    createBoard: (title: string, lanes?: Pick<Lane, 'title'>[], icon?: string) => storage.createBoard(title, lanes, icon),
-    updateBoard: (boardId: string, data: { title?: string; lanes?: Lane[]; archivedAt?: string | null; icon?: string | null }) => storage.updateBoard(boardId, data),
-    deleteBoard: (boardId: string) => storage.deleteBoard(boardId),
-    getDefaultBoard: () => storage.getDefaultBoard(),
-    getTags: () => storage.getTags(),
+    getBoards: (includeArchived?: boolean) => getStorage().then(s => s.getBoards(includeArchived)),
+    getBoard: (boardId: string) => getStorage().then(s => s.getBoard(boardId)),
+    createBoard: (title: string, lanes?: Pick<Lane, 'title'>[], icon?: string) => getStorage().then(s => s.createBoard(title, lanes, icon)),
+    updateBoard: (boardId: string, data: { title?: string; lanes?: Lane[]; archivedAt?: string | null; icon?: string | null }) => getStorage().then(s => s.updateBoard(boardId, data)),
+    deleteBoard: (boardId: string) => getStorage().then(s => s.deleteBoard(boardId)),
+    getDefaultBoard: () => getStorage().then(s => s.getDefaultBoard()),
+    getTags: () => getStorage().then(s => s.getTags()),
 
     // 归档
-    archiveBoard: (boardId: string) => storage.archiveBoard(boardId),
-    unarchiveBoard: (boardId: string) => storage.unarchiveBoard(boardId),
+    archiveBoard: (boardId: string) => getStorage().then(s => s.archiveBoard(boardId)),
+    unarchiveBoard: (boardId: string) => getStorage().then(s => s.unarchiveBoard(boardId)),
 
     // 操作日志
-    addOperationLog: (boardId: string, log: OperationLogEntry) => storage.addOperationLog(boardId, log),
-    getOperationLogs: (boardId: string) => storage.getOperationLogs(boardId),
-    clearOperationLogs: (boardId: string) => storage.clearOperationLogs(boardId),
+    addOperationLog: (boardId: string, log: OperationLogEntry) => getStorage().then(s => s.addOperationLog(boardId, log)),
+    getOperationLogs: (boardId: string) => getStorage().then(s => s.getOperationLogs(boardId)),
+    clearOperationLogs: (boardId: string) => getStorage().then(s => s.clearOperationLogs(boardId)),
     updateLane: (boardId: string, laneId: string, data: { title?: string }) =>
-      storage.updateLane(boardId, laneId, data),
-    deleteLane: (boardId: string, laneId: string) => storage.deleteLane(boardId, laneId),
+      getStorage().then(s => s.updateLane(boardId, laneId, data)),
+    deleteLane: (boardId: string, laneId: string) => getStorage().then(s => s.deleteLane(boardId, laneId)),
 
     // 卡片操作
     createCard: (boardId: string, laneId: string, title: string, description?: string, tags?: Tag[], attachments?: Attachment[], dueDate?: string, priority?: CardPriority) =>
-      storage.createCard(boardId, laneId, title, description, tags, attachments, dueDate, priority),
+      getStorage().then(s => s.createCard(boardId, laneId, title, description, tags, attachments, dueDate, priority)),
     updateCard: (boardId: string, cardId: string, data: { title?: string; description?: string; tags?: Tag[]; attachments?: Attachment[]; dueDate?: string; priority?: CardPriority }) =>
-      storage.updateCard(boardId, cardId, data),
-    deleteCard: (boardId: string, cardId: string) => storage.deleteCard(boardId, cardId),
+      getStorage().then(s => s.updateCard(boardId, cardId, data)),
+    deleteCard: (boardId: string, cardId: string) => getStorage().then(s => s.deleteCard(boardId, cardId)),
     moveCard: (boardId: string, cardId: string, toLaneId: string, newPosition: number) =>
-      storage.moveCard(boardId, cardId, toLaneId, newPosition),
+      getStorage().then(s => s.moveCard(boardId, cardId, toLaneId, newPosition)),
   }
 }

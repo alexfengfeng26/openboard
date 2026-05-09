@@ -79,5 +79,24 @@
     "createdAt": "2025-05-09T10:00:00.000Z",
     "updatedAt": "2025-05-09T10:00:00.000Z",
     "boardId": ""
+  },
+  {
+    "name": "创建时自动匹配标签",
+    "description": "新创建卡片时，根据标题和描述内容自动匹配并添加看板现有标签",
+    "enabled": true,
+    "trigger": {
+      "type": "card_created",
+      "conditions": []
+    },
+    "actions": [
+      {
+        "type": "auto_tag",
+        "params": {}
+      }
+    ],
+    "boardId": "board-1778316888410-cryawl",
+    "id": "rule-1778317673194-66p3ncv2c",
+    "createdAt": "2026-05-09T09:07:53.194Z",
+    "updatedAt": "2026-05-09T09:07:53.194Z"
   }
 ]

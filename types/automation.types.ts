@@ -43,6 +43,7 @@ export type AutomationActionType =
   | 'update_card'
   | 'archive_card'
   | 'notify'
+  | 'auto_tag'
 
 /** 动作 */
 export interface AutomationAction {
@@ -99,6 +100,7 @@ export interface TriggerContext {
   fromLaneId?: string
   toLaneId?: string
   cardTitle?: string
+  cardDescription?: string
   laneTitle?: string
 }
 

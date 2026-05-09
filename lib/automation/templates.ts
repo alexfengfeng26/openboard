@@ -87,6 +87,20 @@ export const PRESET_TEMPLATES: RuleTemplate[] = [
       },
     ],
   },
+  {
+    name: '创建时自动匹配标签',
+    description: '新创建卡片时，根据标题和描述内容自动匹配并添加看板现有标签',
+    trigger: {
+      type: 'card_created',
+      conditions: [],
+    },
+    actions: [
+      {
+        type: 'auto_tag',
+        params: {},
+      },
+    ],
+  },
 ]
 
 /**

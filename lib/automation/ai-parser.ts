@@ -39,6 +39,7 @@ const ActionTypeSchema = z.enum([
   'update_card',
   'archive_card',
   'notify',
+  'auto_tag',
 ])
 
 const RuleSchema = z.object({
@@ -110,6 +111,7 @@ function buildSystemPrompt(): string {
 - update_card: 更新卡片 (params: 任意字段)
 - archive_card: 归档卡片 (params: {})
 - notify: 发送通知 (params: { message: string })
+- auto_tag: 智能标签匹配 (params: {}) — 自动根据卡片标题和描述内容匹配看板现有标签并添加
 
 ## 预设模板
 ${PRESET_TEMPLATES.map((t) => `- ${t.name}: ${t.description}`).join('\n')}

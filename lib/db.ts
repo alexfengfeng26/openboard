@@ -87,19 +87,10 @@ export interface DbHelpers {
  * 为了向后兼容，创建一个懒加载的代理对象
  * 所有方法签名保持不变，确保现有代码无需修改
  */
-let cachedHelpers: Awaited<ReturnType<typeof dbHelpersWrapper>> | null = null
-
-async function getHelpers() {
-  if (!cachedHelpers) {
-    cachedHelpers = await dbHelpersWrapper()
-  }
-  return cachedHelpers
-}
-
 export const dbHelpers = new Proxy({} as DbHelpers, {
   get(_target, prop: string) {
     return async (...args: any[]) => {
-      const helpers = await getHelpers()
+      const helpers = await dbHelpersWrapper()
       const method = helpers[prop as keyof typeof helpers]
       if (typeof method === 'function') {
         return (method as any)(...args)

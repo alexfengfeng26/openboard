@@ -37,6 +37,7 @@ export async function POST(request: Request) {
       cardId: card.id,
       laneId,
       cardTitle: title,
+      cardDescription: description,
     })
 
     return successResponse(card, 201)

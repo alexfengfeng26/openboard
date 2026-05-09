@@ -220,6 +220,47 @@ async function executeAction(
       break
     }
 
+    case 'auto_tag': {
+      if (!cardId) {
+        console.warn('[RuleEngine] auto_tag 需要 cardId')
+        return
+      }
+      const card = await getCardFromBoard(boardId, cardId)
+      if (!card) {
+        console.warn(`[RuleEngine] 未找到卡片 ${cardId}`)
+        return
+      }
+
+      const board = await storage.getBoard(boardId)
+      if (!board) {
+        console.warn(`[RuleEngine] 未找到看板 ${boardId}`)
+        return
+      }
+
+      const boardTags = board.tags || []
+      if (boardTags.length === 0) {
+        console.log('[RuleEngine] 看板没有标签，跳过 auto_tag')
+        return
+      }
+
+      const searchText = ((card.title || '') + ' ' + (card.description || '')).toLowerCase()
+      const currentTagIds = new Set((card.tags || []).map((t) => t.id))
+      const matchedTags = boardTags.filter((tag) => {
+        if (currentTagIds.has(tag.id)) return false
+        const tagName = (tag.name || '').toLowerCase().trim()
+        return tagName && searchText.includes(tagName)
+      })
+
+      if (matchedTags.length > 0) {
+        const newTags = [...(card.tags || []), ...matchedTags]
+        await storage.updateCard(boardId, cardId, { tags: newTags })
+        console.log(`[RuleEngine] auto_tag 为卡片 ${cardId} 添加 ${matchedTags.length} 个标签: ${matchedTags.map((t) => t.name).join(', ')}`)
+      } else {
+        console.log(`[RuleEngine] auto_tag 未匹配到标签`)
+      }
+      break
+    }
+
     default:
       console.warn(`[RuleEngine] 未知动作类型: ${(action as AutomationAction).type}`)
   }

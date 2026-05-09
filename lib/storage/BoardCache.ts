@@ -55,6 +55,21 @@ export class BoardCache {
   }
 
   /**
+   * 获取缓存条目（包含时间戳）
+   */
+  getEntry(boardId: string): CacheEntry | null {
+    const entry = this.cache.get(boardId)
+    if (!entry) return null
+    const now = Date.now()
+    const isExpired = now - entry.timestamp > this.ttl
+    if (isExpired) {
+      this.cache.delete(boardId)
+      return null
+    }
+    return entry
+  }
+
+  /**
    * 设置看板缓存
    */
   set(boardId: string, board: Board): void {
