@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
 import type { AiInsight, InsightSeverity, InsightType } from '@/types/ai-insights.types'
 import type { Board, Card, Lane } from '@/lib/db'
@@ -108,11 +109,22 @@ function getSeverityStyles(severity: InsightSeverity): {
 export function AiInsightsPanel({ board, onCardClick, onExecuteTool }: AiInsightsPanelProps) {
   const [insights, setInsights] = useState<AiInsight[]>([])
   const [loading, setLoading] = useState(false)
-  const [expanded, setExpanded] = useState(true)
+  const [expanded, setExpanded] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set())
   const [executingId, setExecutingId] = useState<string | null>(null)
+  const [enabled, setEnabled] = useState(false)
+
+  // 客户端加载后读取本地存储的开关状态
+  useEffect(() => {
+    const saved = localStorage.getItem('kanban.ai-insights.enabled')
+    if (saved === 'true') {
+      setEnabled(true)
+      // 如果用户之前开启过，加载时也自动展开
+      setExpanded(true)
+    }
+  }, [])
 
   /**
    * 请求 AI 生成洞察
@@ -193,10 +205,22 @@ export function AiInsightsPanel({ board, onCardClick, onExecuteTool }: AiInsight
   }, [])
 
   /**
-   * 组件挂载时自动获取洞察
+   * 组件挂载时自动获取洞察（仅当展开且开启时）
    */
   useEffect(() => {
-    fetchInsights()
+    if (enabled && expanded) {
+      fetchInsights()
+    }
+  }, [fetchInsights, enabled, expanded])
+
+  const handleToggleEnabled = useCallback((value: boolean) => {
+    setEnabled(value)
+    localStorage.setItem('kanban.ai-insights.enabled', String(value))
+    // 开启时自动展开并立即触发一次洞察
+    if (value) {
+      setExpanded(true)
+      fetchInsights()
+    }
   }, [fetchInsights])
 
   const visibleInsights = insights.filter((i) => !dismissedIds.has(i.id))
@@ -249,7 +273,11 @@ export function AiInsightsPanel({ board, onCardClick, onExecuteTool }: AiInsight
 
         {/* 右侧固定：操作按钮 */}
         <div className="flex items-center gap-1 shrink-0 ml-auto">
-          {lastUpdated && (
+          <Switch
+            checked={enabled}
+            onCheckedChange={handleToggleEnabled}
+          />
+          {lastUpdated && enabled && (
             <span className="text-[10px] text-muted-foreground mr-1 hidden sm:inline">
               {lastUpdated.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
             </span>
@@ -260,9 +288,9 @@ export function AiInsightsPanel({ board, onCardClick, onExecuteTool }: AiInsight
             className="h-7 w-7"
             onClick={(e) => {
               e.stopPropagation()
-              fetchInsights()
+              if (enabled) fetchInsights()
             }}
-            disabled={loading}
+            disabled={loading || !enabled}
             title="刷新洞察"
           >
             <RefreshCw className={cn('h-3.5 w-3.5', loading && 'animate-spin')} />
@@ -278,7 +306,13 @@ export function AiInsightsPanel({ board, onCardClick, onExecuteTool }: AiInsight
       {/* 内容区域 */}
       {expanded && (
         <div className="border-t border-border">
-          {error ? (
+          {!enabled ? (
+            <div className="px-4 py-6 text-center">
+              <Lightbulb className="mx-auto h-5 w-5 text-muted-foreground mb-2" />
+              <p className="text-sm text-muted-foreground">AI 洞察已关闭</p>
+              <p className="text-xs text-muted-foreground mt-1">打开上方开关以启用智能分析</p>
+            </div>
+          ) : error ? (
             <div className="px-4 py-6 text-center">
               <AlertCircle className="mx-auto h-5 w-5 text-destructive mb-2" />
               <p className="text-sm text-destructive">{error}</p>
