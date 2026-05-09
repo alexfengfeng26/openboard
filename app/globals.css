@@ -92,3 +92,21 @@ body {
   background: hsl(35 8% 64%);
 }
 
+/* AI 洞察面板滚动动画 */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 20s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+

@@ -47,6 +47,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody } from '@/
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { KeyboardHelp } from '@/components/ui/keyboard-help'
 import { DeepSeekChatPanel } from '@/components/ai/DeepSeekChatPanel'
+import { AiInsightsPanel } from '@/components/ai/AiInsightsPanel'
 import { AppSidebar } from '@/components/layout/AppSidebar'
 import { BoardTagsProvider } from './BoardTagsContext'
 import { CreateBoardDialog } from './CreateBoardDialog'
@@ -1066,6 +1067,26 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
               </div>
             </div>
           </header>
+
+          {/* AI 洞察面板 */}
+          <div className="px-4 py-2">
+            <AiInsightsPanel
+              board={board}
+              onCardClick={(cardId) => {
+                const card = board.lanes.flatMap((l) => l.cards).find((c) => c.id === cardId)
+                if (card) dispatch({ type: 'SET_EDITING_CARD', payload: card })
+              }}
+              onExecuteTool={async (toolName, params) => {
+                const response = await fetch('/api/ai/tools/execute', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ toolCalls: [{ toolName, params }] }),
+                })
+                if (!response.ok) throw new Error('执行失败')
+                await refreshCurrentBoard()
+              }}
+            />
+          </div>
 
           {/* 看板主体区域 */}
           <div className="min-h-0 min-w-0 flex-1 overflow-x-auto overflow-y-hidden p-3">
