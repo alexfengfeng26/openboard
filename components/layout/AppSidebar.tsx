@@ -45,6 +45,7 @@ export interface AppSidebarProps {
 
 const STORAGE_KEY = 'kanban-sidebar-expanded'
 const SHOW_ARCHIVED_KEY = 'kanban-sidebar-show-archived'
+const SHOW_BOARDS_KEY = 'kanban-sidebar-show-boards'
 
 export function AppSidebar({
   boards,
@@ -96,6 +97,19 @@ export function AppSidebar({
   // 分离活跃和已归档看板
   const activeBoards = sortedBoards.filter((b) => !b.archivedAt)
   const archivedBoards = sortedBoards.filter((b) => b.archivedAt)
+
+  // 未归档看板展开状态（默认展开）
+  const [showBoards, setShowBoards] = useState(() => {
+    if (typeof window === 'undefined') return true
+    const saved = localStorage.getItem(SHOW_BOARDS_KEY)
+    return saved === null ? true : saved === 'true'
+  })
+
+  const toggleBoards = () => {
+    const next = !showBoards
+    setShowBoards(next)
+    localStorage.setItem(SHOW_BOARDS_KEY, String(next))
+  }
 
   // 已归档看板展开状态
   const [showArchived, setShowArchived] = useState(() => {
@@ -220,22 +234,36 @@ export function AppSidebar({
 
       {/* 看板列表 */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden py-2">
-        <div className="px-4 py-2 text-[11px] font-medium uppercase tracking-wider" style={{ color: '#7B746C' }}>
-          看板
-        </div>
-        <nav className="space-y-0.5 px-2">
-          {activeBoards.map((board) => (
-            <BoardMenuItem
-              key={board.id}
-              board={board}
-              active={board.id === activeBoardId}
-              onClick={() => onBoardSelect?.(board.id)}
-              onEdit={() => onBoardEdit?.(board.id)}
-              onArchive={() => onBoardArchive?.(board.id)}
-              onFavorite={() => onBoardFavorite?.(board.id, !board.favoritedAt)}
+        <button
+          onClick={toggleBoards}
+          className="flex w-full items-center justify-between px-4 py-2 text-[11px] font-medium uppercase tracking-wider transition-colors hover:text-[#A84F2A]"
+          style={{ color: '#7B746C' }}
+        >
+          <span>看板</span>
+          <span className="flex items-center gap-1">
+            <span className="rounded-full px-1.5 py-0 text-[10px]" style={{ backgroundColor: '#F0E8DE', color: '#7B746C' }}>
+              {activeBoards.length}
+            </span>
+            <ChevronDown
+              className={cn('h-3 w-3 transition-transform', showBoards && 'rotate-180')}
             />
-          ))}
-        </nav>
+          </span>
+        </button>
+        {showBoards && (
+          <nav className="space-y-0.5 px-2">
+            {activeBoards.map((board) => (
+              <BoardMenuItem
+                key={board.id}
+                board={board}
+                active={board.id === activeBoardId}
+                onClick={() => onBoardSelect?.(board.id)}
+                onEdit={() => onBoardEdit?.(board.id)}
+                onArchive={() => onBoardArchive?.(board.id)}
+                onFavorite={() => onBoardFavorite?.(board.id, !board.favoritedAt)}
+              />
+            ))}
+          </nav>
+        )}
 
         {/* 已归档看板 — 可折叠 */}
         {archivedBoards.length > 0 && (
