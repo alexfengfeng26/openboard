@@ -1006,24 +1006,38 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
               </div>
 
               {/* 搜索栏 */}
-              <div className={cn('flex items-center gap-2', isMobile ? 'w-full' : 'flex-1 max-w-md')}> 
-                {/* 搜索模式切换 */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={cn(
-                    'h-8 w-8 shrink-0',
-                    searchMode === 'semantic' && 'text-amber-500 hover:text-amber-600 hover:bg-amber-50'
-                  )}
-                  onClick={() => switchSearchMode(searchMode === 'keyword' ? 'semantic' : 'keyword')}
-                  title={searchMode === 'keyword' ? '切换到 AI 语义搜索' : '切换到关键词搜索'}
-                >
-                  {searchMode === 'semantic' ? (
-                    <Sparkles className="h-4 w-4" />
-                  ) : (
-                    <Search className="h-4 w-4" />
-                  )}
-                </Button>
+              <div className={cn('flex items-center gap-2', isMobile ? 'w-full' : 'flex-1 max-w-md')}>
+                {/* 搜索模式切换 — Segmented Control */}
+                <div className="flex shrink-0 items-center rounded-md border bg-muted p-0.5">
+                  <button
+                    type="button"
+                    onClick={() => switchSearchMode('keyword')}
+                    className={cn(
+                      'flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-all',
+                      searchMode === 'keyword'
+                        ? 'bg-white text-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
+                    )}
+                    title="关键词搜索：按标题和描述匹配"
+                  >
+                    <Search className="h-3 w-3" />
+                    <span className="hidden sm:inline">关键词</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => switchSearchMode('semantic')}
+                    className={cn(
+                      'flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-all',
+                      searchMode === 'semantic'
+                        ? 'bg-amber-50 text-amber-700 shadow-sm ring-1 ring-amber-200'
+                        : 'text-muted-foreground hover:text-foreground'
+                    )}
+                    title="AI 语义搜索：用自然语言描述要找的卡片"
+                  >
+                    <Sparkles className="h-3 w-3" />
+                    <span className="hidden sm:inline">AI 语义</span>
+                  </button>
+                </div>
                 <div className="relative flex-1">
                   {searchMode === 'semantic' && semanticLoading ? (
                     <Sparkles className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-amber-500 animate-pulse" />
