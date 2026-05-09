@@ -471,6 +471,10 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
     filteredBoard,
     resultCount,
     clearFilters,
+    searchMode,
+    switchSearchMode,
+    semanticLoading,
+    performSemanticSearch,
   } = useCardSearch(board)
 
   const searchInputRef = useRef<HTMLInputElement>(null)
@@ -995,21 +999,59 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
 
               {/* 搜索栏 */}
               <div className={cn('flex items-center gap-2', isMobile ? 'w-full' : 'flex-1 max-w-md')}> 
+                {/* 搜索模式切换 */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={cn(
+                    'h-8 w-8 shrink-0',
+                    searchMode === 'semantic' && 'text-amber-500 hover:text-amber-600 hover:bg-amber-50'
+                  )}
+                  onClick={() => switchSearchMode(searchMode === 'keyword' ? 'semantic' : 'keyword')}
+                  title={searchMode === 'keyword' ? '切换到 AI 语义搜索' : '切换到关键词搜索'}
+                >
+                  {searchMode === 'semantic' ? (
+                    <Sparkles className="h-4 w-4" />
+                  ) : (
+                    <Search className="h-4 w-4" />
+                  )}
+                </Button>
                 <div className="relative flex-1">
-                  <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  {searchMode === 'semantic' && semanticLoading ? (
+                    <Sparkles className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-amber-500 animate-pulse" />
+                  ) : (
+                    <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  )}
                   <Input
                     ref={searchInputRef}
                     type="text"
-                    placeholder="搜索卡片... (Cmd/Ctrl + K)"
+                    placeholder={
+                      searchMode === 'semantic'
+                        ? '描述你想找的卡片，按回车搜索...'
+                        : '搜索卡片... (Cmd/Ctrl + K)'
+                    }
                     value={filters.query}
-                    onChange={(e) => setQuery(e.target.value)}
+                    onChange={(e) => {
+                      setQuery(e.target.value)
+                      if (searchMode === 'semantic') {
+                        performSemanticSearch(e.target.value)
+                      }
+                    }}
                     onKeyDown={(e) => {
                       if (e.key === 'Escape') {
                         clearFilters()
                         searchInputRef.current?.blur()
                       }
+                      if (e.key === 'Enter' && searchMode === 'semantic') {
+                        performSemanticSearch(filters.query)
+                      }
                     }}
-                    className="h-8 border-transparent bg-muted pl-8 pr-14 focus:bg-white"
+                    className={cn(
+                      'h-8 border-transparent pr-14 focus:bg-white',
+                      searchMode === 'semantic'
+                        ? 'bg-amber-50/50 pl-8 focus:bg-amber-50'
+                        : 'bg-muted pl-8'
+                    )}
                   />
                   {filters.query && (
                     <button
@@ -1022,7 +1064,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                   )}
                   {filters.query && (
                     <span className="absolute right-8 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">
-                      {resultCount}
+                      {semanticLoading ? '...' : resultCount}
                     </span>
                   )}
                 </div>
