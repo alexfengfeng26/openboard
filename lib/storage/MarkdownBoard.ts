@@ -85,16 +85,29 @@ export class MarkdownBoard {
         const tempPath = `${filePath}.tmp`
         await fs.writeFile(tempPath, content, 'utf-8')
 
-        // 原子性重命名
-        await fs.rename(tempPath, filePath)
+        // 原子性重命名（Windows 兼容处理）
+        try {
+          await fs.rename(tempPath, filePath)
+        } catch (renameError) {
+          const code = (renameError as NodeJS.ErrnoException).code
+          if (code === 'EPERM') {
+            // Windows 上目标文件可能被占用，先删除再重命名
+            await fs.unlink(filePath)
+            await fs.rename(tempPath, filePath)
+          } else {
+            throw renameError
+          }
+        }
       } finally {
         await release()
       }
     } catch (error) {
+      const originalError = error as Error
+      console.error(`[MarkdownBoard] 写入失败 ${board.id}:`, originalError.message, originalError.cause || '')
       throw new StorageWriteError(
         `写入看板文件失败: ${board.id}`,
         filePath,
-        error as Error
+        originalError
       )
     }
   }

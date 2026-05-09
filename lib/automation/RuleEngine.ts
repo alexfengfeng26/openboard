@@ -12,6 +12,7 @@ import type {
   AutomationTriggerType,
 } from '@/types/automation.types'
 import { getStorage } from '@/lib/storage/StorageAdapter'
+import { getSettingsStorage } from '@/lib/storage/SettingsStorage'
 
 export class RuleEngineError extends Error {
   constructor(message: string, cause?: Error) {
@@ -237,10 +238,17 @@ async function executeAction(
         return
       }
 
-      const boardTags = board.tags || []
+      let boardTags = board.tags || []
       if (boardTags.length === 0) {
-        console.log('[RuleEngine] 看板没有标签，跳过 auto_tag')
-        return
+        // 看板没有标签时，回退到全局标签池
+        const settingsStorage = await getSettingsStorage()
+        const globalTags = await settingsStorage.getGlobalTags()
+        if (globalTags.length === 0) {
+          console.log('[RuleEngine] 看板和全局标签池均为空，跳过 auto_tag')
+          return
+        }
+        boardTags = globalTags
+        console.log(`[RuleEngine] 看板标签为空，使用全局标签池 (${globalTags.length} 个)`)
       }
 
       const searchText = ((card.title || '') + ' ' + (card.description || '')).toLowerCase()
