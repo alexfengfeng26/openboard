@@ -1069,9 +1069,9 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                       }
                     }}
                     className={cn(
-                      'h-8 border-transparent pr-14 focus:bg-white',
+                      'h-8 border-transparent pr-14 focus:bg-card',
                       searchMode === 'semantic'
-                        ? 'bg-amber-50/50 pl-8 focus:bg-amber-50'
+                        ? 'bg-primary/5 pl-8 focus:bg-primary/5'
                         : 'bg-muted pl-8'
                     )}
                   />

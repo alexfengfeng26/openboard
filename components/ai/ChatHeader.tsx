@@ -30,7 +30,7 @@ export function ChatHeader({
   const [showClearConfirm, setShowClearConfirm] = useState(false)
 
   return (
-    <div className="flex items-center justify-between gap-2 border-b border-border bg-white/80 px-3 py-2 backdrop-blur-sm">
+    <div className="flex items-center justify-between gap-2 border-b border-border bg-card/80 px-3 py-2 backdrop-blur-sm">
       {/* 左侧：AI 品牌标识 */}
       <div className="flex items-center gap-2">
         <div className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 shadow-sm">

@@ -1,5 +1,6 @@
 'use client'
 
+import { cn } from '@/lib/utils'
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -133,7 +134,7 @@ const LaneContent = memo(function LaneContent({
   }
 
   return (
-    <div className={`group flex h-full w-60 shrink-0 flex-col rounded-xl border border-border bg-[#F4EFE7]/60 px-2.5 py-2.5 shadow-sm ${isHovered ? 'border-ring/30 bg-[#F4EFE7]/90' : ''}`}>
+    <div className={cn('group flex h-full w-60 shrink-0 flex-col rounded-xl border border-border bg-muted px-2.5 py-2.5 shadow-sm', isHovered && 'border-ring/30 bg-muted/80')}>
       {/* 列表头部 */}
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -186,7 +187,7 @@ const LaneContent = memo(function LaneContent({
             ))}
 
             {lane.cards.length === 0 && (
-              <div className="flex h-20 items-center justify-center rounded-lg border border-dashed border-border bg-background/50 text-xs text-muted-foreground">
+              <div className="flex h-20 items-center justify-center rounded-lg border border-dashed border-border bg-muted/40 text-xs text-muted-foreground">
                 暂无卡片
               </div>
             )}

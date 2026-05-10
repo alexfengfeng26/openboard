@@ -127,25 +127,17 @@ export function AppSidebar({
   if (!expanded) {
     return (
       <aside
-        className="relative flex h-screen flex-col items-center border-r py-4 shrink-0 w-[44px]"
-        style={{
-          backgroundColor: '#F4EFE7',
-          borderColor: '#E2D8CC',
-        }}
+        className="relative flex h-screen flex-col items-center border-r border-sidebar-border py-4 shrink-0 w-[44px] bg-sidebar"
       >
         {/* Logo */}
-        <div
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg mb-3"
-          style={{ backgroundColor: '#C96442' }}
-        >
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg mb-3 bg-primary">
           <Sparkles className="h-4 w-4 text-white" />
         </div>
 
         {/* 展开按钮 */}
         <button
           onClick={handleToggle}
-          className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-[#F0E8DE]"
-          style={{ color: '#7B746C' }}
+          className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-sidebar-accent text-sidebar-foreground/60"
           title="展开菜单"
           aria-label="展开菜单"
         >
@@ -157,12 +149,14 @@ export function AppSidebar({
 
         {/* 底部操作按钮 */}
         <div className="flex flex-col items-center gap-2">
-          <div className="w-6 h-px" style={{ backgroundColor: '#E2D8CC' }} />
+          <div className="w-6 h-px bg-sidebar-border" />
           {/* AI 助手 */}
           <button
             onClick={onToggleAI}
-            className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-[#F0E8DE]"
-            style={{ color: aiOpen ? '#A84F2A' : '#7B746C' }}
+            className={cn(
+              'flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-sidebar-accent',
+              aiOpen ? 'text-primary' : 'text-sidebar-foreground/60'
+            )}
             title={aiOpen ? '关闭 AI 助手' : '打开 AI 助手'}
             aria-label={aiOpen ? '关闭 AI 助手' : '打开 AI 助手'}
           >
@@ -171,8 +165,7 @@ export function AppSidebar({
           {/* 创建看板 */}
           <button
             onClick={onCreateBoard}
-            className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-[#F0E8DE]"
-            style={{ color: '#7B746C' }}
+            className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-sidebar-accent text-sidebar-foreground/60"
             title="创建看板"
             aria-label="创建看板"
           >
@@ -181,8 +174,7 @@ export function AppSidebar({
           {/* 设置 */}
           <button
             onClick={onOpenSettings}
-            className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-[#F0E8DE]"
-            style={{ color: '#7B746C' }}
+            className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-sidebar-accent text-sidebar-foreground/60"
             title="设置"
             aria-label="设置"
           >
@@ -196,52 +188,43 @@ export function AppSidebar({
   return (
     <aside
       className={cn(
-        'relative flex h-screen flex-col border-r transition-all duration-300 ease-in-out shrink-0',
-        'w-[220px]'
+        'relative flex h-screen flex-col border-r border-sidebar-border transition-all duration-300 ease-in-out shrink-0',
+        'w-[220px] bg-sidebar'
       )}
-      style={{
-        backgroundColor: '#F4EFE7',
-        borderColor: '#E2D8CC',
-      }}
     >
       {/* Toggle button on right edge */}
       <button
         onClick={handleToggle}
-        className="absolute -right-3 top-6 z-10 flex h-6 w-6 items-center justify-center rounded-full border shadow-sm transition-colors hover:bg-white"
-        style={{ borderColor: '#E2D8CC', backgroundColor: '#FBFAF7' }}
+        className="absolute -right-3 top-6 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-sidebar-border bg-background shadow-sm transition-colors hover:bg-card"
         aria-label="收起菜单"
       >
-        <ChevronLeft className="h-3 w-3" style={{ color: '#7B746C' }} />
+        <ChevronLeft className="h-3 w-3 text-sidebar-foreground/60" />
       </button>
 
       {/* Logo & Title */}
       <div className="flex items-center gap-3 px-4 py-4">
-        <div
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
-          style={{ backgroundColor: '#C96442' }}
-        >
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary">
           <Sparkles className="h-4 w-4 text-white" />
         </div>
         <div className="min-w-0 flex-1">
-          <h2 className="text-sm font-semibold" style={{ color: '#26211C' }}>
+          <h2 className="text-sm font-semibold text-sidebar-foreground">
             我的看板
           </h2>
         </div>
       </div>
 
       {/* Divider */}
-      <div className="mx-3 h-px" style={{ backgroundColor: '#E2D8CC' }} />
+      <div className="mx-3 h-px bg-sidebar-border" />
 
       {/* 看板列表 */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden py-2">
         <button
           onClick={toggleBoards}
-          className="flex w-full items-center justify-between px-4 py-2 text-[11px] font-medium uppercase tracking-wider transition-colors hover:text-[#A84F2A]"
-          style={{ color: '#7B746C' }}
+          className="flex w-full items-center justify-between px-4 py-2 text-[11px] font-medium uppercase tracking-wider transition-colors text-sidebar-foreground/60 hover:text-primary"
         >
           <span>看板</span>
           <span className="flex items-center gap-1">
-            <span className="rounded-full px-1.5 py-0 text-[10px]" style={{ backgroundColor: '#F0E8DE', color: '#7B746C' }}>
+            <span className="rounded-full px-1.5 py-0 text-[10px] bg-sidebar-accent text-sidebar-foreground/60">
               {activeBoards.length}
             </span>
             <ChevronDown
@@ -270,12 +253,11 @@ export function AppSidebar({
           <div className="mt-2">
             <button
               onClick={toggleArchived}
-              className="flex w-full items-center justify-between px-4 py-2 text-[11px] font-medium uppercase tracking-wider transition-colors hover:text-[#A84F2A]"
-              style={{ color: '#7B746C' }}
+              className="flex w-full items-center justify-between px-4 py-2 text-[11px] font-medium uppercase tracking-wider transition-colors text-sidebar-foreground/60 hover:text-primary"
             >
               <span>已归档</span>
               <span className="flex items-center gap-1">
-                <span className="rounded-full px-1.5 py-0 text-[10px]" style={{ backgroundColor: '#F0E8DE', color: '#7B746C' }}>
+                <span className="rounded-full px-1.5 py-0 text-[10px] bg-sidebar-accent text-sidebar-foreground/60">
                   {archivedBoards.length}
                 </span>
                 <ChevronDown
@@ -304,7 +286,7 @@ export function AppSidebar({
         {/* 最近访问 — 过滤掉已归档的 */}
         {recentBoards && recentBoards.filter((b) => !b.archivedAt).length > 0 && (
           <>
-            <div className="mt-4 px-4 py-2 text-[11px] font-medium uppercase tracking-wider" style={{ color: '#7B746C' }}>
+            <div className="mt-4 px-4 py-2 text-[11px] font-medium uppercase tracking-wider text-sidebar-foreground/60">
               最近访问
             </div>
             <nav className="space-y-0.5 px-2">
@@ -325,7 +307,7 @@ export function AppSidebar({
       </div>
 
       {/* Bottom Actions */}
-      <div className="border-t px-2 py-2" style={{ borderColor: '#E2D8CC' }}>
+      <div className="border-t border-sidebar-border px-2 py-2">
         <nav className="space-y-0.5">
           {/* AI 助手 */}
           <SidebarActionButton
@@ -376,16 +358,16 @@ function BoardMenuItem({
         'group relative flex w-full items-center rounded-md text-sm transition-colors',
         active
           ? 'font-medium'
-          : 'font-normal hover:bg-[#F0E8DE]'
+          : 'font-normal hover:bg-sidebar-accent'
       )}
       style={
         active
           ? {
-              backgroundColor: '#EFE3D7',
-              color: '#A84F2A',
-              borderLeft: '3px solid #C96442',
+              backgroundColor: 'hsl(var(--primary) / 0.1)',
+              color: 'hsl(var(--primary))',
+              borderLeft: '3px solid hsl(var(--primary))',
             }
-          : { color: '#26211C' }
+          : { color: 'hsl(var(--sidebar-foreground))' }
       }
     >
       {/* 主按钮区域 */}
@@ -399,7 +381,7 @@ function BoardMenuItem({
           ) : board.icon ? (
             <img src={board.icon} alt="" className="h-4 w-4 object-contain" />
           ) : (
-            <LayoutDashboard className="h-4 w-4" style={{ color: active ? '#A84F2A' : '#7B746C' }} />
+            <LayoutDashboard className={cn("h-4 w-4", active ? "text-primary" : "text-sidebar-foreground/60")} />
           )}
         </span>
         <span className={cn("min-w-0 flex-1 truncate text-left", isArchived && "line-through opacity-50")}>
@@ -409,8 +391,8 @@ function BoardMenuItem({
           <span
             className="shrink-0 rounded-full px-1.5 py-0 text-[10px]"
             style={{
-              backgroundColor: active ? '#EFE3D7' : '#F0E8DE',
-              color: active ? '#A84F2A' : '#7B746C',
+              backgroundColor: active ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--sidebar-accent))',
+              color: active ? 'hsl(var(--primary))' : 'hsl(var(--sidebar-foreground) / 0.6)',
             }}
           >
             {board.count}
@@ -431,7 +413,7 @@ function BoardMenuItem({
           aria-label={isFavorited ? '取消收藏' : '收藏'}
         >
           <Star
-            className={cn("h-3.5 w-3.5", isFavorited ? "fill-amber-400 text-amber-400" : "text-[#7B746C]")}
+            className={cn("h-3.5 w-3.5", isFavorited ? "fill-amber-400 text-amber-400" : "text-sidebar-foreground/60")}
           />
         </button>
         {/* 编辑 */}
@@ -444,7 +426,7 @@ function BoardMenuItem({
           title="编辑看板"
           aria-label="编辑看板"
         >
-          <Pencil className="h-3.5 w-3.5 text-[#7B746C]" />
+          <Pencil className="h-3.5 w-3.5 text-sidebar-foreground/60" />
         </button>
         {/* 归档/恢复 */}
         <button
@@ -459,7 +441,7 @@ function BoardMenuItem({
           {isArchived ? (
             <ArchiveRestore className="h-3.5 w-3.5 text-emerald-600" />
           ) : (
-            <Archive className="h-3.5 w-3.5 text-[#7B746C]" />
+            <Archive className="h-3.5 w-3.5 text-sidebar-foreground/60" />
           )}
         </button>
       </div>
@@ -483,18 +465,18 @@ function SidebarActionButton({
       onClick={onClick}
       className={cn(
         'group flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-sm transition-colors',
-        active ? 'font-medium' : 'font-normal hover:bg-[#F0E8DE]'
+        active ? 'font-medium' : 'font-normal hover:bg-sidebar-accent'
       )}
       style={
         active
           ? {
-              backgroundColor: '#EFE3D7',
-              color: '#A84F2A',
+              backgroundColor: 'hsl(var(--primary) / 0.1)',
+              color: 'hsl(var(--primary))',
             }
-          : { color: '#26211C' }
+          : { color: 'hsl(var(--sidebar-foreground))' }
       }
     >
-      <span className="flex h-5 w-5 shrink-0 items-center justify-center" style={{ color: active ? '#A84F2A' : '#7B746C' }}>
+      <span className={cn("flex h-5 w-5 shrink-0 items-center justify-center", active ? "text-primary" : "text-sidebar-foreground/60")}>
         {icon}
       </span>
       <span className="min-w-0 flex-1 truncate text-left">{label}</span>
