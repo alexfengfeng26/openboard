@@ -68,6 +68,15 @@ body {
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
+/* Graph paper / blueprint grid background */
+.grid-bg {
+  background-color: hsl(var(--background));
+  background-image:
+    linear-gradient(to right, hsl(var(--foreground) / 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, hsl(var(--foreground) / 0.035) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
 /* 拖放样式 */
 .react-kanban-dragging {
   opacity: 0.5;
