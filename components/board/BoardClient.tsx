@@ -48,6 +48,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody } from '@/
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { KeyboardHelp } from '@/components/ui/keyboard-help'
 import { DeepSeekChatPanel } from '@/components/ai/DeepSeekChatPanel'
+import { ClaudeAssistantStatusFloat } from '@/components/ai/ClaudeAssistantStatusFloat'
 import { AiInsightsPanel } from '@/components/ai/AiInsightsPanel'
 import { AutomationPanel } from '@/components/automation/AutomationPanel'
 import { AppSidebar } from '@/components/layout/AppSidebar'
@@ -62,6 +63,7 @@ import { useKeyboardShortcuts } from '@/lib/hooks/useKeyboardShortcuts'
 import { TagSelector } from '@/components/card/TagSelector'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { useRouter, usePathname } from 'next/navigation'
+import type { OperationLogEntry } from '@/types/ai-tools.types'
 
 interface BoardClientProps {
   initialBoard: Board
@@ -269,6 +271,44 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
   const [isMobile, setIsMobile] = useState(false)
   const [showBatchDeleteConfirm, setShowBatchDeleteConfirm] = useState(false)
   const [showAutomation, setShowAutomation] = useState(false)
+  const [assistantStatus, setAssistantStatus] = useState<{
+    operationLogs: OperationLogEntry[]
+    isSending: boolean
+  }>({
+    operationLogs: [],
+    isSending: false,
+  })
+
+  useEffect(() => {
+    let cancelled = false
+
+    setAssistantStatus({
+      operationLogs: [],
+      isSending: false,
+    })
+
+    async function loadAssistantStatus() {
+      try {
+        const response = await fetch(`/api/boards/${encodeURIComponent(board.id)}/logs`)
+        if (!response.ok) return
+        const result = await response.json()
+        if (!cancelled && result.success) {
+          setAssistantStatus((prev) => ({
+            ...prev,
+            operationLogs: Array.isArray(result.data) ? result.data : [],
+          }))
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    loadAssistantStatus()
+
+    return () => {
+      cancelled = true
+    }
+  }, [board.id])
 
   // AI 浮动面板状态
   const [chatMinimized, setChatMinimized] = useState(false)
@@ -1270,16 +1310,17 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                     tags={board.tags}
                     linkedCard={editingCard}
                     onCardCreated={handleCardCreatedFromChat}
-                    onBoardRefresh={refreshCurrentBoard}
-                    boardId={board.id}
-                    boardTitle={board.title}
-                    externalSettingsOpen={aiSettingsOpen}
-                    onExternalSettingsOpenChange={setAiSettingsOpen}
-                    onRequestClose={() => dispatch({ type: 'SET_SHOW_CHAT', payload: false })}
-                  />
-                </ErrorBoundary>
-              </div>
-            </DialogContent>
+                  onBoardRefresh={refreshCurrentBoard}
+                  boardId={board.id}
+                  boardTitle={board.title}
+                  externalSettingsOpen={aiSettingsOpen}
+                  onExternalSettingsOpenChange={setAiSettingsOpen}
+                  onRequestClose={() => dispatch({ type: 'SET_SHOW_CHAT', payload: false })}
+                  onStatusChange={setAssistantStatus}
+                />
+              </ErrorBoundary>
+            </div>
+          </DialogContent>
           </Dialog>
         ) : showChat && !chatMinimized ? (
           <div
@@ -1312,6 +1353,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                   boardTitle={board.title}
                   externalSettingsOpen={aiSettingsOpen}
                   onExternalSettingsOpenChange={setAiSettingsOpen}
+                  onStatusChange={setAssistantStatus}
                 />
               </ErrorBoundary>
             </div>
@@ -1335,6 +1377,15 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
             <Sparkles className="h-5 w-5" />
           </button>
         ) : null}
+
+        {!isMobile && (!showChat || chatMinimized) && (
+          <ClaudeAssistantStatusFloat
+            lanes={board.lanes}
+            operationLogs={assistantStatus.operationLogs}
+            isSending={assistantStatus.isSending}
+            className={chatMinimized ? 'is-raised' : undefined}
+          />
+        )}
 
         {/* 创建列表对话框 */}
         <CreateLaneDialog

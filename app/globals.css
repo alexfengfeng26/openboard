@@ -466,6 +466,28 @@ body {
   padding: 16px 14px 12px;
 }
 
+.notion-theme .claude-ai-status-float {
+  display: none;
+}
+
+:root:not(.notion-theme) .claude-ai-status-float {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 39;
+  width: min(360px, calc(100vw - 24px));
+  pointer-events: none;
+}
+
+:root:not(.notion-theme) .claude-ai-status-float.is-raised {
+  bottom: 96px;
+}
+
+:root:not(.notion-theme) .claude-ai-status-float .claude-ai-status-card {
+  margin: 0;
+  pointer-events: auto;
+}
+
 .notion-theme .claude-ai-status-card {
   display: none;
 }
