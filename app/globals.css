@@ -1,33 +1,35 @@
 @import "tailwindcss";
 
-:root {
-  /* Warm minimalism — 降低饱和度、提亮、更通透 */
-  --background: 38 12% 97%;
-  --foreground: 30 10% 14%;
-  --card: 38 8% 99%;
-  --card-foreground: 30 10% 14%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 30 10% 14%;
-  --primary: 20 65% 50%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 38 12% 94%;
-  --secondary-foreground: 30 10% 14%;
-  --muted: 38 10% 95%;
-  --muted-foreground: 30 8% 50%;
-  --accent: 38 12% 93%;
-  --accent-foreground: 30 10% 14%;
-  --destructive: 0 64% 52%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 38 10% 91%;
-  --input: 38 10% 91%;
-  --ring: 20 65% 50%;
-  --radius: 0.75rem;
+@layer base {
+  :root {
+    /* Warm minimalism — 降低饱和度、提亮、更通透 */
+    --background: 38 12% 97%;
+    --foreground: 30 10% 14%;
+    --card: 38 8% 99%;
+    --card-foreground: 30 10% 14%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 30 10% 14%;
+    --primary: 20 65% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 38 12% 94%;
+    --secondary-foreground: 30 10% 14%;
+    --muted: 38 10% 95%;
+    --muted-foreground: 30 8% 50%;
+    --accent: 38 12% 93%;
+    --accent-foreground: 30 10% 14%;
+    --destructive: 0 64% 52%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 38 10% 91%;
+    --input: 38 10% 91%;
+    --ring: 20 65% 50%;
+    --radius: 0.75rem;
 
-  /* Sidebar tokens */
-  --sidebar: 38 10% 95%;
-  --sidebar-foreground: 30 10% 18%;
-  --sidebar-border: 38 10% 90%;
-  --sidebar-accent: 38 12% 92%;
+    /* Sidebar tokens */
+    --sidebar: 38 10% 95%;
+    --sidebar-foreground: 30 10% 18%;
+    --sidebar-border: 38 10% 90%;
+    --sidebar-accent: 38 12% 92%;
+  }
 }
 
 @theme inline {
@@ -83,6 +85,145 @@ body {
     linear-gradient(to right, hsl(30 6% 82% / 0.45) 1px, transparent 1px),
     linear-gradient(to bottom, hsl(30 6% 82% / 0.45) 1px, transparent 1px);
   background-size: 20px 20px;
+}
+
+/* ============================================
+   Notion Theme
+   ============================================ */
+@layer base {
+  :root.notion-theme {
+    /* 1. 全局变量 — 黑白灰 + 米白 */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 18%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 18%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 18%;
+    --primary: 0 0% 18%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 40 14% 96%;
+    --secondary-foreground: 0 0% 18%;
+    --muted: 40 7% 94%;
+    --muted-foreground: 0 0% 48%;
+    --accent: 40 7% 94%;
+    --accent-foreground: 0 0% 18%;
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 36 12% 88%;
+    --input: 36 12% 88%;
+    --ring: 0 0% 18%;
+    --radius: 6px;
+
+    /* Sidebar */
+    --sidebar: 40 14% 96%;
+    --sidebar-foreground: 0 0% 18%;
+    --sidebar-border: 36 12% 88%;
+    --sidebar-accent: 40 7% 94%;
+
+    /* 字体 */
+    font-family: Inter, system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+
+  /* 2. 侧边栏 — 米白底、细边框 */
+  .notion-theme [class*="bg-sidebar"] {
+    background-color: hsl(var(--sidebar)) !important;
+  }
+
+  /* 3. 顶部工具栏 */
+  .notion-theme header[class*="bg-background"] {
+    background-color: hsl(var(--background)) !important;
+    border-bottom-color: hsl(var(--border)) !important;
+  }
+
+  /* 4. AI 洞察栏 — 纯白卡片、细边框 */
+  .notion-theme .ai-insights-panel,
+  .notion-theme [class*="ai-insight"] {
+    border-radius: 6px !important;
+  }
+
+  /* 5. 看板列 — 米白底、细边框、无阴影 */
+  .notion-theme [class*="lane"] [class*="rounded-xl"],
+  .notion-theme [class*="LaneItem"] [class*="rounded-xl"] {
+    border-radius: 6px !important;
+    box-shadow: none !important;
+  }
+
+  /* 6. 任务卡片 — 纯白底、细边框、无阴影 */
+  .notion-theme [class*="bg-card"] {
+    background-color: #ffffff !important;
+    border-radius: 6px !important;
+    box-shadow: none !important;
+  }
+
+  /* 7. 标签 — 低饱和小胶囊 */
+  .notion-theme [class*="rounded-full"][class*="px-2"] {
+    border-radius: 4px !important;
+    font-weight: 500;
+    font-size: 11px;
+    padding: 1px 6px;
+  }
+
+  /* 8. 按钮 — 黑色背景白字（primary），灰色边框（secondary/ghost） */
+  .notion-theme button[class*="bg-primary"],
+  .notion-theme .btn-primary,
+  .notion-theme [class*="Button"][class*="primary"] {
+    background-color: #2f2f2f !important;
+    color: #ffffff !important;
+    border-radius: 6px !important;
+    box-shadow: none !important;
+  }
+
+  .notion-theme button[class*="variant-ghost"],
+  .notion-theme button[class*="variant-outline"] {
+    border-radius: 6px !important;
+    box-shadow: none !important;
+  }
+
+  /* 9. 输入框 — 细边框、6px 圆角 */
+  .notion-theme input,
+  .notion-theme textarea,
+  .notion-theme select {
+    border-radius: 6px !important;
+    border-color: hsl(var(--border)) !important;
+  }
+
+  /* 10. 滚动条 — 极简灰色 */
+  .notion-theme ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  .notion-theme ::-webkit-scrollbar-thumb {
+    background: hsl(0 0% 80%);
+    border-radius: 2px;
+  }
+
+  .notion-theme ::-webkit-scrollbar-thumb:hover {
+    background: hsl(0 0% 60%);
+  }
+
+  /* 隐藏网格线 */
+  .notion-theme .lane-grid-bg {
+    background-image: none !important;
+  }
+
+  /* 全局阴影取消 */
+  .notion-theme :where(.shadow-sm, .shadow-md, .shadow-lg, .shadow-xl) {
+    box-shadow: 0 0 0 1px hsl(var(--border) / 0.6) !important;
+  }
+
+  /* AI 面板头部 — Notion 风格（去玻璃态） */
+  .notion-theme .ai-panel-header,
+  .notion-theme [class*="ChatHeader"] > div:first-child {
+    background-color: hsl(var(--card)) !important;
+    backdrop-filter: none !important;
+    border-bottom-color: hsl(var(--border)) !important;
+  }
+
+  /* 拖拽覆盖层阴影精简 */
+  .notion-theme .react-kanban-drag-overlay {
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.06) !important;
+  }
 }
 
 /* 拖放样式 */

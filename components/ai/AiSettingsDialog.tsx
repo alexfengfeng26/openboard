@@ -38,7 +38,9 @@ export function AiSettingsDialog({
   onAiSettingsChange,
   loading,
 }: AiSettingsDialogProps) {
-  const [settingsActiveTab, setSettingsActiveTab] = useState<'general' | 'trigger' | 'tags' | 'icons'>('general')
+  const [settingsActiveTab, setSettingsActiveTab] = useState<'general' | 'trigger' | 'tags' | 'icons' | 'appearance'>('general')
+  const [themeDraft, setThemeDraft] = useState<'claude' | 'notion'>('claude')
+  const [themeLoading, setThemeLoading] = useState(false)
   const [settingsDraft, setSettingsDraft] = useState(aiSettings?.toolTrigger ?? null)
   const [trustModeDraft, setTrustModeDraft] = useState<AiTrustMode>(aiSettings?.trustMode ?? 'confirm_high_risk')
   const [autoMinimizeDraft, setAutoMinimizeDraft] = useState(aiSettings?.autoMinimizeAfterAction ?? true)
@@ -126,6 +128,46 @@ export function AiSettingsDialog({
     toastSuccess('已保存设置')
   }, [settingsDraft, commandsDraft, onAiSettingsChange, onOpenChange, apiKeyDraft, apiKeyDirty, modelDraft, trustModeDraft, autoMinimizeDraft])
 
+  // 读取当前外观主题
+  useEffect(() => {
+    if (!open) return
+    fetch('/api/settings/appearance')
+      .then((res) => res.json())
+      .then((result) => {
+        if (result.success && result.data?.theme) {
+          setThemeDraft(result.data.theme)
+        }
+      })
+      .catch(() => {})
+  }, [open])
+
+  // 切换主题
+  const handleThemeChange = useCallback(async (theme: 'claude' | 'notion') => {
+    setThemeLoading(true)
+    try {
+      const response = await fetch('/api/settings/appearance', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ theme }),
+      })
+      const result = await response.json()
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || '更新失败')
+      }
+      // 同步通知 ThemeProvider
+      localStorage.setItem('kanban-theme', theme)
+      const setThemeFn = (window as unknown as Record<string, unknown>).__setKanbanTheme as ((t: string) => void) | undefined
+      if (typeof setThemeFn === 'function') {
+        setThemeFn(theme)
+      }
+      toastSuccess(theme === 'notion' ? '已切换到 Notion 风格' : '已切换到 Claude 风格')
+    } catch {
+      toastError('切换风格失败')
+    } finally {
+      setThemeLoading(false)
+    }
+  }, [])
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
@@ -174,6 +216,16 @@ export function AiSettingsDialog({
             onClick={() => setSettingsActiveTab('icons')}
           >
             图标管理
+          </button>
+          <button
+            className={`px-4 py-2 text-sm font-medium transition-colors ${
+              settingsActiveTab === 'appearance'
+                ? 'border-b-2 border-primary text-primary'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+            onClick={() => setSettingsActiveTab('appearance')}
+          >
+            外观
           </button>
         </div>
 
@@ -538,6 +590,75 @@ export function AiSettingsDialog({
         {settingsActiveTab === 'icons' && (
           <DialogBody>
             <IconSettingsPanel />
+          </DialogBody>
+        )}
+
+        {settingsActiveTab === 'appearance' && (
+          <DialogBody className="space-y-6">
+            <div className="space-y-3">
+              <div className="text-sm font-medium">界面风格</div>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => {
+                    setThemeDraft('claude')
+                    handleThemeChange('claude')
+                  }}
+                  className={`relative flex flex-col items-center gap-2 rounded-lg border p-4 transition-all ${
+                    themeDraft === 'claude'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/30'
+                  }`}
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 to-orange-500">
+                    <span className="text-xs font-bold text-white">C</span>
+                  </div>
+                  <div className="text-sm font-medium">Claude 风格</div>
+                  <div className="text-xs text-muted-foreground">暖白底 + 橙色品牌色</div>
+                  {themeDraft === 'claude' && (
+                    <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary" />
+                  )}
+                </button>
+                <button
+                  onClick={() => {
+                    setThemeDraft('notion')
+                    handleThemeChange('notion')
+                  }}
+                  className={`relative flex flex-col items-center gap-2 rounded-lg border p-4 transition-all ${
+                    themeDraft === 'notion'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/30'
+                  }`}
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#2f2f2f]">
+                    <span className="text-xs font-bold text-white">N</span>
+                  </div>
+                  <div className="text-sm font-medium">Notion 风格</div>
+                  <div className="text-xs text-muted-foreground">黑白灰 + 米白底</div>
+                  {themeDraft === 'notion' && (
+                    <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2 rounded-md border p-3">
+              <div className="text-xs font-medium text-muted-foreground">当前风格特点</div>
+              {themeDraft === 'claude' ? (
+                <ul className="space-y-1 text-xs text-muted-foreground">
+                  <li>• 暖白色背景，低饱和度配色</li>
+                  <li>• 橙色品牌色主按钮</li>
+                  <li>• 圆角 12px，轻微阴影</li>
+                  <li>• 卡片列表支持网格线背景</li>
+                </ul>
+              ) : (
+                <ul className="space-y-1 text-xs text-muted-foreground">
+                  <li>• 纯白主区域 + 米白侧边栏</li>
+                  <li>• 黑色主按钮，白字</li>
+                  <li>• 圆角 6px，无阴影，细边框</li>
+                  <li>• 极简黑白灰配色</li>
+                </ul>
+              )}
+            </div>
           </DialogBody>
         )}
 

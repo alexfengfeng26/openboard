@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from '@/components/ui/toast'
+import { ThemeProvider } from '@/components/ThemeProvider'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -32,9 +33,11 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" className={inter.variable}>
       <body className={`${inter.className} antialiased`} suppressHydrationWarning>
-        <div className="min-h-screen">
-          {children}
-        </div>
+        <ThemeProvider>
+          <div className="min-h-screen">
+            {children}
+          </div>
+        </ThemeProvider>
         <Toaster position="bottom-right" richColors closeButton />
       </body>
     </html>

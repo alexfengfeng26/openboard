@@ -11,6 +11,7 @@ import type {
   AiToolTriggerConfig,
   IconSettings,
   BoardIcon,
+  AppearanceSettings,
 } from '@/types/settings.types'
 import type { AiCommand } from '@/types/ai-commands.types'
 
@@ -115,7 +116,7 @@ export function useSettings() {
   } = useApiResource<AppSettings>('/api/settings', '/api/settings')
 
   const updateSettings = useCallback(async (
-    updates: { ai?: Partial<AiSettings>; boardView?: Partial<BoardViewSettings> }
+    updates: { ai?: Partial<AiSettings>; boardView?: Partial<BoardViewSettings>; appearance?: Partial<AppearanceSettings> }
   ) => {
     return _updateSettings(updates as Partial<AppSettings>)
   }, [_updateSettings])
@@ -219,6 +220,27 @@ export function useToolTriggerConfig() {
     error,
     fetchConfig,
     updateConfig,
+  }
+}
+
+/**
+ * 使用外观设置的 Hook
+ */
+export function useAppearanceSettings() {
+  const {
+    data: appearance,
+    loading,
+    error,
+    fetchData: fetchAppearance,
+    updateData: updateAppearance,
+  } = useApiResource<AppearanceSettings>('/api/settings/appearance', '/api/settings/appearance')
+
+  return {
+    appearance,
+    loading,
+    error,
+    fetchAppearance,
+    updateAppearance,
   }
 }
 

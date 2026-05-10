@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getSettingsStorage } from '@/lib/storage/SettingsStorage'
-import type { AppSettings, AiSettings, BoardViewSettings, IconSettings } from '@/types/settings.types'
+import type { AppSettings, AiSettings, BoardViewSettings, IconSettings, AppearanceSettings } from '@/types/settings.types'
 
 /**
  * 获取设置
@@ -57,6 +57,10 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
 
     if (body.icons) {
       await storage.updateIconSettings(body.icons)
+    }
+
+    if (body.appearance) {
+      await storage.updateAppearanceSettings(body.appearance)
     }
     
     // 获取更新后的完整设置

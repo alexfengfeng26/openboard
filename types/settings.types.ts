@@ -73,6 +73,14 @@ export interface AiSettings {
 }
 
 /**
+ * 外观主题设置
+ */
+export interface AppearanceSettings {
+  /** 界面主题风格 */
+  theme: 'claude' | 'notion'
+}
+
+/**
  * 看板显示设置
  */
 export interface BoardViewSettings {
@@ -112,6 +120,8 @@ export interface AppSettings {
   tags: TagsSettings
   /** 图标设置 */
   icons: IconSettings
+  /** 外观主题设置 */
+  appearance: AppearanceSettings
   /** 更新时间 */
   updatedAt: string
 }
@@ -210,6 +220,9 @@ export function createDefaultSettings(): AppSettings {
     },
     icons: {
       icons: [],
+    },
+    appearance: {
+      theme: 'claude',
     },
     updatedAt: now,
   }

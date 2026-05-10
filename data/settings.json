@@ -462,5 +462,8 @@
       }
     ]
   },
-  "updatedAt": "2026-05-10T04:27:36.239Z"
+  "appearance": {
+    "theme": "notion"
+  },
+  "updatedAt": "2026-05-10T09:25:27.070Z"
 }
