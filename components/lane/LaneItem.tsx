@@ -171,7 +171,7 @@ const LaneContent = memo(function LaneContent({
       </div>
 
       {/* 卡片列表（拖放区域） */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="lane-grid-bg flex-1 overflow-y-auto">
         <div ref={setNodeRef} className={`min-h-[100px] space-y-2 ${isHovered ? 'rounded-xl bg-background/70 p-2 -m-2' : ''}`}>
           <SortableContext items={cardIds} strategy={verticalListSortingStrategy}>
             {lane.cards.map((card) => (

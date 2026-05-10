@@ -77,6 +77,14 @@ body {
   background-size: 32px 32px;
 }
 
+/* Lane card list grid — subtle graph paper behind cards */
+.lane-grid-bg {
+  background-image:
+    linear-gradient(to right, hsl(30 6% 82% / 0.45) 1px, transparent 1px),
+    linear-gradient(to bottom, hsl(30 6% 82% / 0.45) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
 /* 拖放样式 */
 .react-kanban-dragging {
   opacity: 0.5;

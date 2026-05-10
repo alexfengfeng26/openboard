@@ -32,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" className={inter.variable}>
       <body className={`${inter.className} antialiased`} suppressHydrationWarning>
-        <div className="min-h-screen grid-bg">
+        <div className="min-h-screen">
           {children}
         </div>
         <Toaster position="bottom-right" richColors closeButton />
