@@ -87,6 +87,1048 @@ body {
   background-size: 20px 20px;
 }
 
+/* Claude theme: animated pixel office backdrop */
+:root:not(.notion-theme) .pixel-office-board {
+  background:
+    linear-gradient(180deg, hsl(34 36% 94%) 0 52%, hsl(31 28% 86%) 52% 100%),
+    hsl(var(--background));
+}
+
+:root:not(.notion-theme) .pixel-office-scene {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  min-width: 1120px;
+  overflow: hidden;
+  image-rendering: pixelated;
+  opacity: 0.92;
+}
+
+.notion-theme .pixel-office-scene {
+  display: none;
+}
+
+:root:not(.notion-theme) .pixel-office-wall {
+  position: absolute;
+  inset: 0 0 46%;
+  background:
+    linear-gradient(to right, hsl(25 24% 75% / 0.48) 1px, transparent 1px),
+    linear-gradient(to bottom, hsl(25 24% 78% / 0.5) 1px, transparent 1px),
+    linear-gradient(180deg, hsl(35 48% 94%) 0%, hsl(28 38% 88%) 100%);
+  background-size: 24px 24px, 24px 24px, auto;
+}
+
+:root:not(.notion-theme) .pixel-office-floor {
+  position: absolute;
+  inset: 54% 0 0;
+  background:
+    linear-gradient(90deg, hsl(27 30% 70% / 0.5) 1px, transparent 1px),
+    linear-gradient(0deg, hsl(25 26% 72% / 0.55) 1px, transparent 1px),
+    linear-gradient(180deg, hsl(31 35% 83%) 0%, hsl(30 29% 77%) 100%);
+  background-size: 42px 42px, 42px 42px, auto;
+}
+
+:root:not(.notion-theme) .pixel-office-cable {
+  position: absolute;
+  left: 42px;
+  right: 42px;
+  top: 55%;
+  height: 3px;
+  background: repeating-linear-gradient(90deg, hsl(26 18% 35% / 0.45) 0 20px, transparent 20px 28px);
+  box-shadow: 0 10px 0 hsl(26 18% 35% / 0.16);
+}
+
+:root:not(.notion-theme) .pixel-office-lane {
+  position: relative;
+  overflow: hidden;
+  border-color: hsl(26 25% 68% / 0.75);
+  background:
+    linear-gradient(180deg, hsl(33 42% 91% / 0.86), hsl(31 33% 84% / 0.88)),
+    hsl(var(--muted));
+  box-shadow:
+    inset 0 0 0 1px hsl(0 0% 100% / 0.45),
+    0 10px 20px hsl(25 25% 35% / 0.08);
+}
+
+:root:not(.notion-theme) .pixel-office-lane::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 40px;
+  height: 18px;
+  border: 2px solid hsl(23 35% 33%);
+  border-radius: 3px;
+  background:
+    linear-gradient(90deg, hsl(22 39% 38%) 0 8px, transparent 8px calc(100% - 8px), hsl(22 39% 38%) calc(100% - 8px)),
+    linear-gradient(180deg, hsl(24 37% 47%), hsl(22 39% 32%));
+  box-shadow: 0 2px 0 hsl(20 24% 22% / 0.35);
+  opacity: 0.9;
+}
+
+:root:not(.notion-theme) .pixel-office-lane::after {
+  content: "";
+  position: absolute;
+  right: 12px;
+  bottom: 14px;
+  width: 42px;
+  height: 34px;
+  background:
+    linear-gradient(hsl(205 28% 45%), hsl(205 28% 45%)) 10px 2px / 22px 16px no-repeat,
+    linear-gradient(hsl(29 34% 43%), hsl(29 34% 43%)) 2px 20px / 38px 12px no-repeat,
+    linear-gradient(hsl(26 32% 27%), hsl(26 32% 27%)) 5px 32px / 32px 2px no-repeat;
+  opacity: 0.42;
+}
+
+:root:not(.notion-theme) .pixel-office-lane .lane-grid-bg {
+  position: relative;
+  z-index: 2;
+  border-radius: 8px;
+  background-color: hsl(34 44% 91% / 0.18);
+}
+
+:root:not(.notion-theme) .pixel-lane-animation {
+  pointer-events: none;
+  position: absolute;
+  inset: 42px 8px 58px;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: 9px;
+  image-rendering: pixelated;
+}
+
+.notion-theme .pixel-lane-animation {
+  display: none;
+}
+
+:root:not(.notion-theme) .pixel-lane-board-sign,
+:root:not(.notion-theme) .pixel-lane-screen,
+:root:not(.notion-theme) .pixel-lane-desk,
+:root:not(.notion-theme) .pixel-lane-actor,
+:root:not(.notion-theme) .pixel-lane-spark {
+  position: absolute;
+  display: block;
+}
+
+:root:not(.notion-theme) .pixel-lane-board-sign {
+  left: 50%;
+  top: 8px;
+  min-width: 58px;
+  transform: translateX(-50%);
+  border: 2px solid hsl(25 30% 27%);
+  border-radius: 3px;
+  background: linear-gradient(180deg, hsl(23 49% 44%), hsl(21 44% 31%));
+  box-shadow: 0 2px 0 hsl(24 25% 24% / 0.28);
+  color: hsl(38 68% 96%);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 5px 8px;
+  text-align: center;
+  text-shadow: 1px 1px 0 hsl(20 35% 18%);
+}
+
+:root:not(.notion-theme) .pixel-lane-screen {
+  left: 26px;
+  top: 58px;
+  width: 44px;
+  height: 34px;
+  border: 3px solid hsl(208 22% 19%);
+  background:
+    linear-gradient(90deg, hsl(123 68% 58%) 0 3px, transparent 3px 9px, hsl(123 68% 58%) 9px 13px, transparent 13px) 7px 9px / 24px 4px no-repeat,
+    linear-gradient(90deg, hsl(123 68% 58%) 0 12px, transparent 12px) 7px 18px / 26px 4px no-repeat,
+    hsl(210 40% 13%);
+  box-shadow: 3px 3px 0 hsl(24 24% 22% / 0.18);
+}
+
+:root:not(.notion-theme) .pixel-lane-desk {
+  left: 18px;
+  right: 18px;
+  bottom: 16px;
+  height: 34px;
+  background:
+    linear-gradient(hsl(24 37% 42%), hsl(24 37% 34%)) 0 0 / 100% 15px no-repeat,
+    linear-gradient(hsl(24 29% 27%), hsl(24 29% 27%)) 10px 15px / 8px 19px no-repeat,
+    linear-gradient(hsl(24 29% 27%), hsl(24 29% 27%)) calc(100% - 18px) 15px / 8px 19px no-repeat;
+  opacity: 0.78;
+}
+
+:root:not(.notion-theme) .pixel-lane-actor {
+  left: 92px;
+  bottom: 20px;
+  width: 30px;
+  height: 48px;
+  animation: pixel-lane-walk 5.5s steps(6, end) infinite;
+  filter: drop-shadow(2px 3px 0 hsl(25 25% 22% / 0.16));
+}
+
+:root:not(.notion-theme) .pixel-lane-bubble {
+  position: absolute;
+  left: 18px;
+  bottom: 48px;
+  width: max-content;
+  padding: 2px 5px;
+  border: 2px solid hsl(26 24% 34%);
+  border-radius: 3px;
+  background: hsl(42 60% 97% / 0.96);
+  color: hsl(27 18% 24%);
+  font-size: 10px;
+  line-height: 1.2;
+  white-space: nowrap;
+  animation: pixel-bubble 2.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+:root:not(.notion-theme) .pixel-lane-head {
+  position: absolute;
+  left: 7px;
+  top: 0;
+  width: 17px;
+  height: 17px;
+  border: 2px solid hsl(24 26% 20%);
+  background: hsl(32 48% 68%);
+}
+
+:root:not(.notion-theme) .pixel-lane-head::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  right: -2px;
+  top: -4px;
+  height: 7px;
+  background: hsl(28 45% 18%);
+}
+
+:root:not(.notion-theme) .pixel-lane-body {
+  position: absolute;
+  left: 5px;
+  top: 17px;
+  width: 21px;
+  height: 18px;
+  border: 2px solid hsl(24 26% 20%);
+  background: hsl(210 51% 35%);
+}
+
+:root:not(.notion-theme) .pixel-lane-arm,
+:root:not(.notion-theme) .pixel-lane-leg {
+  position: absolute;
+  width: 6px;
+  background: hsl(24 26% 20%);
+}
+
+:root:not(.notion-theme) .pixel-lane-arm {
+  top: 21px;
+  height: 14px;
+  animation: pixel-arm 0.7s steps(2, end) infinite;
+}
+
+:root:not(.notion-theme) .pixel-lane-arm-left {
+  left: 0;
+}
+
+:root:not(.notion-theme) .pixel-lane-arm-right {
+  right: 0;
+  animation-delay: -0.35s;
+}
+
+:root:not(.notion-theme) .pixel-lane-leg {
+  top: 35px;
+  height: 13px;
+  animation: pixel-leg 0.7s steps(2, end) infinite;
+}
+
+:root:not(.notion-theme) .pixel-lane-leg-left {
+  left: 7px;
+}
+
+:root:not(.notion-theme) .pixel-lane-leg-right {
+  right: 7px;
+  animation-delay: -0.35s;
+}
+
+:root:not(.notion-theme) .pixel-lane-spark {
+  width: 16px;
+  height: 16px;
+  background:
+    linear-gradient(hsl(40 95% 58%), hsl(40 95% 58%)) 7px 0 / 2px 16px no-repeat,
+    linear-gradient(90deg, hsl(40 95% 58%), hsl(40 95% 58%)) 0 7px / 16px 2px no-repeat;
+  opacity: 0;
+  animation: pixel-spark 3s steps(4, end) infinite;
+}
+
+:root:not(.notion-theme) .pixel-lane-spark-a {
+  right: 30px;
+  top: 56px;
+}
+
+:root:not(.notion-theme) .pixel-lane-spark-b {
+  left: 72px;
+  bottom: 52px;
+  animation-delay: -1.4s;
+}
+
+@keyframes pixel-lane-walk {
+  0%, 100% {
+    transform: translateX(-18px);
+  }
+  45% {
+    transform: translateX(32px);
+  }
+  72% {
+    transform: translateX(6px);
+  }
+}
+
+:root:not(.notion-theme) .pixel-sidebar {
+  background:
+    linear-gradient(180deg, hsl(38 36% 96%) 0%, hsl(34 30% 92%) 48%, hsl(31 24% 88%) 100%),
+    hsl(var(--sidebar));
+  box-shadow: inset -1px 0 0 hsl(27 24% 48% / 0.12);
+}
+
+:root:not(.notion-theme) .pixel-sidebar [class*="rounded-md"],
+:root:not(.notion-theme) .pixel-sidebar [class*="rounded-lg"] {
+  box-shadow: 0 1px 0 hsl(27 28% 62% / 0.18);
+}
+
+:root:not(.notion-theme) .pixel-ai-panel {
+  background:
+    linear-gradient(180deg, hsl(39 46% 97%) 0%, hsl(34 42% 94%) 48%, hsl(32 36% 91%) 100%),
+    hsl(var(--background));
+  color: hsl(28 14% 22%);
+}
+
+:root:not(.notion-theme) .pixel-ai-panel > :not(.pixel-ai-ambient) {
+  position: relative;
+  z-index: 2;
+}
+
+:root:not(.notion-theme) .pixel-ai-panel::after {
+  display: none;
+}
+
+.notion-theme .pixel-ai-ambient {
+  display: none;
+}
+
+:root:not(.notion-theme) .pixel-ai-ambient {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  image-rendering: pixelated;
+}
+
+:root:not(.notion-theme) .pixel-ai-header {
+  border-bottom-color: hsl(31 24% 82% / 0.9);
+  background:
+    linear-gradient(180deg, hsl(39 52% 98% / 0.96), hsl(35 42% 94% / 0.96)),
+    hsl(var(--card));
+  box-shadow: 0 1px 0 hsl(31 24% 72% / 0.2);
+}
+
+:root:not(.notion-theme) .pixel-ai-header [class*="from-amber-400"] {
+  background: hsl(28 88% 58%) !important;
+  border-radius: 8px;
+  box-shadow: inset 0 -2px 0 hsl(22 62% 41% / 0.32);
+}
+
+:root:not(.notion-theme) .pixel-ai-header [class*="bg-muted"] {
+  border: 1px solid hsl(31 25% 80% / 0.85);
+  background: hsl(38 42% 96% / 0.92);
+}
+
+:root:not(.notion-theme) .claude-ai-message-list {
+  background: transparent;
+  padding: 14px 12px 10px;
+}
+
+:root:not(.notion-theme) .claude-ai-guide-card,
+:root:not(.notion-theme) .claude-ai-status-card {
+  margin: 0 0 14px;
+  border: 1px solid hsl(30 25% 78% / 0.82);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, hsl(40 54% 98% / 0.96), hsl(36 42% 95% / 0.96)),
+    hsl(var(--card));
+  box-shadow:
+    inset 0 1px 0 hsl(0 0% 100% / 0.65),
+    0 8px 20px hsl(27 24% 38% / 0.06);
+}
+
+:root:not(.notion-theme) .claude-ai-guide-card {
+  padding: 16px 14px 10px;
+}
+
+:root:not(.notion-theme) .claude-ai-status-card {
+  flex-shrink: 0;
+  margin: 0 12px 12px;
+  padding: 16px 14px 12px;
+}
+
+.notion-theme .claude-ai-status-card {
+  display: none;
+}
+
+:root:not(.notion-theme) .claude-ai-card-title {
+  border-bottom: 1px solid hsl(30 22% 82% / 0.8);
+  padding-bottom: 10px;
+  color: hsl(28 18% 23%);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+:root:not(.notion-theme) .claude-ai-guide-content {
+  padding-top: 12px;
+  color: hsl(28 14% 26%);
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+:root:not(.notion-theme) .claude-ai-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  border-top: 1px solid hsl(30 22% 84% / 0.78);
+  padding-top: 10px;
+}
+
+:root:not(.notion-theme) .claude-ai-card-actions button,
+:root:not(.notion-theme) .claude-ai-bubble button,
+:root:not(.notion-theme) .claude-ai-input-area button {
+  border: 1px solid hsl(30 24% 78% / 0.85);
+  background: hsl(37 44% 96% / 0.9);
+  color: hsl(28 13% 30%);
+  box-shadow: inset 0 -1px 0 hsl(28 20% 72% / 0.16);
+}
+
+:root:not(.notion-theme) .claude-ai-message-row {
+  margin-bottom: 12px;
+}
+
+:root:not(.notion-theme) .claude-ai-avatar {
+  border-radius: 8px;
+  background: hsl(28 88% 58%) !important;
+  box-shadow: inset 0 -2px 0 hsl(22 62% 41% / 0.3);
+}
+
+:root:not(.notion-theme) .claude-ai-bubble {
+  border-radius: 10px !important;
+  border-color: hsl(30 25% 78% / 0.82) !important;
+  background: hsl(40 54% 98% / 0.96) !important;
+  color: hsl(28 14% 25%);
+  box-shadow: 0 4px 14px hsl(27 24% 38% / 0.05);
+}
+
+:root:not(.notion-theme) .claude-ai-message-row.justify-end .claude-ai-bubble {
+  background: hsl(28 72% 58%) !important;
+  color: #fff;
+}
+
+:root:not(.notion-theme) .claude-ai-status-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px 12px;
+  padding-top: 14px;
+  color: hsl(28 13% 32%);
+  font-size: 13px;
+}
+
+:root:not(.notion-theme) .claude-ai-status-grid strong {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  font-weight: 700;
+}
+
+:root:not(.notion-theme) .claude-ai-status-grid .status-green {
+  color: hsl(110 46% 38%);
+}
+
+:root:not(.notion-theme) .claude-ai-status-grid .status-amber {
+  color: hsl(38 82% 42%);
+}
+
+:root:not(.notion-theme) .claude-ai-status-grid .status-blue {
+  color: hsl(168 58% 36%);
+}
+
+:root:not(.notion-theme) .claude-ai-status-grid .status-red {
+  color: hsl(0 64% 48%);
+}
+
+:root:not(.notion-theme) .claude-ai-status-grid .status-neutral {
+  color: hsl(28 14% 25%);
+}
+
+:root:not(.notion-theme) .claude-ai-status-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  box-shadow: inset 0 -2px 0 hsl(0 0% 0% / 0.12);
+}
+
+:root:not(.notion-theme) .dot-green {
+  background: hsl(126 58% 45%);
+}
+
+:root:not(.notion-theme) .dot-amber {
+  background: hsl(40 90% 54%);
+}
+
+:root:not(.notion-theme) .dot-blue {
+  background: hsl(164 62% 45%);
+}
+
+:root:not(.notion-theme) .dot-red {
+  background: hsl(0 68% 55%);
+}
+
+:root:not(.notion-theme) .dot-neutral {
+  background: hsl(28 10% 62%);
+}
+
+:root:not(.notion-theme) .claude-ai-team-note {
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  color: hsl(28 14% 25%);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+:root:not(.notion-theme) .claude-ai-team-note > div {
+  border: 1px solid hsl(30 25% 78% / 0.82);
+  border-radius: 8px;
+  background: hsl(39 54% 98% / 0.86);
+  padding: 9px 10px;
+}
+
+:root:not(.notion-theme) .claude-ai-pixel-helper {
+  display: block;
+  width: 52px;
+  height: 46px;
+  image-rendering: pixelated;
+  background:
+    linear-gradient(hsl(26 42% 32%), hsl(26 42% 32%)) 8px 0 / 8px 12px no-repeat,
+    linear-gradient(hsl(26 42% 32%), hsl(26 42% 32%)) 34px 0 / 8px 12px no-repeat,
+    linear-gradient(hsl(30 54% 78%), hsl(30 54% 78%)) 6px 10px / 40px 28px no-repeat,
+    linear-gradient(hsl(0 0% 14%), hsl(0 0% 14%)) 15px 20px / 5px 5px no-repeat,
+    linear-gradient(hsl(0 0% 14%), hsl(0 0% 14%)) 32px 20px / 5px 5px no-repeat,
+    linear-gradient(hsl(24 42% 40%), hsl(24 42% 40%)) 22px 28px / 8px 4px no-repeat,
+    linear-gradient(hsl(26 42% 32%), hsl(26 42% 32%)) 0 32px / 8px 12px no-repeat,
+    linear-gradient(hsl(26 42% 32%), hsl(26 42% 32%)) 44px 32px / 8px 12px no-repeat;
+  filter: drop-shadow(2px 3px 0 hsl(25 25% 22% / 0.14));
+  animation: claude-helper-idle 2.8s steps(2, end) infinite;
+}
+
+:root:not(.notion-theme) .claude-ai-input-area {
+  flex-shrink: 0;
+  border-top: 1px solid hsl(30 22% 82% / 0.9);
+  background: linear-gradient(180deg, hsl(38 42% 95% / 0.96), hsl(34 36% 92% / 0.96));
+}
+
+:root:not(.notion-theme) .claude-ai-input-area > div:last-child {
+  padding: 12px;
+}
+
+:root:not(.notion-theme) .claude-ai-input-area textarea {
+  min-height: 58px;
+  border-radius: 9px;
+  border-color: hsl(30 25% 80% / 0.9);
+  background: hsl(40 54% 98% / 0.94);
+  box-shadow: inset 0 2px 6px hsl(28 22% 50% / 0.05);
+  font-size: 12px;
+}
+
+:root:not(.notion-theme) .claude-ai-input-area button[aria-label="发送消息"] {
+  height: 34px;
+  width: 34px;
+  border-radius: 8px;
+  background: hsl(18 8% 63%);
+  color: #fff;
+}
+
+@keyframes claude-helper-idle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+:root:not(.notion-theme) .pixel-ai-monitor,
+:root:not(.notion-theme) .pixel-ai-bot,
+:root:not(.notion-theme) .pixel-ai-data {
+  position: absolute;
+  display: block;
+}
+
+:root:not(.notion-theme) .pixel-ai-monitor {
+  right: 22px;
+  top: 70px;
+  width: 84px;
+  height: 58px;
+  border: 4px solid hsl(207 20% 16% / 0.58);
+  border-radius: 4px;
+  background:
+    linear-gradient(90deg, hsl(123 68% 58%) 0 32px, transparent 32px) 12px 13px / 52px 4px no-repeat,
+    linear-gradient(90deg, hsl(123 68% 58%) 0 18px, transparent 18px) 12px 27px / 48px 4px no-repeat,
+    hsl(210 40% 13% / 0.6);
+  opacity: 0.45;
+  animation: pixel-ai-monitor 2.8s steps(2, end) infinite;
+}
+
+:root:not(.notion-theme) .pixel-ai-bot {
+  left: 24px;
+  bottom: 96px;
+  width: 44px;
+  height: 58px;
+  border: 3px solid hsl(207 20% 16% / 0.72);
+  border-radius: 5px;
+  background:
+    linear-gradient(hsl(213 50% 58%), hsl(213 50% 58%)) 8px 30px / 28px 18px no-repeat,
+    hsl(205 42% 88% / 0.82);
+  box-shadow: 3px 4px 0 hsl(24 22% 24% / 0.14);
+  animation: pixel-ai-bot-idle 3.2s steps(4, end) infinite;
+}
+
+:root:not(.notion-theme) .pixel-ai-bot::before {
+  content: "";
+  position: absolute;
+  left: 19px;
+  top: -12px;
+  width: 6px;
+  height: 12px;
+  background: hsl(207 20% 16% / 0.72);
+}
+
+:root:not(.notion-theme) .pixel-ai-bot-eye {
+  position: absolute;
+  top: 14px;
+  width: 6px;
+  height: 6px;
+  background: hsl(188 83% 56%);
+  animation: pixel-ai-eye 2.4s steps(2, end) infinite;
+}
+
+:root:not(.notion-theme) .eye-left {
+  left: 11px;
+}
+
+:root:not(.notion-theme) .eye-right {
+  right: 11px;
+}
+
+:root:not(.notion-theme) .pixel-ai-data {
+  width: 16px;
+  height: 16px;
+  border: 2px solid hsl(188 72% 48% / 0.7);
+  background: hsl(188 83% 56% / 0.18);
+  opacity: 0;
+  animation: pixel-ai-data 4.4s steps(6, end) infinite;
+}
+
+:root:not(.notion-theme) .data-a {
+  left: 84px;
+  top: 118px;
+}
+
+:root:not(.notion-theme) .data-b {
+  right: 112px;
+  bottom: 168px;
+  animation-delay: -1.5s;
+}
+
+:root:not(.notion-theme) .data-c {
+  left: 42%;
+  top: 44%;
+  animation-delay: -2.8s;
+}
+
+@keyframes pixel-ai-monitor {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.3);
+  }
+}
+
+@keyframes pixel-ai-bot-idle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes pixel-ai-eye {
+  0%, 78%, 100% {
+    height: 6px;
+  }
+  86% {
+    height: 2px;
+  }
+}
+
+@keyframes pixel-ai-data {
+  0%, 100% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  18%, 58% {
+    opacity: 0.75;
+  }
+  72% {
+    opacity: 0;
+    transform: translateY(-18px);
+  }
+}
+
+:root:not(.notion-theme) .pixel-office-card {
+  border-color: hsl(27 25% 72% / 0.82);
+  background: hsl(38 38% 98% / 0.96);
+  box-shadow:
+    0 2px 0 hsl(27 28% 62% / 0.24),
+    0 8px 18px hsl(25 30% 32% / 0.06);
+}
+
+:root:not(.notion-theme) .pixel-office-card:hover {
+  box-shadow:
+    0 2px 0 hsl(27 28% 60% / 0.28),
+    0 10px 22px hsl(25 30% 32% / 0.1);
+}
+
+:root:not(.notion-theme) .pixel-office-poster,
+:root:not(.notion-theme) .pixel-office-clock,
+:root:not(.notion-theme) .pixel-office-plant,
+:root:not(.notion-theme) .pixel-office-rack,
+:root:not(.notion-theme) .pixel-office-desk,
+:root:not(.notion-theme) .pixel-office-worker,
+:root:not(.notion-theme) .pixel-office-spark {
+  position: absolute;
+  display: block;
+}
+
+:root:not(.notion-theme) .pixel-office-poster {
+  width: 50px;
+  height: 36px;
+  border: 3px solid hsl(25 22% 45%);
+  background:
+    linear-gradient(180deg, hsl(203 58% 82%) 0 46%, hsl(45 58% 78%) 46%),
+    hsl(35 45% 92%);
+  box-shadow: 3px 3px 0 hsl(26 23% 47% / 0.2);
+  opacity: 0.55;
+}
+
+:root:not(.notion-theme) .poster-a {
+  left: 14%;
+  top: 14%;
+}
+
+:root:not(.notion-theme) .poster-b {
+  left: 43%;
+  top: 18%;
+}
+
+:root:not(.notion-theme) .poster-c {
+  right: 18%;
+  top: 13%;
+}
+
+:root:not(.notion-theme) .pixel-office-clock {
+  right: 7%;
+  top: 11%;
+  width: 22px;
+  height: 22px;
+  border: 3px solid hsl(24 22% 45%);
+  border-radius: 50%;
+  background:
+    linear-gradient(90deg, transparent 47%, hsl(24 22% 45%) 47% 54%, transparent 54%),
+    linear-gradient(160deg, transparent 46%, hsl(24 22% 45%) 46% 53%, transparent 53%),
+    hsl(39 42% 95%);
+}
+
+:root:not(.notion-theme) .pixel-office-plant {
+  width: 42px;
+  height: 58px;
+  background:
+    linear-gradient(135deg, transparent 0 38%, hsl(118 32% 37%) 38% 55%, transparent 55%) 5px 2px / 20px 22px no-repeat,
+    linear-gradient(45deg, transparent 0 36%, hsl(137 34% 36%) 36% 55%, transparent 55%) 16px 4px / 22px 24px no-repeat,
+    linear-gradient(hsl(29 35% 44%), hsl(23 35% 36%)) 11px 33px / 22px 20px no-repeat;
+}
+
+:root:not(.notion-theme) .plant-a {
+  left: 4%;
+  bottom: 15%;
+}
+
+:root:not(.notion-theme) .plant-b {
+  left: 55%;
+  bottom: 10%;
+}
+
+:root:not(.notion-theme) .pixel-office-rack {
+  width: 62px;
+  height: 78px;
+  background:
+    repeating-linear-gradient(180deg, hsl(210 28% 20%) 0 14px, hsl(204 40% 34%) 14px 19px, hsl(210 28% 20%) 19px 28px),
+    hsl(210 24% 18%);
+  border: 4px solid hsl(207 20% 16%);
+  box-shadow: inset 8px 0 0 hsl(196 62% 52% / 0.18), 4px 4px 0 hsl(24 22% 24% / 0.18);
+  opacity: 0.48;
+}
+
+:root:not(.notion-theme) .rack-a {
+  right: 10%;
+  top: 27%;
+}
+
+:root:not(.notion-theme) .rack-b {
+  right: 4%;
+  top: 31%;
+}
+
+:root:not(.notion-theme) .pixel-office-desk {
+  width: 100px;
+  height: 56px;
+  background:
+    linear-gradient(hsl(202 42% 48%), hsl(202 42% 48%)) 18px 4px / 38px 22px no-repeat,
+    linear-gradient(hsl(24 37% 43%), hsl(24 37% 35%)) 0 28px / 100px 16px no-repeat,
+    linear-gradient(hsl(24 29% 28%), hsl(24 29% 28%)) 8px 44px / 8px 12px no-repeat,
+    linear-gradient(hsl(24 29% 28%), hsl(24 29% 28%)) 84px 44px / 8px 12px no-repeat;
+  opacity: 0.36;
+}
+
+:root:not(.notion-theme) .desk-a {
+  left: 20%;
+  bottom: 21%;
+}
+
+:root:not(.notion-theme) .desk-b {
+  left: 69%;
+  bottom: 18%;
+}
+
+:root:not(.notion-theme) .pixel-office-worker {
+  --worker-lane: 0;
+  --worker-delay: 0s;
+  left: calc(72px + (var(--worker-lane) * 260px));
+  bottom: 46px;
+  width: 28px;
+  height: 46px;
+  animation: pixel-worker-walk 8.5s steps(8, end) infinite;
+  animation-delay: var(--worker-delay);
+  filter: drop-shadow(2px 3px 0 hsl(25 25% 22% / 0.18));
+}
+
+:root:not(.notion-theme) .pixel-office-worker-bot .pixel-office-head {
+  border-radius: 4px;
+  background:
+    linear-gradient(90deg, hsl(188 83% 56%) 0 4px, transparent 4px 12px, hsl(188 83% 56%) 12px 16px),
+    hsl(205 42% 88%);
+}
+
+:root:not(.notion-theme) .pixel-office-worker-bot .pixel-office-body {
+  background: hsl(213 50% 58%);
+}
+
+:root:not(.notion-theme) .pixel-office-bubble {
+  position: absolute;
+  left: 12px;
+  bottom: 46px;
+  width: max-content;
+  max-width: 58px;
+  padding: 2px 5px;
+  border: 2px solid hsl(26 24% 34%);
+  border-radius: 3px;
+  background: hsl(42 60% 97% / 0.9);
+  color: hsl(27 18% 24%);
+  font-size: 10px;
+  line-height: 1.2;
+  white-space: nowrap;
+  opacity: 0.88;
+  transform: translateY(0);
+  animation: pixel-bubble 2.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+:root:not(.notion-theme) .pixel-office-head {
+  position: absolute;
+  left: 7px;
+  top: 0;
+  width: 16px;
+  height: 16px;
+  border: 2px solid hsl(24 26% 20%);
+  background: hsl(32 48% 68%);
+}
+
+:root:not(.notion-theme) .pixel-office-body {
+  position: absolute;
+  left: 5px;
+  top: 16px;
+  width: 20px;
+  height: 18px;
+  border: 2px solid hsl(24 26% 20%);
+  background: hsl(210 51% 35%);
+}
+
+:root:not(.notion-theme) .pixel-office-arm,
+:root:not(.notion-theme) .pixel-office-leg {
+  position: absolute;
+  width: 6px;
+  background: hsl(24 26% 20%);
+}
+
+:root:not(.notion-theme) .pixel-office-arm {
+  top: 20px;
+  height: 14px;
+  animation: pixel-arm 0.7s steps(2, end) infinite;
+}
+
+:root:not(.notion-theme) .arm-left {
+  left: 0;
+}
+
+:root:not(.notion-theme) .arm-right {
+  right: 0;
+  animation-delay: -0.35s;
+}
+
+:root:not(.notion-theme) .pixel-office-leg {
+  top: 34px;
+  height: 12px;
+  animation: pixel-leg 0.7s steps(2, end) infinite;
+}
+
+:root:not(.notion-theme) .leg-left {
+  left: 7px;
+}
+
+:root:not(.notion-theme) .leg-right {
+  right: 7px;
+  animation-delay: -0.35s;
+}
+
+:root:not(.notion-theme) .pixel-office-spark {
+  width: 18px;
+  height: 18px;
+  background:
+    linear-gradient(hsl(40 95% 58%), hsl(40 95% 58%)) 8px 0 / 2px 18px no-repeat,
+    linear-gradient(90deg, hsl(40 95% 58%), hsl(40 95% 58%)) 0 8px / 18px 2px no-repeat;
+  opacity: 0;
+  animation: pixel-spark 3.6s steps(4, end) infinite;
+}
+
+:root:not(.notion-theme) .spark-a {
+  left: 47%;
+  bottom: 18%;
+}
+
+:root:not(.notion-theme) .spark-b {
+  right: 25%;
+  top: 28%;
+  animation-delay: -1.2s;
+}
+
+:root:not(.notion-theme) .spark-c {
+  left: 9%;
+  top: 36%;
+  animation-delay: -2.3s;
+}
+
+@keyframes pixel-worker-walk {
+  0% {
+    transform: translateX(0) translateY(0);
+  }
+  22% {
+    transform: translateX(34px) translateY(-1px);
+  }
+  48% {
+    transform: translateX(82px) translateY(0);
+  }
+  72% {
+    transform: translateX(38px) translateY(-1px);
+  }
+  100% {
+    transform: translateX(0) translateY(0);
+  }
+}
+
+@keyframes pixel-arm {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(3px);
+  }
+}
+
+@keyframes pixel-leg {
+  0%, 100% {
+    height: 12px;
+  }
+  50% {
+    height: 8px;
+  }
+}
+
+@keyframes pixel-bubble {
+  0%, 78%, 100% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  16%, 58% {
+    opacity: 0.9;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pixel-spark {
+  0%, 64%, 100% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  18%, 38% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 767px) {
+  :root:not(.notion-theme) .pixel-office-scene {
+    min-width: 100%;
+    opacity: 0.55;
+  }
+
+  :root:not(.notion-theme) .pixel-office-worker,
+  :root:not(.notion-theme) .pixel-office-bubble,
+  :root:not(.notion-theme) .pixel-office-rack,
+  :root:not(.notion-theme) .pixel-office-desk {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not(.notion-theme) .pixel-office-worker,
+  :root:not(.notion-theme) .pixel-office-arm,
+  :root:not(.notion-theme) .pixel-office-leg,
+  :root:not(.notion-theme) .pixel-office-bubble,
+  :root:not(.notion-theme) .pixel-office-spark,
+  :root:not(.notion-theme) .pixel-ai-monitor,
+  :root:not(.notion-theme) .pixel-ai-bot,
+  :root:not(.notion-theme) .pixel-ai-bot-eye,
+  :root:not(.notion-theme) .pixel-ai-data {
+    animation: none;
+  }
+}
+
 /* ============================================
    Notion Theme
    ============================================ */
@@ -343,4 +1385,3 @@ body {
 .animate-menu-pop {
   animation: menu-pop 0.15s ease-out forwards;
 }
-

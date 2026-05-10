@@ -55,6 +55,7 @@ import { BoardTagsProvider } from './BoardTagsContext'
 import { CreateBoardDialog } from './CreateBoardDialog'
 import { BoardSelector } from './BoardSelector'
 import { EditBoardDialog } from './EditBoardDialog'
+import { PixelOfficeScene } from './PixelOfficeScene'
 import { cn } from '@/lib/utils'
 import { useCardSearch } from '@/lib/hooks/useCardSearch'
 import { useKeyboardShortcuts } from '@/lib/hooks/useKeyboardShortcuts'
@@ -1162,7 +1163,8 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
           </div>
 
           {/* 看板主体区域 */}
-          <div className="min-h-0 min-w-0 flex-1 overflow-x-auto overflow-y-hidden p-3">
+          <div className="pixel-office-board relative min-h-0 min-w-0 flex-1 overflow-x-auto overflow-y-hidden p-3">
+            <PixelOfficeScene />
             <DndContext
               sensors={sensors}
               onDragStart={handleDragStart}
@@ -1174,7 +1176,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                 items={board.lanes.map((l) => l.id)}
                 strategy={isMobile ? verticalListSortingStrategy : horizontalListSortingStrategy}
               >
-                <div className={cn('flex h-full items-stretch gap-2', isMobile ? 'flex-col' : 'flex-row')}>
+                <div className={cn('relative z-10 flex h-full items-stretch gap-2', isMobile ? 'flex-col' : 'flex-row')}>
                   {filteredBoard.lanes.map((lane) => (
                     <LaneItem
                       key={lane.id}

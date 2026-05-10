@@ -127,7 +127,7 @@ export function AppSidebar({
   if (!expanded) {
     return (
       <aside
-        className="relative flex h-screen flex-col items-center border-r border-sidebar-border py-4 shrink-0 w-[44px] bg-sidebar"
+        className="pixel-sidebar relative flex h-screen flex-col items-center border-r border-sidebar-border py-4 shrink-0 w-[44px] bg-sidebar"
       >
         {/* Logo */}
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg mb-3 bg-primary">
@@ -188,7 +188,7 @@ export function AppSidebar({
   return (
     <aside
       className={cn(
-        'relative flex h-screen flex-col border-r border-sidebar-border transition-all duration-300 ease-in-out shrink-0',
+        'pixel-sidebar relative flex h-screen flex-col overflow-hidden border-r border-sidebar-border transition-all duration-300 ease-in-out shrink-0',
         'w-[220px] bg-sidebar'
       )}
     >

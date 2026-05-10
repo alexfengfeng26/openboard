@@ -8,25 +8,27 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setMounted(true)
-    // 从 localStorage 读取主题（避免 hydration 不匹配）
-    const saved = localStorage.getItem('kanban-theme')
-    if (saved === 'notion' || saved === 'claude') {
-      setTheme(saved)
-      document.documentElement.classList.toggle('notion-theme', saved === 'notion')
-    } else {
-      // 尝试从服务器设置读取
-      fetch('/api/settings/appearance')
-        .then((res) => res.json())
-        .then((result) => {
-          if (result.success && result.data?.theme) {
-            const t = result.data.theme
-            setTheme(t)
-            localStorage.setItem('kanban-theme', t)
-            document.documentElement.classList.toggle('notion-theme', t === 'notion')
-          }
-        })
-        .catch(() => {})
-    }
+    // 以服务器设置为准，避免 localStorage 旧值让外观选择失效。
+    fetch('/api/settings/appearance')
+      .then((res) => res.json())
+      .then((result) => {
+        const serverTheme = result.success ? result.data?.theme : null
+        const saved = localStorage.getItem('kanban-theme')
+        const t = serverTheme === 'notion' || serverTheme === 'claude'
+          ? serverTheme
+          : saved === 'notion' || saved === 'claude'
+            ? saved
+            : 'claude'
+        setTheme(t)
+        localStorage.setItem('kanban-theme', t)
+        document.documentElement.classList.toggle('notion-theme', t === 'notion')
+      })
+      .catch(() => {
+        const saved = localStorage.getItem('kanban-theme')
+        const t = saved === 'notion' || saved === 'claude' ? saved : 'claude'
+        setTheme(t)
+        document.documentElement.classList.toggle('notion-theme', t === 'notion')
+      })
   }, [])
 
   useEffect(() => {

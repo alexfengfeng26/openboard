@@ -2,7 +2,7 @@
 id: default-board
 title: 我的看板
 createdAt: '2026-02-11T07:06:35.423Z'
-updatedAt: '2026-05-10T04:19:36.200Z'
+updatedAt: '2026-05-10T10:22:45.782Z'
 tags:
   - id: tag-0
     name: 紧急
@@ -172,7 +172,7 @@ lanes:
     title: 已完成
     position: 2
     createdAt: '2026-02-11T07:06:35.423Z'
-    updatedAt: '2026-05-10T04:19:36.200Z'
+    updatedAt: '2026-05-10T10:22:45.782Z'
     cards:
       - id: card-1770799202495
         laneId: lane-done
@@ -203,33 +203,11 @@ lanes:
           - id: tag-5
             name: 设计
             color: '#ec4899'
-      - id: card-1770799844291
-        laneId: lane-done
-        title: 重构 API 参数一致性
-        position: 1
-        createdAt: '2026-02-11T08:50:44.291Z'
-        updatedAt: '2026-02-12T04:08:04.512Z'
-        description: 检查并统一项目中各接口的请求/响应参数命名风格（如驼峰/下划线）、必填项规则和错误码格式，提升前后端协作效率。
-      - id: card-1770799150145
-        laneId: lane-done
-        title: 撰写 DeepSeek 介绍文档
-        position: 2
-        createdAt: '2026-02-11T08:39:10.145Z'
-        updatedAt: '2026-05-06T02:45:01.652Z'
-        description: |-
-          1. **核心定位**：说明 DeepSeek 是由深度求索公司开发的 AI 大语言模型助手。
-          2. **关键特性**：
-              *   免费使用，拥有 128K 上下文。
-              *   支持文件上传（图像、txt、pdf、ppt、word、excel），可读取并处理其中的文字信息。
-              *   支持联网搜索（需手动在 Web/App 中点开联网搜索按键）。
-              *   纯文本模型，专注于文字处理与对话。
-          3. **获取方式**：可通过官方应用商店下载 App 或直接在网页端使用。
-          4. **服务声明**：提醒用户其知识截止于 2024年7月，并建议核对重要信息。
   - id: lane-1770806867123
     title: 归档
     position: 3
     createdAt: '2026-02-11T10:47:47.123Z'
-    updatedAt: '2026-05-10T04:19:36.200Z'
+    updatedAt: '2026-05-10T10:22:45.782Z'
     cards:
       - id: card-2
         laneId: lane-1770806867123
@@ -249,6 +227,28 @@ lanes:
         createdAt: '2026-02-11T09:15:23.725Z'
         updatedAt: '2026-02-11T15:33:11.367Z'
         description: 启动点餐小程序的开发项目，需明确功能需求、技术选型和开发排期。
+      - id: card-1770799150145
+        laneId: lane-1770806867123
+        title: 撰写 DeepSeek 介绍文档
+        position: 2
+        createdAt: '2026-02-11T08:39:10.145Z'
+        updatedAt: '2026-05-10T10:22:40.171Z'
+        description: |-
+          1. **核心定位**：说明 DeepSeek 是由深度求索公司开发的 AI 大语言模型助手。
+          2. **关键特性**：
+              *   免费使用，拥有 128K 上下文。
+              *   支持文件上传（图像、txt、pdf、ppt、word、excel），可读取并处理其中的文字信息。
+              *   支持联网搜索（需手动在 Web/App 中点开联网搜索按键）。
+              *   纯文本模型，专注于文字处理与对话。
+          3. **获取方式**：可通过官方应用商店下载 App 或直接在网页端使用。
+          4. **服务声明**：提醒用户其知识截止于 2024年7月，并建议核对重要信息。
+      - id: card-1770799844291
+        laneId: lane-1770806867123
+        title: 重构 API 参数一致性
+        position: 3
+        createdAt: '2026-02-11T08:50:44.291Z'
+        updatedAt: '2026-05-10T10:22:45.782Z'
+        description: 检查并统一项目中各接口的请求/响应参数命名风格（如驼峰/下划线）、必填项规则和错误码格式，提升前后端协作效率。
 favoritedAt: '2026-05-08T11:11:33.958Z'
 ---
 

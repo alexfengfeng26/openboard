@@ -39,7 +39,7 @@ export function ChatInputArea({
   onStop,
 }: ChatInputAreaProps) {
   return (
-    <div className="border-t border-border bg-card">
+    <div className="claude-ai-input-area border-t border-border bg-card">
       {/* 顶部 subtle 渐变分隔 */}
       <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 

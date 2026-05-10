@@ -134,7 +134,23 @@ const LaneContent = memo(function LaneContent({
   }
 
   return (
-    <div className={cn('group flex h-full w-60 shrink-0 flex-col rounded-xl border border-border bg-muted px-2.5 py-2.5 shadow-sm', isHovered && 'border-ring/30 bg-muted/80')}>
+    <div className={cn('pixel-office-lane group flex h-full w-60 shrink-0 flex-col rounded-xl border border-border bg-muted px-2.5 py-2.5 shadow-sm', isHovered && 'border-ring/30 bg-muted/80')}>
+      <div className="pixel-lane-animation" aria-hidden="true">
+        <span className="pixel-lane-board-sign">{lane.title.slice(0, 4)}</span>
+        <span className="pixel-lane-screen" />
+        <span className="pixel-lane-desk" />
+        <span className="pixel-lane-actor">
+          <span className="pixel-lane-bubble">处理中</span>
+          <span className="pixel-lane-head" />
+          <span className="pixel-lane-body" />
+          <span className="pixel-lane-arm pixel-lane-arm-left" />
+          <span className="pixel-lane-arm pixel-lane-arm-right" />
+          <span className="pixel-lane-leg pixel-lane-leg-left" />
+          <span className="pixel-lane-leg pixel-lane-leg-right" />
+        </span>
+        <span className="pixel-lane-spark pixel-lane-spark-a" />
+        <span className="pixel-lane-spark pixel-lane-spark-b" />
+      </div>
       {/* 列表头部 */}
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">

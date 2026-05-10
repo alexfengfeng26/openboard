@@ -11,7 +11,6 @@ import {
   Check,
   Plus,
   Pencil,
-  Lightbulb,
 } from 'lucide-react'
 
 interface ChatMessageListProps {
@@ -84,8 +83,8 @@ export function ChatMessageList({
   }, [])
 
   return (
-    <div className="flex-1 overflow-y-auto bg-background px-3 py-4">
-      <div className="space-y-5">
+    <div className="claude-ai-message-list flex-1 overflow-y-auto bg-background px-3 py-4">
+      <div className="space-y-4">
         {messages.map((m, index) => {
           const isUser = m.role === 'user'
           const isAssistant = m.role === 'assistant'
@@ -94,22 +93,71 @@ export function ChatMessageList({
           const isFirstInGroup = index === 0 || messages[index - 1].role !== m.role
           const isLastInGroup = index === messages.length - 1 || messages[index + 1].role !== m.role
 
+          if (isGuide) {
+            return (
+              <section key={m.id} className="claude-ai-guide-card animate-message-in">
+                <div className="claude-ai-card-title">任务执行模拟 · 任务指挥中心</div>
+                <div className="claude-ai-guide-content whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+                  {m.content}
+                </div>
+                {showActions && (
+                  <div className="claude-ai-card-actions">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 gap-1 rounded-md px-2 text-xs text-muted-foreground hover:text-foreground hover:bg-accent"
+                      onClick={() => onQuickCreate(m)}
+                      disabled={draftSubmitting}
+                    >
+                      {draftSubmitting && draftSourceId === m.id ? (
+                        <>
+                          <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                          创建中...
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-3.5 w-3.5" />
+                          创建为卡片
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 gap-1 rounded-md px-2 text-xs text-muted-foreground hover:text-foreground hover:bg-accent"
+                      onClick={() => onGenerateDraft(m)}
+                      disabled={draftSubmitting}
+                    >
+                      {draftSubmitting && draftSourceId === m.id ? (
+                        <>
+                          <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                          生成中...
+                        </>
+                      ) : (
+                        <>
+                          <Pencil className="h-3.5 w-3.5" />
+                          编辑后创建
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </section>
+            )
+          }
+
           return (
             <div
               key={m.id}
               className={cn(
-                'flex animate-message-in gap-2.5',
+                'claude-ai-message-row flex animate-message-in gap-2.5',
                 isUser ? 'justify-end' : 'justify-start'
               )}
             >
               {/* AI 头像 */}
               {!isUser && isFirstInGroup && (
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-sm self-end mb-1">
-                  {isGuide ? (
-                    <Lightbulb className="h-4 w-4 text-white" />
-                  ) : (
-                    <Sparkles className="h-4 w-4 text-white" />
-                  )}
+                <div className="claude-ai-avatar flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-sm self-end mb-1">
+                  <Sparkles className="h-4 w-4 text-white" />
                 </div>
               )}
               {!isUser && !isFirstInGroup && <div className="w-8 shrink-0" />}
@@ -119,7 +167,7 @@ export function ChatMessageList({
                 {/* 消息气泡 */}
                 <div
                   className={cn(
-                    'relative',
+                    'claude-ai-bubble relative',
                     isUser
                       ? 'rounded-2xl rounded-tr-sm bg-gradient-to-br from-primary to-primary/85 px-4 py-2.5 text-primary-foreground shadow-sm'
                       : isGuide
