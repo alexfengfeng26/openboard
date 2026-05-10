@@ -5,6 +5,7 @@ import type { Card, Lane, Tag } from '@/lib/db'
 import { toastInfo, toastWarning } from '@/components/ui/toast'
 import { ToolCallConfirmation } from './ToolCallConfirmation'
 import { OperationLogPanel } from './OperationLogPanel'
+import { AiSettingsDialog } from './AiSettingsDialog'
 import { ChatHeader } from './ChatHeader'
 import { ChatMessageList } from './ChatMessageList'
 import { ChatInputArea } from './ChatInputArea'
@@ -46,6 +47,7 @@ export function DeepSeekChatPanel({
   onCardCreated,
   onBoardRefresh,
   onRequestMinimize,
+  onRequestClose,
   boardId,
   boardTitle,
   externalSettingsOpen,
@@ -57,6 +59,7 @@ export function DeepSeekChatPanel({
   onCardCreated: (laneId: string, card: Card) => void
   onBoardRefresh?: () => void | Promise<void>
   onRequestMinimize?: () => void
+  onRequestClose?: () => void
   boardId?: string
   boardTitle?: string
   externalSettingsOpen?: boolean
@@ -192,7 +195,7 @@ export function DeepSeekChatPanel({
     const visible = aiCommands.filter((c) => c.enabled && (c.placement === 'slash' || c.placement === 'both'))
     const tool = visible.filter((c) => c.kind === 'tool_prefix')
     const snippet = visible.filter((c) => c.kind === 'snippet')
-    return [...tool, ...snippet].map((c) => ({ key: c.id, label: c.label || c.trigger, description: c.description, insertText: c.insertText }))
+    return [...tool, ...snippet].map((c) => ({ key: c.id, label: c.label || c.trigger, description: c.description, insertText: c.insertText, kind: c.kind === 'tool_prefix' ? 'tool' : 'snippet' as const }))
   }, [aiCommands])
 
   const filteredSlashMenuItems = useMemo(() => {
@@ -530,12 +533,18 @@ export function DeepSeekChatPanel({
         onToggleLogPanel={() => setShowLogPanel(!showLogPanel)}
         operationLogsCount={operationLogs.length}
         onClearChat={handleClearChat}
-        settingsOpen={settingsOpen}
-        onSettingsOpen={setSettingsOpen}
-        aiSettings={aiSettings}
-        settingsLoading={settingsLoading}
-        onAiSettingsChange={handleAiSettingsChange}
+        onRequestMinimize={onRequestMinimize}
+        onRequestClose={onRequestClose}
       />
+      {settingsOpen && aiSettings && (
+        <AiSettingsDialog
+          open={settingsOpen}
+          onOpenChange={setSettingsOpen}
+          aiSettings={aiSettings}
+          onAiSettingsChange={handleAiSettingsChange}
+          loading={settingsLoading}
+        />
+      )}
       <ChatMessageList
         messages={messages}
         isSending={isSending}

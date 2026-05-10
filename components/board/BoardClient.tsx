@@ -1273,6 +1273,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                     boardTitle={board.title}
                     externalSettingsOpen={aiSettingsOpen}
                     onExternalSettingsOpenChange={setAiSettingsOpen}
+                    onRequestClose={() => dispatch({ type: 'SET_SHOW_CHAT', payload: false })}
                   />
                 </ErrorBoundary>
               </div>
@@ -1288,37 +1289,14 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
               width: '360px',
               height: `${chatHeight}px`,
             }}
+            onMouseDown={(e) => {
+              const target = e.target as HTMLElement
+              if (target.closest('button, input, textarea, select, a, [role="button"]')) return
+              setIsDraggingChat(true)
+              chatDragOffset.current = { x: e.clientX - chatPosition.x, y: e.clientY - chatPosition.y }
+            }}
           >
-            {/* 拖拽手柄 */}
-            <div
-              className="flex cursor-move items-center justify-between border-b border-border bg-muted/50 px-3 py-2"
-              onMouseDown={(e) => {
-                setIsDraggingChat(true)
-                chatDragOffset.current = { x: e.clientX - chatPosition.x, y: e.clientY - chatPosition.y }
-              }}
-            >
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">AI 助手</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <button
-                  className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-                  onClick={() => setChatMinimized(true)}
-                  title="最小化"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                </button>
-                <button
-                  className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-                  onClick={() => dispatch({ type: 'SET_SHOW_CHAT', payload: false })}
-                  title="关闭"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
-            <div className="flex-1 min-h-0">
+            <div className="flex-1 min-h-0 cursor-move">
               <ErrorBoundary>
                 <DeepSeekChatPanel
                   lanes={board.lanes}
@@ -1327,6 +1305,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                   onCardCreated={handleCardCreatedFromChat}
                   onBoardRefresh={refreshCurrentBoard}
                   onRequestMinimize={() => setChatMinimized(true)}
+                  onRequestClose={() => dispatch({ type: 'SET_SHOW_CHAT', payload: false })}
                   boardId={board.id}
                   boardTitle={board.title}
                   externalSettingsOpen={aiSettingsOpen}
