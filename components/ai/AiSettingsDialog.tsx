@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, Upload, X, User, Bot } from 'lucide-react'
 import { Dialog, DialogContent, DialogBody, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { TagSettingsPanel } from './TagSettingsPanel'
 import { IconSettingsPanel } from './IconSettingsPanel'
@@ -18,6 +18,7 @@ import {
   parseAiCommandsFromText,
 } from '@/lib/ai/commands'
 import { toastError, toastSuccess, toastWarning } from '@/components/ui/toast'
+import { useIconSettings } from '@/lib/hooks/useSettings'
 
 interface AiSettingsDialogProps {
   open: boolean
@@ -41,6 +42,10 @@ export function AiSettingsDialog({
   const [settingsActiveTab, setSettingsActiveTab] = useState<'general' | 'trigger' | 'tags' | 'icons' | 'appearance'>('general')
   const [themeDraft, setThemeDraft] = useState<'claude' | 'notion'>('claude')
   const [themeLoading, setThemeLoading] = useState(false)
+  const { userAvatar, aiAvatar, uploadIcon, updateAvatar, fetchIconSettings } = useIconSettings()
+  const [avatarUploading, setAvatarUploading] = useState<'user' | 'ai' | null>(null)
+  const userFileInputRef = useRef<HTMLInputElement | null>(null)
+  const aiFileInputRef = useRef<HTMLInputElement | null>(null)
   const [settingsDraft, setSettingsDraft] = useState(aiSettings?.toolTrigger ?? null)
   const [trustModeDraft, setTrustModeDraft] = useState<AiTrustMode>(aiSettings?.trustMode ?? 'confirm_high_risk')
   const [autoMinimizeDraft, setAutoMinimizeDraft] = useState(aiSettings?.autoMinimizeAfterAction ?? true)
@@ -639,6 +644,137 @@ export function AiSettingsDialog({
                   )}
                 </button>
               </div>
+            </div>
+
+            {/* A/B 角色头像上传 */}
+            <div className="space-y-3">
+              <div className="text-sm font-medium">角色头像</div>
+              <div className="grid grid-cols-2 gap-3">
+                {/* A 角色 - 用户 */}
+                <div className="space-y-2 rounded-lg border p-3">
+                  <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                    <User className="h-3.5 w-3.5" />
+                    A 角色（用户）
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted">
+                      {userAvatar ? (
+                        <img src={userAvatar} alt="用户头像" className="h-full w-full object-cover" />
+                      ) : (
+                        <User className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex flex-1 flex-col gap-1.5">
+                      <input
+                        ref={userFileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0]
+                          if (!file) return
+                          setAvatarUploading('user')
+                          try {
+                            const result = await uploadIcon(file)
+                            await updateAvatar('user', result.url)
+                            toastSuccess('用户头像已更新')
+                          } catch {
+                            toastError('上传失败')
+                          } finally {
+                            setAvatarUploading(null)
+                            if (userFileInputRef.current) userFileInputRef.current.value = ''
+                          }
+                        }}
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={() => userFileInputRef.current?.click()}
+                        disabled={avatarUploading === 'user'}
+                      >
+                        <Upload className="mr-1 h-3 w-3" />
+                        {avatarUploading === 'user' ? '上传中...' : '上传'}
+                      </Button>
+                      {userAvatar && (
+                        <button
+                          className="text-left text-[11px] text-destructive hover:underline"
+                          onClick={async () => {
+                            await updateAvatar('user', undefined)
+                            toastSuccess('已恢复默认')
+                          }}
+                        >
+                          恢复默认
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* B 角色 - AI */}
+                <div className="space-y-2 rounded-lg border p-3">
+                  <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                    <Bot className="h-3.5 w-3.5" />
+                    B 角色（AI 助手）
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted">
+                      {aiAvatar ? (
+                        <img src={aiAvatar} alt="AI头像" className="h-full w-full object-cover" />
+                      ) : (
+                        <Bot className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex flex-1 flex-col gap-1.5">
+                      <input
+                        ref={aiFileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0]
+                          if (!file) return
+                          setAvatarUploading('ai')
+                          try {
+                            const result = await uploadIcon(file)
+                            await updateAvatar('ai', result.url)
+                            toastSuccess('AI 头像已更新')
+                          } catch {
+                            toastError('上传失败')
+                          } finally {
+                            setAvatarUploading(null)
+                            if (aiFileInputRef.current) aiFileInputRef.current.value = ''
+                          }
+                        }}
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={() => aiFileInputRef.current?.click()}
+                        disabled={avatarUploading === 'ai'}
+                      >
+                        <Upload className="mr-1 h-3 w-3" />
+                        {avatarUploading === 'ai' ? '上传中...' : '上传'}
+                      </Button>
+                      {aiAvatar && (
+                        <button
+                          className="text-left text-[11px] text-destructive hover:underline"
+                          onClick={async () => {
+                            await updateAvatar('ai', undefined)
+                            toastSuccess('已恢复默认')
+                          }}
+                        >
+                          恢复默认
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                A 角色头像会显示在左上角 Logo 和用户提问气泡旁；B 角色头像会显示在 AI 助手顶部和回复气泡旁。未上传时默认使用 Logo。
+              </p>
             </div>
 
             <div className="space-y-2 rounded-md border p-3">

@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { Sparkles, History, Trash2, Zap, Crown, Minus, X } from 'lucide-react'
+import { History, Trash2, Zap, Crown, Minus, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { AiModel } from '@/types/settings.types'
 import { cn } from '@/lib/utils'
+import { useIconSettings } from '@/lib/hooks/useSettings'
 
 interface ChatHeaderProps {
   model: AiModel
@@ -28,13 +29,18 @@ export function ChatHeader({
   onRequestClose,
 }: ChatHeaderProps) {
   const [showClearConfirm, setShowClearConfirm] = useState(false)
+  const { aiAvatar } = useIconSettings()
 
   return (
     <div className="pixel-ai-header flex items-center justify-between gap-2 border-b border-white/20 bg-white/40 px-3 py-2 backdrop-blur-lg shadow-sm">
       {/* 左侧：AI 品牌标识 */}
       <div className="flex items-center gap-2">
-        <div className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 shadow-sm">
-          <Sparkles className="h-3.5 w-3.5 text-white" />
+        <div className="relative flex h-7 w-7 items-center justify-center rounded-lg shadow-sm overflow-hidden">
+          {aiAvatar ? (
+            <img src={aiAvatar} alt="AI" className="h-full w-full object-cover" />
+          ) : (
+            <img src="/logo.svg" alt="AI" className="h-full w-full object-cover" />
+          )}
           <span className="absolute -right-0.5 -top-0.5 flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-pulse rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />

@@ -4,14 +4,8 @@ import { useRef, useEffect, useState, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import type { ChatMessage } from '@/types/ai-tools.types'
-import {
-  Sparkles,
-  User,
-  Copy,
-  Check,
-  Plus,
-  Pencil,
-} from 'lucide-react'
+import { useIconSettings } from '@/lib/hooks/useSettings'
+import { Copy, Check, Plus, Pencil, User } from 'lucide-react'
 
 interface ChatMessageListProps {
   messages: ChatMessage[]
@@ -35,11 +29,15 @@ function isGuideMessage(content: string): boolean {
   return content.includes('AI 创建卡片超快') && content.includes('创建为卡片')
 }
 
-function TypingIndicator() {
+function TypingIndicator({ aiAvatar }: { aiAvatar?: string }) {
   return (
     <div className="flex items-center gap-3">
-      <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-sm">
-        <Sparkles className="h-4 w-4 text-white" />
+      <div className="flex h-8 w-8 items-center justify-center rounded-xl shadow-sm overflow-hidden">
+        {aiAvatar ? (
+          <img src={aiAvatar} alt="AI" className="h-full w-full object-cover" />
+        ) : (
+          <img src="/logo.svg" alt="AI" className="h-full w-full object-cover" />
+        )}
       </div>
       <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm border border-border bg-white px-4 py-3 shadow-sm">
         <span
@@ -67,6 +65,7 @@ export function ChatMessageList({
 }: ChatMessageListProps) {
   const bottomRef = useRef<HTMLDivElement | null>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const { userAvatar, aiAvatar } = useIconSettings()
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -156,8 +155,12 @@ export function ChatMessageList({
             >
               {/* AI 头像 */}
               {!isUser && isFirstInGroup && (
-                <div className="claude-ai-avatar flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-sm self-end mb-1">
-                  <Sparkles className="h-4 w-4 text-white" />
+                <div className="claude-ai-avatar flex h-8 w-8 shrink-0 items-center justify-center rounded-xl shadow-sm overflow-hidden self-end mb-1">
+                  {aiAvatar ? (
+                    <img src={aiAvatar} alt="AI" className="h-full w-full object-cover" />
+                  ) : (
+                    <img src="/logo.svg" alt="AI" className="h-full w-full object-cover" />
+                  )}
                 </div>
               )}
               {!isUser && !isFirstInGroup && <div className="w-8 shrink-0" />}
@@ -260,8 +263,12 @@ export function ChatMessageList({
 
               {/* 用户头像 */}
               {isUser && isFirstInGroup && (
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-muted shadow-sm self-end mb-1">
-                  <User className="h-4 w-4 text-muted-foreground" />
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl shadow-sm overflow-hidden self-end mb-1">
+                  {userAvatar ? (
+                    <img src={userAvatar} alt="User" className="h-full w-full object-cover" />
+                  ) : (
+                    <User className="h-4 w-4 text-muted-foreground" />
+                  )}
                 </div>
               )}
               {isUser && !isFirstInGroup && <div className="w-8 shrink-0" />}
@@ -271,7 +278,7 @@ export function ChatMessageList({
 
         {/* Loading 状态 */}
         {isSending && messages[messages.length - 1]?.role === 'user' && (
-          <TypingIndicator />
+          <TypingIndicator aiAvatar={aiAvatar} />
         )}
 
         <div ref={bottomRef} />

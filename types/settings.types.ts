@@ -47,6 +47,10 @@ export interface BoardIcon {
  */
 export interface IconSettings {
   icons: BoardIcon[]
+  /** A 角色（用户）头像 URL */
+  userAvatar?: string
+  /** B 角色（AI 助手）头像 URL */
+  aiAvatar?: string
 }
 
 /**

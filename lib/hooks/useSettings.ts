@@ -308,9 +308,15 @@ export function useIconSettings() {
     await _updateIconSettings({ icons: current.icons.filter((i) => i.id !== iconId) })
   }, [iconSettings, _updateIconSettings])
 
+  const updateAvatar = useCallback(async (type: 'user' | 'ai', url?: string) => {
+    return _updateIconSettings(type === 'user' ? { userAvatar: url } : { aiAvatar: url })
+  }, [_updateIconSettings])
+
   return {
     iconSettings: iconSettings ?? { icons: [] },
     icons: iconSettings?.icons ?? [],
+    userAvatar: iconSettings?.userAvatar,
+    aiAvatar: iconSettings?.aiAvatar,
     loading,
     error,
     fetchIconSettings,
@@ -320,5 +326,6 @@ export function useIconSettings() {
     scanIcons,
     uploadIcon,
     deleteIcon,
+    updateAvatar,
   }
 }

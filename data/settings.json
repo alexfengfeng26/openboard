@@ -459,11 +459,16 @@
         "id": "高优先级.png",
         "name": "高优先级",
         "url": "/icon/高优先级.png"
+      },
+      {
+        "id": "pixel_cat-1778411879763.svg",
+        "name": "pixel_cat",
+        "url": "/icon/pixel_cat-1778411879763.svg"
       }
     ]
   },
   "appearance": {
     "theme": "claude"
   },
-  "updatedAt": "2026-05-10T10:33:02.105Z"
+  "updatedAt": "2026-05-10T11:17:59.787Z"
 }
