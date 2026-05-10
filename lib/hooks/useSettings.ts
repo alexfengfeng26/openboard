@@ -258,6 +258,15 @@ export function useIconSettings() {
     initialData: { icons: [] },
   })
 
+  // 监听其他组件触发的头像更新事件，自动刷新
+  useEffect(() => {
+    const handler = () => {
+      fetchIconSettings().catch(() => {})
+    }
+    window.addEventListener('icon-settings-changed', handler)
+    return () => window.removeEventListener('icon-settings-changed', handler)
+  }, [fetchIconSettings])
+
   const updateIcons = useCallback(async (icons: BoardIcon[]) => {
     return _updateIconSettings({ icons })
   }, [_updateIconSettings])
@@ -309,7 +318,10 @@ export function useIconSettings() {
   }, [iconSettings, _updateIconSettings])
 
   const updateAvatar = useCallback(async (type: 'user' | 'ai', url?: string) => {
-    return _updateIconSettings(type === 'user' ? { userAvatar: url } : { aiAvatar: url })
+    const result = await _updateIconSettings(type === 'user' ? { userAvatar: url } : { aiAvatar: url })
+    // 通知其他使用头像的组件刷新
+    window.dispatchEvent(new Event('icon-settings-changed'))
+    return result
   }, [_updateIconSettings])
 
   return {

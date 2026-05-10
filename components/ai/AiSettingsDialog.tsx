@@ -677,9 +677,11 @@ export function AiSettingsDialog({
                           try {
                             const result = await uploadIcon(file)
                             await updateAvatar('user', result.url)
+                            await fetchIconSettings()
                             toastSuccess('用户头像已更新')
-                          } catch {
-                            toastError('上传失败')
+                          } catch (err) {
+                            const msg = err instanceof Error ? err.message : '上传失败'
+                            toastError(msg)
                           } finally {
                             setAvatarUploading(null)
                             if (userFileInputRef.current) userFileInputRef.current.value = ''
@@ -738,9 +740,11 @@ export function AiSettingsDialog({
                           try {
                             const result = await uploadIcon(file)
                             await updateAvatar('ai', result.url)
+                            await fetchIconSettings()
                             toastSuccess('AI 头像已更新')
-                          } catch {
-                            toastError('上传失败')
+                          } catch (err) {
+                            const msg = err instanceof Error ? err.message : '上传失败'
+                            toastError(msg)
                           } finally {
                             setAvatarUploading(null)
                             if (aiFileInputRef.current) aiFileInputRef.current.value = ''

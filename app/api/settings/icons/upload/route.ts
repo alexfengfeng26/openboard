@@ -18,8 +18,14 @@ const ALLOWED_MIME_TYPES = [
   'image/jpg',
   'image/webp',
   'image/gif',
+  'image/avif',
+  'image/heic',
+  'image/heif',
+  'image/bmp',
+  'image/tiff',
+  'image/x-icon',
 ]
-const ALLOWED_EXTS = /\.(svg|png|jpg|jpeg|webp|gif)$/i
+const ALLOWED_EXTS = /\.(svg|png|jpg|jpeg|webp|gif|avif|heic|heif|bmp|tiff|ico)$/i
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
