@@ -12,7 +12,7 @@ import type { IconSettings } from '@/types/settings.types'
  * 获取图标设置
  * GET /api/settings/icons
  */
-export async function GET(request: NextRequest): Promise<NextResponse> {
+export async function GET(): Promise<NextResponse> {
   try {
     const storage = await getSettingsStorage()
     const icons = await storage.getIconSettings()
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 /**
  * 更新图标设置
  * PUT /api/settings/icons
- * Body: { icons: BoardIcon[] }
+ * Body: { icons?: BoardIcon[], userAvatar?: string | null, aiAvatar?: string | null }
  */
 export async function PUT(request: NextRequest): Promise<NextResponse> {
   try {
@@ -46,6 +46,24 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
     const updates: Partial<IconSettings> = {}
     if (Array.isArray(body.icons)) {
       updates.icons = body.icons
+    }
+    if (Object.prototype.hasOwnProperty.call(body, 'userAvatar')) {
+      if (typeof body.userAvatar !== 'string' && body.userAvatar !== null) {
+        return NextResponse.json(
+          { success: false, error: '无效的用户头像地址' },
+          { status: 400 }
+        )
+      }
+      updates.userAvatar = body.userAvatar ?? undefined
+    }
+    if (Object.prototype.hasOwnProperty.call(body, 'aiAvatar')) {
+      if (typeof body.aiAvatar !== 'string' && body.aiAvatar !== null) {
+        return NextResponse.json(
+          { success: false, error: '无效的 AI 头像地址' },
+          { status: 400 }
+        )
+      }
+      updates.aiAvatar = body.aiAvatar ?? undefined
     }
 
     const result = await storage.updateIconSettings(updates)

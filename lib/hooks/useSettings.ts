@@ -49,7 +49,7 @@ function useApiResource<T>(
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(fetchUrl)
+      const response = await fetch(fetchUrl, { cache: 'no-store' })
       const result: ApiResponse<T> = await response.json()
       if (!response.ok || !result.success) {
         throw new Error(result.error || '获取失败')
@@ -252,11 +252,18 @@ export function useIconSettings() {
     data: iconSettings,
     loading,
     error,
-    fetchData: fetchIconSettings,
+    fetchData: _fetchIconSettings,
     updateData: _updateIconSettings,
   } = useApiResource<IconSettings>('/api/settings/icons', '/api/settings/icons', {
     initialData: { icons: [] },
   })
+  const [avatarRevision, setAvatarRevision] = useState(0)
+
+  const fetchIconSettings = useCallback(async () => {
+    const result = await _fetchIconSettings()
+    setAvatarRevision((revision) => revision + 1)
+    return result
+  }, [_fetchIconSettings])
 
   // 监听其他组件触发的头像更新事件，自动刷新
   useEffect(() => {
@@ -318,7 +325,11 @@ export function useIconSettings() {
   }, [iconSettings, _updateIconSettings])
 
   const updateAvatar = useCallback(async (type: 'user' | 'ai', url?: string) => {
-    const result = await _updateIconSettings(type === 'user' ? { userAvatar: url } : { aiAvatar: url })
+    const updates = type === 'user'
+      ? { userAvatar: url ?? null }
+      : { aiAvatar: url ?? null }
+    const result = await _updateIconSettings(updates as unknown as Partial<IconSettings>)
+    setAvatarRevision((revision) => revision + 1)
     // 通知其他使用头像的组件刷新
     window.dispatchEvent(new Event('icon-settings-changed'))
     return result
@@ -329,6 +340,7 @@ export function useIconSettings() {
     icons: iconSettings?.icons ?? [],
     userAvatar: iconSettings?.userAvatar,
     aiAvatar: iconSettings?.aiAvatar,
+    avatarRevision,
     loading,
     error,
     fetchIconSettings,

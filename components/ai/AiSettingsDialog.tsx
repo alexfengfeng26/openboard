@@ -19,6 +19,7 @@ import {
 } from '@/lib/ai/commands'
 import { toastError, toastSuccess, toastWarning } from '@/components/ui/toast'
 import { useIconSettings } from '@/lib/hooks/useSettings'
+import { AvatarImage } from './AvatarImage'
 
 interface AiSettingsDialogProps {
   open: boolean
@@ -42,7 +43,7 @@ export function AiSettingsDialog({
   const [settingsActiveTab, setSettingsActiveTab] = useState<'general' | 'trigger' | 'tags' | 'icons' | 'appearance'>('general')
   const [themeDraft, setThemeDraft] = useState<'claude' | 'notion'>('claude')
   const [themeLoading, setThemeLoading] = useState(false)
-  const { userAvatar, aiAvatar, uploadIcon, updateAvatar, fetchIconSettings } = useIconSettings()
+  const { userAvatar, aiAvatar, avatarRevision, uploadIcon, updateAvatar, fetchIconSettings } = useIconSettings()
   const [avatarUploading, setAvatarUploading] = useState<'user' | 'ai' | null>(null)
   const userFileInputRef = useRef<HTMLInputElement | null>(null)
   const aiFileInputRef = useRef<HTMLInputElement | null>(null)
@@ -658,11 +659,13 @@ export function AiSettingsDialog({
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted">
-                      {userAvatar ? (
-                        <img src={userAvatar} alt="用户头像" className="h-full w-full object-cover" />
-                      ) : (
-                        <User className="h-5 w-5 text-muted-foreground" />
-                      )}
+                      <AvatarImage
+                        src={userAvatar}
+                        alt="用户头像"
+                        cacheKey={avatarRevision}
+                        className="h-full w-full object-cover"
+                        fallback={<User className="h-5 w-5 text-muted-foreground" />}
+                      />
                     </div>
                     <div className="flex flex-1 flex-col gap-1.5">
                       <input
@@ -721,11 +724,13 @@ export function AiSettingsDialog({
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted">
-                      {aiAvatar ? (
-                        <img src={aiAvatar} alt="AI头像" className="h-full w-full object-cover" />
-                      ) : (
-                        <Bot className="h-5 w-5 text-muted-foreground" />
-                      )}
+                      <AvatarImage
+                        src={aiAvatar}
+                        alt="AI头像"
+                        cacheKey={avatarRevision}
+                        className="h-full w-full object-cover"
+                        fallback={<Bot className="h-5 w-5 text-muted-foreground" />}
+                      />
                     </div>
                     <div className="flex flex-1 flex-col gap-1.5">
                       <input

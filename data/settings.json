@@ -464,11 +464,31 @@
         "id": "pixel_cat-1778411879763.svg",
         "name": "pixel_cat",
         "url": "/icon/pixel_cat-1778411879763.svg"
+      },
+      {
+        "id": "logo-1778459172112.svg",
+        "name": "logo",
+        "url": "/icon/logo-1778459172112.svg"
+      },
+      {
+        "id": "pixel_cat-1778461272884.svg",
+        "name": "pixel_cat",
+        "url": "/icon/pixel_cat-1778461272884.svg"
+      },
+      {
+        "id": "pixel_alex-1778461704858.svg",
+        "name": "pixel_alex",
+        "url": "/icon/pixel_alex-1778461704858.svg"
+      },
+      {
+        "id": "pixel_cat-1778461900778.svg",
+        "name": "pixel_cat",
+        "url": "/icon/pixel_cat-1778461900778.svg"
       }
     ]
   },
   "appearance": {
     "theme": "claude"
   },
-  "updatedAt": "2026-05-10T11:28:14.343Z"
+  "updatedAt": "2026-05-11T01:12:09.597Z"
 }
