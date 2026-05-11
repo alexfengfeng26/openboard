@@ -74,6 +74,12 @@ export interface AiSettings {
   trustMode: AiTrustMode
   /** AI 操作完成后是否自动最小化面板 */
   autoMinimizeAfterAction: boolean
+  /** 执行编排设置 */
+  execution?: {
+    defaultMode: 'balanced' | 'conservative' | 'aggressive'
+    undoWindowSeconds: number
+    mediumRiskPolicy: 'confirm' | 'auto'
+  }
 }
 
 /**
@@ -211,6 +217,11 @@ export function createDefaultSettings(): AppSettings {
       commands: [], // 默认命令在初始化时从 createDefaultAiCommands 填充
       trustMode: 'confirm_high_risk',
       autoMinimizeAfterAction: true,
+      execution: {
+        defaultMode: 'balanced',
+        undoWindowSeconds: 30,
+        mediumRiskPolicy: 'confirm',
+      },
     },
     boardView: {
       cardDensity: 'normal',

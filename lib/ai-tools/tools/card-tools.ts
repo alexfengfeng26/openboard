@@ -80,6 +80,51 @@ export class BatchUpdateCardsTool extends BaseTool {
 }
 
 /**
+ * 批量更新卡片标签工具定义
+ */
+export class BatchUpdateCardTagsTool extends BaseTool {
+  name = 'batch_update_card_tags'
+  description = '批量为卡片添加或移除标签'
+  category = 'card' as const
+  paramSchema: ToolParameterSchema[] = [
+    {
+      name: 'boardId',
+      type: 'string',
+      required: true,
+      description: '看板 ID'
+    },
+    {
+      name: 'cardIds',
+      type: 'array',
+      required: true,
+      description: '要更新标签的卡片 ID 列表'
+    },
+    {
+      name: 'addTags',
+      type: 'array',
+      required: false,
+      description: '要添加的标签列表'
+    },
+    {
+      name: 'removeTagIds',
+      type: 'array',
+      required: false,
+      description: '要移除的标签 ID 列表'
+    }
+  ]
+
+  async execute(): Promise<ToolExecutionResult> {
+    return {
+      success: false,
+      toolName: this.name,
+      params: {},
+      error: 'Tool execution must be done on server side',
+      timestamp: new Date().toISOString()
+    }
+  }
+}
+
+/**
  * 为卡片添加标签工具定义
  */
 export class AddTagToCardTool extends BaseTool {

@@ -65,6 +65,7 @@ ${toolDescriptions}
 3. 如果缺少必要信息（如列表 ID），请询问用户
 4. 一次操作可以调用多个工具
 5. 严格只执行用户请求的操作：不要创建未请求的新卡片，不要重复创建同名卡片
+6. 不要使用 '/card'、'/lane'、'/board' 这类旧格式；统一使用 tool_calls JSON
 `.trim()
   }
 
@@ -107,7 +108,10 @@ ${toolTriggerHelp}
         if (lane.cards && lane.cards.length > 0) {
           parts.push('    卡片:')
           lane.cards.slice(0, 50).forEach((card) => {
-            parts.push(`      - ${card.title} (ID: ${card.id})`)
+            const tagText = card.tags && card.tags.length > 0
+              ? `, 标签: ${card.tags.map((tag) => tag.name).join('、')}`
+              : ''
+            parts.push(`      - ${card.title} (ID: ${card.id}${tagText})`)
           })
         }
       })
@@ -115,6 +119,11 @@ ${toolTriggerHelp}
 
     if (context.note) {
       parts.push(`\n${context.note}`)
+    }
+
+    if (parts.length > 0) {
+      parts.push('\n标签判断规则：如果用户提到某个标签，请优先根据卡片实际 tags 字段匹配，而不是只看标签池或标题。')
+      parts.push('如果标签筛选结果不确定，先返回候选卡片与不确定点，再等用户确认，不要直接说“没有符合条件的卡片”。')
     }
 
     return parts.length > 0 ? parts.join('\n') : '无上下文信息'

@@ -1,19 +1,90 @@
 'use client'
 
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { Clock, CheckCircle2, XCircle, AlertCircle, Loader2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { toastError, toastSuccess, toastWarning } from '@/components/ui/toast'
 import type { OperationLogEntry } from '@/types/ai-tools.types'
 
 interface OperationLogPanelProps {
   logs: OperationLogEntry[]
+  boardId?: string
   onClose?: () => void
+  onUndone?: () => void | Promise<void>
 }
 
 /**
  * 操作日志面板 - 展示工具执行的详细日志
  */
-export function OperationLogPanel({ logs, onClose }: OperationLogPanelProps) {
+export function OperationLogPanel({ logs, boardId, onClose, onUndone }: OperationLogPanelProps) {
+  const [undoingLogId, setUndoingLogId] = useState<string | null>(null)
+  const [nowTs, setNowTs] = useState(() => Date.now())
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNowTs(Date.now()), 1000)
+    return () => window.clearInterval(timer)
+  }, [])
+
+  const canUndo = useCallback((log: OperationLogEntry) => {
+    if (!log.undoable || !log.undoPayload) return false
+    if (!log.undoDeadline) return true
+    return nowTs <= new Date(log.undoDeadline).getTime()
+  }, [nowTs])
+
+  const formatUndoCountdown = (log: OperationLogEntry) => {
+    if (!log.undoDeadline) return '可撤销'
+    const left = Math.floor((new Date(log.undoDeadline).getTime() - nowTs) / 1000)
+    if (left <= 0) return '撤销已过期'
+    return `可撤销（剩余 ${left}s）`
+  }
+
+  const latestUndoablePlanId = useMemo(() => {
+    for (const log of logs) {
+      if (log.planId && log.status === 'executed' && canUndo(log)) {
+        return log.planId
+      }
+    }
+    return null
+  }, [logs, canUndo])
+
+  const latestUndoablePlanLogs = useMemo(() => {
+    if (!latestUndoablePlanId) return []
+    return logs.filter((log) => log.planId === latestUndoablePlanId && log.status === 'executed' && canUndo(log))
+  }, [logs, latestUndoablePlanId, canUndo])
+
+  async function handleUndo(log: OperationLogEntry) {
+    if (!canUndo(log)) {
+      toastWarning('撤销窗口已过期')
+      return
+    }
+    if (!boardId) {
+      toastError('缺少 boardId，无法撤销')
+      return
+    }
+    setUndoingLogId(log.id)
+    try {
+      const response = await fetch('/api/ai/undo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          boardId,
+          logId: log.id,
+        }),
+      })
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.error || '撤销失败')
+      }
+      toastSuccess('撤销成功')
+      await onUndone?.()
+    } catch (e) {
+      toastError(e instanceof Error ? e.message : '撤销失败')
+    } finally {
+      setUndoingLogId(null)
+    }
+  }
+
   const getStatusIcon = (status: OperationLogEntry['status']) => {
     switch (status) {
       case 'pending':
@@ -64,6 +135,7 @@ export function OperationLogPanel({ logs, onClose }: OperationLogPanelProps) {
       create_card: '创建卡片',
       update_card: '更新卡片',
       move_card: '移动卡片',
+      batch_update_card_tags: '批量更新标签',
       delete_card: '删除卡片',
       create_lane: '创建列表',
       delete_lane: '删除列表',
@@ -75,6 +147,48 @@ export function OperationLogPanel({ logs, onClose }: OperationLogPanelProps) {
     return nameMap[toolName] || toolName
   }
 
+  async function handleUndoLatestPlan() {
+    if (!boardId) {
+      toastError('缺少 boardId，无法撤销')
+      return
+    }
+    if (!latestUndoablePlanId || latestUndoablePlanLogs.length === 0) {
+      toastWarning('没有可撤销的最近计划')
+      return
+    }
+
+    setUndoingLogId(`plan:${latestUndoablePlanId}`)
+    let success = 0
+    let failed = 0
+
+    for (const log of latestUndoablePlanLogs) {
+      try {
+        const response = await fetch('/api/ai/undo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            boardId,
+            logId: log.id,
+          }),
+        })
+        const data = await response.json().catch(() => ({}))
+        if (!response.ok || !data?.success) {
+          failed++
+        } else {
+          success++
+        }
+      } catch {
+        failed++
+      }
+    }
+
+    setUndoingLogId(null)
+    if (success > 0 && failed === 0) toastSuccess(`已撤销最近计划（${success} 项）`)
+    else if (success > 0) toastWarning(`部分撤销成功：${success} 成功，${failed} 失败`)
+    else toastError('撤销最近计划失败')
+    await onUndone?.()
+  }
+
   return (
     <div className="flex h-full flex-col rounded-[20px] border border-border/90 bg-white/92 shadow-[0_18px_40px_rgba(26,20,14,0.12)] backdrop-blur-xl">
       <div className="flex items-center justify-between border-b border-border/80 px-4 py-3">
@@ -83,11 +197,24 @@ export function OperationLogPanel({ logs, onClose }: OperationLogPanelProps) {
           <span className="text-[13px] font-semibold">操作日志</span>
           <Badge variant="secondary">{logs.length}</Badge>
         </div>
-        {onClose && (
-          <Button variant="ghost" size="sm" className="h-7 rounded-lg px-2.5 text-[11px]" onClick={onClose}>
-            关闭
-          </Button>
-        )}
+        <div className="flex items-center gap-1.5">
+          {latestUndoablePlanId && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 rounded-lg px-2.5 text-[11px]"
+              onClick={() => void handleUndoLatestPlan()}
+              disabled={undoingLogId?.startsWith('plan:')}
+            >
+              {undoingLogId?.startsWith('plan:') ? '撤销中...' : '撤销最近计划'}
+            </Button>
+          )}
+          {onClose && (
+            <Button variant="ghost" size="sm" className="h-7 rounded-lg px-2.5 text-[11px]" onClick={onClose}>
+              关闭
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
@@ -137,6 +264,23 @@ export function OperationLogPanel({ logs, onClose }: OperationLogPanelProps) {
                     {JSON.stringify(log.result, null, 2)}
                   </div>
                 ) : null}
+
+                {log.status === 'executed' && (
+                  <div className="mt-2 flex items-center justify-between">
+                    <span className="text-[11px] text-muted-foreground">
+                      {formatUndoCountdown(log)}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-6 px-2 text-[11px]"
+                      onClick={() => void handleUndo(log)}
+                      disabled={!canUndo(log) || undoingLogId === log.id}
+                    >
+                      {undoingLogId === log.id ? '撤销中...' : '撤销'}
+                    </Button>
+                  </div>
+                )}
               </div>
             ))}
           </div>

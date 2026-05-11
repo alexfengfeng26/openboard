@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import type { Card, Lane, Tag } from '@/lib/db'
 import { toastInfo, toastWarning } from '@/components/ui/toast'
 import { ToolCallConfirmation } from './ToolCallConfirmation'
@@ -12,7 +13,7 @@ import { ChatInputArea } from './ChatInputArea'
 import { SlashCommandMenu, type SlashMenuItem } from './SlashCommandMenu'
 import { DraftEditorPanel } from './DraftEditorPanel'
 import { PromptBuilder, FallbackToolParser } from '@/lib/ai-tools'
-import type { ToolCallRequest, ChatMessage, OperationLogEntry } from '@/types/ai-tools.types'
+import type { ToolCallRequest, ChatMessage, OperationLogEntry, AiExecutionPlan } from '@/types/ai-tools.types'
 import type { AiCommand } from '@/types/ai-commands.types'
 import type { CardDraft } from '@/lib/ai-tools/parser/card-draft-types'
 import type { AiSettings, AiModel, AiToolTriggerConfig } from '@/types/settings.types'
@@ -27,6 +28,10 @@ import {
   getAllowedToolNames,
   buildSystemContext,
   sanitizeToolCalls,
+  findTaggedCardCandidates,
+  looksLikeNoMatchResponse,
+  looksLikeToolIntent,
+  parseLegacyCardActionToolCalls,
 } from '@/lib/ai/chat-helpers'
 import { canAutoExecute, getToolRiskSummary } from '@/lib/ai/tool-risk'
 
@@ -86,6 +91,7 @@ export function DeepSeekChatPanel({
   })
   const [commandsLoaded, setCommandsLoaded] = useState(false)
   const [internalSettingsOpen, setInternalSettingsOpen] = useState(false)
+  const [pendingPlan, setPendingPlan] = useState<AiExecutionPlan | null>(null)
   const settingsOpen = externalSettingsOpen !== undefined ? externalSettingsOpen : internalSettingsOpen
   const setSettingsOpen = (open: boolean) => {
     if (onExternalSettingsOpenChange) {
@@ -127,10 +133,10 @@ export function DeepSeekChatPanel({
   }, [lanes])
 
   const cardById = useMemo(() => {
-    const map = new Map<string, { title: string; description?: string; laneId: string }>()
+    const map = new Map<string, { title: string; description?: string; laneId: string; tags?: Tag[] }>()
     for (const lane of lanes) {
       for (const card of lane.cards || []) {
-        map.set(card.id, { title: card.title, description: card.description || undefined, laneId: card.laneId })
+        map.set(card.id, { title: card.title, description: card.description || undefined, laneId: card.laneId, tags: card.tags || [] })
       }
     }
     return map
@@ -296,6 +302,9 @@ export function DeepSeekChatPanel({
       const stripped = text.slice(c.prefix.length).replace(/^[:：]?\s*/, '')
       return { scope: c.scope, stripped: stripped.trim() }
     }
+    if (looksLikeToolIntent(text)) {
+      return { scope: 'all', stripped: raw }
+    }
     return { scope: 'none', stripped: raw }
   }
 
@@ -305,20 +314,49 @@ export function DeepSeekChatPanel({
   }
 
   async function callChatApi(payload: unknown): Promise<string> {
-    const response = await fetch('/api/ai/chat', {
+    const endpoint = '/api/ai/chat'
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
       signal: abortControllerRef.current?.signal,
     })
     const data = await response.json().catch(() => ({}))
-    if (!response.ok) throw new Error(typeof data?.error === 'string' ? data.error : 'AI 请求失败')
+    if (!response.ok) {
+      const detail = typeof data?.error === 'string'
+        ? data.error
+        : typeof data?.message === 'string'
+          ? data.message
+          : 'AI 请求失败'
+      throw new Error(`${endpoint} ${response.status}: ${detail}`)
+    }
     if (typeof data?.content !== 'string') throw new Error('AI 返回格式异常')
     return data.content
   }
 
+  async function callPlanApi(toolCalls: ToolCallRequest[]): Promise<AiExecutionPlan> {
+    const mode = aiSettings?.execution?.defaultMode ?? 'balanced'
+    const endpoint = '/api/ai/plan'
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ toolCalls, mode }),
+    })
+    const data = await response.json().catch(() => ({}))
+    if (!response.ok || !data?.success || !data?.data) {
+      const detail = typeof data?.error === 'string'
+        ? data.error
+        : typeof data?.message === 'string'
+          ? data.message
+          : '生成执行计划失败'
+      throw new Error(`${endpoint} ${response.status}: ${detail}`)
+    }
+    return data.data as AiExecutionPlan
+  }
+
   async function callChatApiStream(payload: unknown): Promise<ReadableStream<Uint8Array>> {
-    const response = await fetch('/api/ai/chat', {
+    const endpoint = '/api/ai/chat'
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...((payload ?? {}) as Record<string, unknown>), stream: true }),
@@ -326,7 +364,12 @@ export function DeepSeekChatPanel({
     })
     if (!response.ok) {
       const data = await response.json().catch(() => ({}))
-      throw new Error(typeof data?.error === 'string' ? data.error : 'AI 请求失败')
+      const detail = typeof data?.error === 'string'
+        ? data.error
+        : typeof data?.message === 'string'
+          ? data.message
+          : 'AI 请求失败'
+      throw new Error(`${endpoint} ${response.status}: ${detail}`)
     }
     if (!response.body) throw new Error('无法获取响应流')
     return response.body
@@ -445,30 +488,77 @@ export function DeepSeekChatPanel({
 
       // 工具模式：非流式，快速获取完整响应后解析
       const aiContent = await callChatApi(payload)
+      let assistantReplyContent = aiContent
 
       FallbackToolParser.setDefaultLaneId(defaultLaneId)
       const parseResult = FallbackToolParser.parse(aiContent)
 
-      if (parseResult.type === 'tool_calls' && parseResult.data.length > 0) {
+      let parsedToolCalls = parseResult.type === 'tool_calls' && parseResult.data.length > 0
+        ? (parseResult.data as ToolCallRequest[])
+        : null
+
+      if (!parsedToolCalls) {
+        const legacyToolCalls = parseLegacyCardActionToolCalls(aiContent, boardId, lanes, tags)
+        if (legacyToolCalls.length > 0) {
+          parsedToolCalls = legacyToolCalls
+        }
+      }
+
+      if (!parsedToolCalls && looksLikeNoMatchResponse(aiContent)) {
+        const fallbackCandidates = findTaggedCardCandidates(lanes, tags, content)
+        if (fallbackCandidates.length > 0) {
+          const candidateSummary = fallbackCandidates.slice(0, 12).map((card) => {
+            const tagText = card.matchedTags.length > 0 ? `, 标签: ${card.matchedTags.join('、')}` : ''
+            return `- ${card.laneTitle} / ${card.cardTitle} (ID: ${card.cardId}${tagText})`
+          }).join('\n')
+          const retrySystem = [
+            PromptBuilder.buildToolSystemPrompt(context, { allowedToolNames: getAllowedToolNames(trigger.scope) }),
+            '## 系统兜底',
+            '你刚刚判断“没有符合条件的卡片”，但系统扫描发现了候选卡片。请基于用户原始要求重新生成工具调用，只输出 JSON，不要输出解释。',
+            `候选卡片：\n${candidateSummary}`,
+          ].join('\n\n')
+          const retryContent = await callChatApi({
+            ...payload,
+            system: retrySystem,
+          })
+          const retryParse = FallbackToolParser.parse(retryContent)
+          if (retryParse.type === 'tool_calls' && retryParse.data.length > 0) {
+            parsedToolCalls = retryParse.data as ToolCallRequest[]
+          } else {
+            assistantReplyContent = retryContent
+          }
+        }
+      }
+
+      if (parsedToolCalls && parsedToolCalls.length > 0) {
         const allowed = getAllowedToolNames(trigger.scope)
-        const sanitized = sanitizeToolCalls(parseResult.data as ToolCallRequest[], existingCardTitles, cardById)
+        const sanitized = sanitizeToolCalls(parsedToolCalls, existingCardTitles, cardById)
         const toolCalls = allowed && allowed.length > 0 ? sanitized.filter((c) => allowed.includes(c.toolName)) : sanitized
-        const removedCount = (parseResult.data as ToolCallRequest[]).length - toolCalls.length
+        const removedCount = parsedToolCalls.length - toolCalls.length
 
         if (toolCalls.length === 0) {
           if (removedCount > 0) toastWarning(`已忽略 ${removedCount} 个可疑/重复操作`)
           return
         }
 
-        // 信任模式：低风险操作自动执行
+        const plan = await callPlanApi(toolCalls)
         const trustMode = aiSettings?.trustMode || 'confirm_high_risk'
-        const autoExecute = canAutoExecute(toolCalls, trustMode)
+        const autoExecute = plan.autoExecutable && canAutoExecute(toolCalls, trustMode)
 
         const newLogIds: string[] = []
-        const newLogs = toolCalls.map((call) => {
+        const newLogs = plan.steps.map((step) => {
           const id = createChatId()
           newLogIds.push(id)
-          return { id, timestamp: new Date().toISOString(), status: 'pending' as const, toolName: call.toolName, params: call.params }
+          return {
+            id,
+            timestamp: new Date().toISOString(),
+            status: 'pending' as const,
+            toolName: step.toolCall.toolName,
+            params: step.toolCall.params,
+            planId: plan.planId,
+            stepId: step.stepId,
+            riskLevel: step.riskLevel,
+          }
         })
         tools.setPendingToolLogIds(newLogIds)
         setOperationLogs((prev) => [...newLogs, ...prev])
@@ -476,25 +566,25 @@ export function DeepSeekChatPanel({
         if (removedCount > 0) toastWarning(`已忽略 ${removedCount} 个可疑/重复操作`)
 
         if (autoExecute) {
-          toastInfo(`AI 自动执行 ${toolCalls.length} 个操作（${getToolRiskSummary(toolCalls)}）`)
-          await tools.handleConfirmToolCalls({
+          toastInfo(`AI 自动执行 ${plan.steps.length} 个操作（${getToolRiskSummary(toolCalls)}）`)
+          const executed = await tools.handleExecutePlan(plan, {
             confirmedBy: 'auto',
-            toolCalls,
             toolLogIds: newLogIds,
           })
-          if (aiSettings?.autoMinimizeAfterAction !== false) {
+          if (executed && aiSettings?.autoMinimizeAfterAction !== false) {
             onRequestMinimize?.()
           }
         } else {
-          tools.setPendingToolCalls(toolCalls)
+          setPendingPlan(plan)
+          tools.setPendingToolCalls(plan.steps.map((s) => s.toolCall))
           const summary = getToolRiskSummary(toolCalls)
-          toastInfo(`已生成 ${toolCalls.length} 个操作，${summary}，等待确认`)
+          toastInfo(`已生成 ${plan.steps.length} 个操作，${summary}，等待确认`)
         }
       } else if (parseResult.type === 'draft' && parseResult.data.length > 0) {
         await drafts.handleDraftsFromSend(parseResult.data as CardDraft[])
       } else {
         const id = createChatId()
-        setMessages((prev) => [...prev, { id, role: 'assistant', content: aiContent }])
+        setMessages((prev) => [...prev, { id, role: 'assistant', content: assistantReplyContent }])
         setActionableAssistantMessageIds((prev) => (prev.includes(id) ? prev : [...prev, id]))
       }
     } catch (e) {
@@ -536,7 +626,7 @@ export function DeepSeekChatPanel({
         model={model}
         onModelChange={handleModelChange}
         showLogPanel={showLogPanel}
-        onToggleLogPanel={() => setShowLogPanel(!showLogPanel)}
+        onToggleLogPanel={() => setShowLogPanel((prev) => !prev)}
         operationLogsCount={operationLogs.length}
         onClearChat={handleClearChat}
         onRequestMinimize={onRequestMinimize}
@@ -620,21 +710,39 @@ export function DeepSeekChatPanel({
           open={!!tools.pendingToolCalls}
           toolCalls={tools.pendingToolCalls}
           onConfirm={async () => {
-            await tools.handleConfirmToolCalls()
-            if (aiSettings?.autoMinimizeAfterAction !== false) {
+            let executed = false
+            if (pendingPlan) {
+              executed = await tools.handleExecutePlan(pendingPlan, {
+                confirmedBy: 'user',
+                toolLogIds: tools.pendingToolLogIds ?? undefined,
+              })
+              setPendingPlan(null)
+            } else {
+              executed = await tools.handleConfirmToolCalls()
+            }
+            if (executed && aiSettings?.autoMinimizeAfterAction !== false) {
               onRequestMinimize?.()
             }
           }}
-          onCancel={tools.handleCancelToolCalls}
+          onCancel={() => {
+            setPendingPlan(null)
+            tools.handleCancelToolCalls()
+          }}
           isExecuting={tools.isExecuting}
         />
       )}
-      {showLogPanel && (
-        <div className="fixed inset-0 z-40 bg-black/12 backdrop-blur-[1px]">
+      {showLogPanel && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[120] bg-black/12 backdrop-blur-[1px]">
           <div className="fixed right-3 top-3 h-[calc(100%-24px)] w-[min(360px,calc(100vw-24px))]">
-            <OperationLogPanel logs={operationLogs} onClose={() => setShowLogPanel(false)} />
+            <OperationLogPanel
+              logs={operationLogs}
+              boardId={boardId}
+              onClose={() => setShowLogPanel(false)}
+              onUndone={onBoardRefresh}
+            />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

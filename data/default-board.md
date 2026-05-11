@@ -2,7 +2,7 @@
 id: default-board
 title: 我的看板
 createdAt: '2026-02-11T07:06:35.423Z'
-updatedAt: '2026-05-11T05:12:07.144Z'
+updatedAt: '2026-05-11T06:25:03.073Z'
 tags:
   - id: tag-0
     name: 紧急
@@ -56,32 +56,39 @@ lanes:
     title: 待办
     position: 0
     createdAt: '2026-02-11T07:06:35.423Z'
-    updatedAt: '2026-05-10T04:19:36.200Z'
+    updatedAt: '2026-05-11T06:25:03.073Z'
     cards:
       - id: card-3
         laneId: lane-todo
         title: 开发中
         position: 2
         createdAt: '2026-02-11T07:06:35.423Z'
-        updatedAt: '2026-05-10T04:19:36.200Z'
+        updatedAt: '2026-05-11T06:24:57.311Z'
         description: 正在积极开发的功能
         tags:
-          - &ref_0
-            id: tag-feature
+          - id: tag-feature
             name: 功能
             color: '#3b82f6'
+          - id: tag-urgent
+            name: 紧急
+            color: '#ef4444'
       - id: card-1770806962038
         laneId: lane-todo
         title: 搭建管理后台，支持商品上架与订单处理
         position: 10
         createdAt: '2026-02-11T10:49:22.038Z'
-        updatedAt: '2026-05-10T04:19:36.200Z'
+        updatedAt: '2026-05-11T06:25:03.073Z'
         description: |-
           1. 创建管理员后台登录与主界面。
           2. 开发商品管理模块，支持增删改查商品信息。
           3. 开发订单管理模块，支持查看订单列表与状态更新。
         tags:
-          - *ref_0
+          - id: tag-feature
+            name: 功能
+            color: '#3b82f6'
+          - id: tag-urgent
+            name: 紧急
+            color: '#ef4444'
       - id: card-1770891446534-sh5p25
         laneId: lane-todo
         title: 看板系统功能介绍与协助引导
@@ -90,7 +97,10 @@ lanes:
         updatedAt: '2026-05-10T04:19:36.200Z'
         description: "你好！\U0001F44B 欢迎来到看板系统！\n\n我看到你当前的看板中有几个列表和卡片，包括：\n- **待办**：有3个任务，比如“搭建管理后台”\n- **进行中**：有3个任务，比如“撰写 DeepSeek 介绍文档”\n- **已完成2**：有2个已完成任务\n- **归档**：有2个已归档任务\n\n我可以帮你：\n1. **梳理任务** - 分析当前看板状态，给出优化建议\n2. **创建新任务** - 帮你生成详细的卡片标题和描述\n3. **管理看板** - 移动卡片、创建列表等（需要你明确指令）\n4. **总结进度** - 分析当前工作完成情况\n\n你想让我帮你做什么呢？比如：\n- “帮我分析一下当前看板的进度情况”\n- “我想创建一个新任务：优化用户界面”\n- “把‘开发中’卡片移动到进行中列表”\n\n请告诉我你的需求！"
         tags:
-          - *ref_0
+          - &ref_0
+            id: tag-feature
+            name: 功能
+            color: '#3b82f6'
       - id: card-1778321897747-t58ym4
         laneId: lane-todo
         title: 这是一个Bug修复任务

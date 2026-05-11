@@ -33,7 +33,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('[AI Tools] Execute error:', error)
     return NextResponse.json(
-      { error: 'Failed to execute tools' },
+      { error: error instanceof Error ? error.message : 'Failed to execute tools' },
       { status: 500 }
     )
   }

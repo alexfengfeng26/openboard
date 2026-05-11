@@ -1,6 +1,296 @@
 import type { ToolCallRequest, PromptContext, OperationLogEntry } from '@/types/ai-tools.types'
 import type { Lane, Tag } from '@/lib/db'
 
+const COMMON_TAG_ALIASES: Record<string, string[]> = {
+  紧急: ['urgent', '高优先级', '优先', 'p0'],
+  Bug: ['缺陷', '问题', '错误'],
+  优化: ['改进', '优化项'],
+  文档: ['说明', '资料', 'wiki'],
+  设计: ['ui', '视觉'],
+}
+
+export interface CardFallbackCandidate {
+  laneId: string
+  laneTitle: string
+  cardId: string
+  cardTitle: string
+  matchedTags: string[]
+}
+
+function normalizeForMatch(text: string): string {
+  return text.toLowerCase().replace(/\s+/g, '').replace(/[“”"'`.,，。:：!！?？()[\]{}<>/\\|]/g, '')
+}
+
+function getTagAliases(tagName: string): string[] {
+  return COMMON_TAG_ALIASES[tagName] || []
+}
+
+function matchesQueryToken(query: string, token: string): boolean {
+  const normalizedQuery = normalizeForMatch(query)
+  const normalizedToken = normalizeForMatch(token)
+  return normalizedToken.length > 0 && normalizedQuery.includes(normalizedToken)
+}
+
+export function looksLikeNoMatchResponse(text: string): boolean {
+  const normalized = normalizeForMatch(text)
+  return (
+    /没有.*符合条件/.test(normalized) ||
+    /未找到.*卡片/.test(normalized) ||
+    /没有.*卡片需要/.test(normalized) ||
+    /没有.*匹配/.test(normalized) ||
+    /找不到.*卡片/.test(normalized)
+  )
+}
+
+function extractBalancedArraySlice(text: string, startIndex: number): string | null {
+  let depth = 0
+  let inString = false
+  let stringQuote: '"' | "'" | null = null
+  let escaped = false
+
+  for (let i = startIndex; i < text.length; i++) {
+    const ch = text[i]
+
+    if (inString) {
+      if (escaped) {
+        escaped = false
+        continue
+      }
+      if (ch === '\\') {
+        escaped = true
+        continue
+      }
+      if (stringQuote && ch === stringQuote) {
+        inString = false
+        stringQuote = null
+      }
+      continue
+    }
+
+    if (ch === '"' || ch === "'") {
+      inString = true
+      stringQuote = ch as '"' | "'"
+      continue
+    }
+
+    if (ch === '[') depth++
+    if (ch === ']') {
+      depth--
+      if (depth === 0) return text.slice(startIndex, i + 1)
+    }
+  }
+
+  return null
+}
+
+function extractJsonArrayFromText(text: string): unknown[] {
+  const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/i)
+  const candidates = [
+    codeBlockMatch?.[1] ?? '',
+    text,
+  ]
+
+  for (const candidate of candidates) {
+    const trimmed = candidate.trim()
+    if (!trimmed) continue
+
+    try {
+      const parsed = JSON.parse(trimmed) as unknown
+      if (Array.isArray(parsed)) return parsed
+    } catch {
+      // continue
+    }
+
+    const startIndex = trimmed.indexOf('[')
+    if (startIndex === -1) continue
+    const slice = extractBalancedArraySlice(trimmed, startIndex)
+    if (!slice) continue
+    try {
+      const parsed = JSON.parse(slice) as unknown
+      if (Array.isArray(parsed)) return parsed
+    } catch {
+      // continue
+    }
+  }
+
+  return []
+}
+
+export function parseLegacyCardActionToolCalls(
+  text: string,
+  boardId: string | undefined,
+  lanes: Lane[],
+  tags?: Tag[]
+): ToolCallRequest[] {
+  if (!boardId || !/\/card\b/i.test(text)) return []
+
+  const actions = extractJsonArrayFromText(text)
+  if (actions.length === 0) return []
+
+  const laneById = new Map(lanes.map((lane) => [lane.id, lane]))
+  const laneByTitle = new Map(lanes.map((lane) => [normalizeForMatch(lane.title), lane]))
+  const tagPool = tags && tags.length > 0 ? tags : Array.from(
+    new Map(
+      lanes.flatMap((lane) => (lane.cards || []).flatMap((card) => card.tags || []))
+        .map((tag) => [tag.id, tag] as const)
+    ).values()
+  )
+
+  const tagByName = new Map(tagPool.map((tag) => [normalizeForMatch(tag.name), tag]))
+
+  const calls: ToolCallRequest[] = []
+
+  for (const action of actions) {
+    if (!action || typeof action !== 'object') continue
+    const obj = action as Record<string, unknown>
+    const kind = typeof obj.action === 'string' ? obj.action.toLowerCase() : ''
+    const cardId = typeof obj.cardId === 'string' ? obj.cardId : ''
+    if (!cardId) continue
+
+    if (kind === 'move') {
+      const targetLaneId = typeof obj.targetLaneId === 'string'
+        ? obj.targetLaneId
+        : typeof obj.laneId === 'string'
+          ? obj.laneId
+          : ''
+      if (!targetLaneId) continue
+
+      const normalizedLaneId = laneById.has(targetLaneId)
+        ? targetLaneId
+        : laneByTitle.get(normalizeForMatch(targetLaneId))?.id || ''
+      if (!normalizedLaneId) continue
+
+      calls.push({
+        toolName: 'move_card',
+        params: {
+          boardId,
+          cardId,
+          toLaneId: normalizedLaneId,
+        },
+      })
+      continue
+    }
+
+    if (kind === 'update') {
+      const data = obj.data && typeof obj.data === 'object' ? (obj.data as Record<string, unknown>) : {}
+      const title = typeof data.title === 'string' ? data.title : undefined
+      const description = typeof data.description === 'string' ? data.description : undefined
+
+      if (title || description) {
+        const params: Record<string, unknown> = { boardId, cardId }
+        if (title) params.title = title
+        if (description) params.description = description
+        calls.push({ toolName: 'update_card', params })
+      }
+
+      const rawTags = Array.isArray(data.tags) ? data.tags : []
+      if (rawTags.length > 0) {
+        const lane = lanes.find((currentLane) => (currentLane.cards || []).some((card) => card.id === cardId))
+        const currentCard = lane?.cards.find((card) => card.id === cardId)
+        const currentTagNames = new Set((currentCard?.tags || []).map((tag) => normalizeForMatch(tag.name)))
+        const desiredTags = rawTags
+          .map((tag) => {
+            if (typeof tag === 'string') return tag.trim()
+            if (tag && typeof tag === 'object' && typeof (tag as Record<string, unknown>).name === 'string') {
+              return String((tag as Record<string, unknown>).name).trim()
+            }
+            return ''
+          })
+          .filter(Boolean)
+          .map((name) => ({ raw: name, normalized: normalizeForMatch(name) }))
+
+        const addTags = desiredTags
+          .filter(({ normalized }) => !currentTagNames.has(normalized))
+          .map(({ raw, normalized }) => tagByName.get(normalized) || {
+            id: `tag-${normalized}-${Date.now()}`,
+            name: raw,
+            color: '#6b7280',
+          })
+        const removeTagIds = (currentCard?.tags || [])
+          .filter((tag) => !desiredTags.some(({ normalized }) => normalized === normalizeForMatch(tag.name)))
+          .map((tag) => tag.id)
+
+        if (addTags.length > 0 || removeTagIds.length > 0) {
+          calls.push({
+            toolName: 'batch_update_card_tags',
+            params: {
+              boardId,
+              cardIds: [cardId],
+              addTags,
+              removeTagIds,
+            },
+          })
+        }
+      }
+    }
+  }
+
+  return calls
+}
+
+export function looksLikeToolIntent(text: string): boolean {
+  const normalized = text.trim()
+  if (!normalized) return false
+  const patterns = [
+    /(?:移动|迁移|转移).*(?:卡片|列表|看板)?/i,
+    /(?:添加|加上|打上).*(?:标签|tag|标记)/i,
+    /(?:创建|新建|新增).*(?:卡片|列表|看板)/i,
+    /(?:删除|移除).*(?:卡片|列表|看板|标签)/i,
+    /(?:更新|编辑|修改).*(?:卡片|列表|看板|标签)/i,
+    /(?:批量|全部|所有).*(?:移动|删除|更新|添加).*/i,
+  ]
+  return patterns.some((pattern) => pattern.test(normalized))
+}
+
+export function findTaggedCardCandidates(
+  lanes: Lane[],
+  tags: Tag[] | undefined,
+  query: string
+): CardFallbackCandidate[] {
+  const tagPool = tags && tags.length > 0 ? tags : Array.from(
+    new Map(
+      lanes.flatMap((lane) => (lane.cards || []).flatMap((card) => card.tags || []))
+        .map((tag) => [tag.id, tag] as const)
+    ).values()
+  )
+
+  const mentionedTags = tagPool.filter((tag) => {
+    if (matchesQueryToken(query, tag.name)) return true
+    return getTagAliases(tag.name).some((alias) => matchesQueryToken(query, alias))
+  })
+
+  const mentionedLaneIds = lanes
+    .filter((lane) => matchesQueryToken(query, lane.title))
+    .map((lane) => lane.id)
+
+  const candidateLanes = mentionedLaneIds.length > 0
+    ? lanes.filter((lane) => mentionedLaneIds.includes(lane.id))
+    : lanes
+
+  if (mentionedTags.length === 0) return []
+
+  const mentionedTagNames = new Set(mentionedTags.map((tag) => tag.name))
+
+  const candidates: CardFallbackCandidate[] = []
+  for (const lane of candidateLanes) {
+    for (const card of lane.cards || []) {
+      const matchedTags = (card.tags || [])
+        .filter((tag) => mentionedTagNames.has(tag.name))
+        .map((tag) => tag.name)
+      if (matchedTags.length === 0) continue
+      candidates.push({
+        laneId: lane.id,
+        laneTitle: lane.title,
+        cardId: card.id,
+        cardTitle: card.title,
+        matchedTags,
+      })
+    }
+  }
+
+  return candidates
+}
+
 export function createChatId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`
 }
@@ -33,7 +323,20 @@ export function buildSystemContext(
 
   if (tags && tags.length > 0) {
     parts.push(`可用标签：${tags.map((t) => `${t.name} (颜色: ${t.color})`).join('， ')}`)
+    const aliasHints = tags
+      .map((t) => {
+        const aliases = COMMON_TAG_ALIASES[t.name]
+        if (!aliases || aliases.length === 0) return null
+        return `${t.name}≈${aliases.join(' / ')}`
+      })
+      .filter((v): v is string => typeof v === 'string')
+    if (aliasHints.length > 0) {
+      parts.push(`标签别名参考：${aliasHints.join('； ')}`)
+    }
   }
+
+  parts.push('判断卡片是否命中某个标签时，必须以卡片自身的 tags 字段为准；不要只看“可用标签”列表，也不要根据标题猜测。')
+  parts.push('如果用户要求按标签筛选、移动或批量处理卡片，但你无法百分之百确认匹配结果，请先列出候选卡片并询问确认，不要直接断言“没有符合条件的卡片”。')
 
   if (recentLogs && recentLogs.length > 0) {
     const recent = recentLogs
@@ -53,6 +356,7 @@ export function buildSystemContext(
           delete_board: '删除看板',
           search_cards: '搜索卡片',
           batch_update_cards: '批量更新卡片',
+          batch_update_card_tags: '批量更新标签',
           add_tag_to_card: '添加标签',
           remove_tag_from_card: '移除标签',
           copy_card: '复制卡片',
@@ -75,6 +379,11 @@ export function buildSystemContext(
       cards: (l.cards || []).slice(0, 50).map((c) => ({
         id: c.id,
         title: c.title,
+        tags: c.tags?.map((tag) => ({
+          id: tag.id,
+          name: tag.name,
+          color: tag.color,
+        })),
       })),
     })),
   }

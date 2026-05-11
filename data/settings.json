@@ -131,6 +131,11 @@
     ],
     "trustMode": "confirm_high_risk",
     "autoMinimizeAfterAction": true,
+    "execution": {
+      "defaultMode": "balanced",
+      "undoWindowSeconds": 30,
+      "mediumRiskPolicy": "confirm"
+    },
     "apiKey": "sk-8bdac01ae6f747f5bee407d5e2447f48"
   },
   "boardView": {
@@ -497,5 +502,5 @@
   "appearance": {
     "theme": "claude"
   },
-  "updatedAt": "2026-05-11T05:56:13.031Z"
+  "updatedAt": "2026-05-11T06:42:29.197Z"
 }

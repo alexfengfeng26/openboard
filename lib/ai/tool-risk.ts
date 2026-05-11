@@ -7,7 +7,7 @@ export type ToolRiskLevel = 'low' | 'medium' | 'high'
  */
 export function getToolRiskLevel(toolName: string): ToolRiskLevel {
   const lowRiskTools = new Set(['create_card', 'create_lane', 'add_tag_to_card', 'remove_tag_from_card', 'copy_card', 'search_cards', 'reorder_cards', 'reorder_lanes'])
-  const mediumRiskTools = new Set(['update_card', 'move_card', 'batch_update_cards'])
+  const mediumRiskTools = new Set(['update_card', 'move_card', 'batch_update_cards', 'batch_update_card_tags'])
   const highRiskTools = new Set(['delete_card', 'delete_lane', 'delete_board'])
 
   if (lowRiskTools.has(toolName)) return 'low'

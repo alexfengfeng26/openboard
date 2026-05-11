@@ -14,6 +14,7 @@ vi.mock('@/lib/db', () => ({
     createBoard: vi.fn(),
     updateBoard: vi.fn(),
     deleteBoard: vi.fn(),
+    batchUpdateCardTags: vi.fn(),
   }
 }))
 
@@ -123,6 +124,29 @@ describe('ServerToolExecutor', () => {
       expect(result.success).toBe(true)
       expect(result.result).toEqual({ cardId: 'card-1', toLaneId: 'lane-2' })
       expect(dbHelpers.moveCard).toHaveBeenCalledWith('board-1', 'card-1', 'lane-2', 0)
+    })
+
+    it('batch_update_card_tags 工具执行成功', async () => {
+      vi.mocked(dbHelpers.batchUpdateCardTags).mockResolvedValue(undefined)
+
+      const result = await ServerToolExecutor.execute({
+        toolName: 'batch_update_card_tags',
+        params: {
+          boardId: 'board-1',
+          cardIds: ['card-1'],
+          addTags: [{ id: 'tag-bug', name: 'Bug', color: '#f59e0b' }],
+          removeTagIds: [],
+        }
+      })
+
+      expect(result.success).toBe(true)
+      expect(result.result).toEqual({ updated: 1, added: 1, removed: 0 })
+      expect(dbHelpers.batchUpdateCardTags).toHaveBeenCalledWith(
+        'board-1',
+        ['card-1'],
+        [{ id: 'tag-bug', name: 'Bug', color: '#f59e0b' }],
+        []
+      )
     })
   })
 

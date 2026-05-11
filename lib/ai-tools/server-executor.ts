@@ -122,6 +122,23 @@ export class ServerToolExecutor {
         }
       }
 
+      case 'batch_update_card_tags': {
+        const { boardId, cardIds, addTags = [], removeTagIds = [] } = params as {
+          boardId: string
+          cardIds: string[]
+          addTags?: import('@/types').Tag[]
+          removeTagIds?: string[]
+        }
+        await dbHelpers.batchUpdateCardTags(boardId, cardIds, addTags, removeTagIds)
+        return {
+          success: true,
+          toolName,
+          params,
+          result: { updated: cardIds.length, added: addTags.length, removed: removeTagIds.length },
+          timestamp: new Date().toISOString()
+        }
+      }
+
       case 'add_tag_to_card': {
         const { boardId, cardId, tagName, tagColor } = params as {
           boardId: string

@@ -183,6 +183,9 @@ export async function POST(request: Request) {
     if (error instanceof Error && error.name === 'AbortError') {
       return NextResponse.json({ error: 'AI 请求超时，请稍后重试' }, { status: 504 })
     }
-    return NextResponse.json({ error: 'AI 服务异常' }, { status: 500 })
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'AI 服务异常' },
+      { status: 500 }
+    )
   }
 }

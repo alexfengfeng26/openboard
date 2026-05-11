@@ -7,6 +7,28 @@ export interface ToolCallRequest {
   toolName: string
   params: Record<string, unknown>
   description?: string
+  riskLevel?: 'low' | 'medium' | 'high'
+  stepId?: string
+  idempotencyKey?: string
+}
+
+export type AiExecutionMode = 'balanced' | 'conservative' | 'aggressive'
+
+export interface AiExecutionPlanStep {
+  stepId: string
+  toolCall: ToolCallRequest
+  riskLevel: 'low' | 'medium' | 'high'
+  requiresConfirmation: boolean
+  undoable: boolean
+  undoPayload?: ToolCallRequest
+}
+
+export interface AiExecutionPlan {
+  planId: string
+  mode: AiExecutionMode
+  summary: string
+  steps: AiExecutionPlanStep[]
+  autoExecutable: boolean
 }
 
 /**
@@ -59,6 +81,14 @@ export interface OperationLogEntry {
   durationMs?: number
   /** 用户备注 */
   userNote?: string
+  planId?: string
+  stepId?: string
+  riskLevel?: 'low' | 'medium' | 'high'
+  undoable?: boolean
+  undoPayload?: ToolCallRequest
+  undoDeadline?: string
+  latencyMs?: number
+  idempotencyKey?: string
 }
 
 /**
@@ -83,6 +113,11 @@ export interface PromptContext {
     cards?: Array<{
       id: string
       title: string
+      tags?: Array<{
+        id: string
+        name: string
+        color: string
+      }>
     }>
   }>
   /** 附加提示信息（如截断提示） */

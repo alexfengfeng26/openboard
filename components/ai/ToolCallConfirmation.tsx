@@ -30,6 +30,7 @@ export function ToolCallConfirmation({
       create_card: '创建卡片',
       update_card: '更新卡片',
       move_card: '移动卡片',
+      batch_update_card_tags: '批量更新标签',
       delete_card: '删除卡片',
       create_lane: '创建列表',
       delete_lane: '删除列表',

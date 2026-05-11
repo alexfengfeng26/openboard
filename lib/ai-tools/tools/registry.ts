@@ -1,5 +1,5 @@
 import type { BaseTool } from './base'
-import { CreateCardTool, UpdateCardTool, MoveCardTool, DeleteCardTool, SearchCardsTool, BatchUpdateCardsTool, AddTagToCardTool, RemoveTagFromCardTool, CopyCardTool } from './card-tools'
+import { CreateCardTool, UpdateCardTool, MoveCardTool, DeleteCardTool, SearchCardsTool, BatchUpdateCardsTool, BatchUpdateCardTagsTool, AddTagToCardTool, RemoveTagFromCardTool, CopyCardTool } from './card-tools'
 import { CreateLaneTool, DeleteLaneTool, UpdateLaneTool } from './lane-tools'
 import { CreateBoardTool, DeleteBoardTool, UpdateBoardTool } from './board-tools'
 
@@ -13,6 +13,7 @@ class ToolRegistry {
     // 注册所有工具
     this.register(new SearchCardsTool())
     this.register(new BatchUpdateCardsTool())
+    this.register(new BatchUpdateCardTagsTool())
     this.register(new AddTagToCardTool())
     this.register(new RemoveTagFromCardTool())
     this.register(new CopyCardTool())

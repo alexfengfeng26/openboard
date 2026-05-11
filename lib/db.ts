@@ -79,6 +79,7 @@ export interface DbHelpers {
   updateCard: (boardId: string, cardId: string, data: { title?: string; description?: string; tags?: import('@/types').Tag[]; attachments?: import('@/types').Attachment[]; dueDate?: string; priority?: import('@/types').CardPriority }) => Promise<void>
   deleteCard: (boardId: string, cardId: string) => Promise<void>
   moveCard: (boardId: string, cardId: string, toLaneId: string, newPosition: number) => Promise<void>
+  batchUpdateCardTags: (boardId: string, cardIds: string[], addTags: import('@/types').Tag[], removeTagIds: string[]) => Promise<void>
 }
 
 /**

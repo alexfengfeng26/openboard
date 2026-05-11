@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { History, Trash2, Zap, Crown, Minus, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { AiModel } from '@/types/settings.types'
@@ -88,6 +89,7 @@ export function ChatHeader({
 
         {/* 日志按钮 */}
         <Button
+          type="button"
           variant={showLogPanel ? 'secondary' : 'ghost'}
           size="icon"
           className={cn(
@@ -109,6 +111,7 @@ export function ChatHeader({
         {/* 清空按钮 */}
         <div className="relative">
           <Button
+            type="button"
             variant="ghost"
             size="icon"
             className="h-6 w-6 text-muted-foreground hover:text-destructive"
@@ -118,31 +121,6 @@ export function ChatHeader({
           >
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
-
-          {showClearConfirm && (
-            <div className="absolute right-0 bottom-full z-50 mb-1.5 flex items-center gap-1.5 rounded-lg border border-destructive/20 bg-white px-2.5 py-1.5 shadow-lg shadow-black/10 animate-menu-pop">
-              <span className="text-xs text-destructive font-medium whitespace-nowrap">确定清空?</span>
-              <Button
-                variant="destructive"
-                size="sm"
-                className="h-6 px-2 text-xs"
-                onClick={() => {
-                  onClearChat()
-                  setShowClearConfirm(false)
-                }}
-              >
-                清空
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-6 px-2 text-xs"
-                onClick={() => setShowClearConfirm(false)}
-              >
-                取消
-              </Button>
-            </div>
-          )}
         </div>
 
         {/* 分隔线 */}
@@ -176,6 +154,36 @@ export function ChatHeader({
           </Button>
         )}
       </div>
+
+      {showClearConfirm && typeof document !== 'undefined' && createPortal(
+        <div className="fixed right-4 top-14 z-[120] rounded-lg border border-destructive/20 bg-white px-3 py-2 shadow-[0_16px_40px_rgba(0,0,0,0.18)] animate-menu-pop">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-destructive whitespace-nowrap">确定清空?</span>
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              className="h-6 px-2 text-xs"
+              onClick={() => {
+                onClearChat()
+                setShowClearConfirm(false)
+              }}
+            >
+              清空
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-6 px-2 text-xs"
+              onClick={() => setShowClearConfirm(false)}
+            >
+              取消
+            </Button>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   )
 }
