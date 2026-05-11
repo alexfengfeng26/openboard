@@ -15,7 +15,6 @@ import { DraftEditorPanel } from './DraftEditorPanel'
 import { PromptBuilder, FallbackToolParser } from '@/lib/ai-tools'
 import type { ToolCallRequest, ChatMessage, OperationLogEntry, AiExecutionPlan } from '@/types/ai-tools.types'
 import type { AiCommand } from '@/types/ai-commands.types'
-import type { CardDraft } from '@/lib/ai-tools/parser/card-draft-types'
 import type { AiSettings, AiModel, AiToolTriggerConfig } from '@/types/settings.types'
 import { createDefaultAiCommands } from '@/lib/ai/commands'
 import { useAiSettings } from '@/lib/hooks/useSettings'
@@ -645,39 +644,33 @@ export function DeepSeekChatPanel({
           toastInfo(`已生成 ${plan.steps.length} 个操作，${summary}，等待确认`)
         }
       } else if (parseResult.type === 'draft' && parseResult.data.length > 0) {
-        if (trigger.scope !== 'none') {
-          addLog({
-            id: createChatId(),
-            timestamp: new Date().toISOString(),
-            status: 'failed',
-            toolName: 'tool_parse',
-            params: { input: content, parserType: 'draft' },
-            error: '当前是工具操作模式，但模型返回了卡片草稿格式；请重试或使用更明确的删除条件',
-          })
-          const id = createChatId()
-          setMessages((prev) => [
-            ...prev,
-            {
-              id,
-              role: 'assistant',
-              content: '我识别到你在执行看板操作，但模型返回了卡片草稿格式，未执行任何删除。请重试指令，或补充更明确关键词。',
-            },
-          ])
-          setActionableAssistantMessageIds((prev) => (prev.includes(id) ? prev : [...prev, id]))
-        } else {
-          await drafts.handleDraftsFromSend(parseResult.data as CardDraft[])
-        }
+        addLog({
+          id: createChatId(),
+          timestamp: new Date().toISOString(),
+          status: 'failed',
+          toolName: 'tool_parse',
+          params: { input: content, parserType: 'draft' },
+          error: '当前是工具操作模式，但模型返回了卡片草稿格式；请重试或使用更明确的删除条件',
+        })
+        const id = createChatId()
+        setMessages((prev) => [
+          ...prev,
+          {
+            id,
+            role: 'assistant',
+            content: '我识别到你在执行看板操作，但模型返回了卡片草稿格式，未执行任何删除。请重试指令，或补充更明确关键词。',
+          },
+        ])
+        setActionableAssistantMessageIds((prev) => (prev.includes(id) ? prev : [...prev, id]))
       } else {
-        if (trigger.scope !== 'none') {
-          addLog({
-            id: createChatId(),
-            timestamp: new Date().toISOString(),
-            status: 'failed',
-            toolName: 'tool_parse',
-            params: { input: content },
-            error: '未解析到可执行操作（tool_calls）',
-          })
-        }
+        addLog({
+          id: createChatId(),
+          timestamp: new Date().toISOString(),
+          status: 'failed',
+          toolName: 'tool_parse',
+          params: { input: content },
+          error: '未解析到可执行操作（tool_calls）',
+        })
         const id = createChatId()
         setMessages((prev) => [...prev, { id, role: 'assistant', content: assistantReplyContent }])
         setActionableAssistantMessageIds((prev) => (prev.includes(id) ? prev : [...prev, id]))

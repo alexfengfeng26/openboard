@@ -7,10 +7,8 @@ import { promises as fs } from 'fs'
 import path from 'path'
 import type { Board, Lane, Card, Tag, CardPriority, Attachment } from '@/types'
 import type { OperationLogEntry } from '@/types/ai-tools.types'
-import type { LockAcquisitionError } from '@/types/storage.types'
 import {
   StorageReadError,
-  StorageWriteError,
   MarkdownParseError,
 } from '@/types/storage.types'
 import { MarkdownBoard } from './MarkdownBoard'
@@ -25,6 +23,25 @@ const DATA_DIR = path.join(process.cwd(), 'data')
 const DB_JSON_PATH = path.join(DATA_DIR, 'db.json')
 const MIGRATION_FLAG = path.join(DATA_DIR, '.migration-complete')
 const INDEX_FILE = path.join(DATA_DIR, '_boards.json')
+
+function removeUndefinedValues<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => removeUndefinedValues(item))
+      .filter((item) => item !== undefined) as T
+  }
+
+  if (value && typeof value === 'object') {
+    const cleaned: Record<string, unknown> = {}
+    for (const [key, nestedValue] of Object.entries(value)) {
+      if (nestedValue === undefined) continue
+      cleaned[key] = removeUndefinedValues(nestedValue)
+    }
+    return cleaned as T
+  }
+
+  return value
+}
 
 interface BoardIndexEntry {
   id: string
@@ -287,7 +304,7 @@ export class StorageAdapter {
     if (!board) return null
 
     const logs = board.operationLogs || []
-    const newLogs = [log, ...logs].slice(0, 200)
+    const newLogs = [removeUndefinedValues(log), ...logs].slice(0, 200)
 
     const updated: Board = {
       ...board,

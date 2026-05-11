@@ -113,6 +113,54 @@ export function OperationLogPanel({ logs, boardId, onClose, onUndone }: Operatio
     }
   }
 
+  async function handleEnableAutoTagRule() {
+    if (!boardId) {
+      toastError('缺少 boardId，无法创建自动化规则')
+      return
+    }
+
+    try {
+      const existingResponse = await fetch(`/api/automation/rules?boardId=${encodeURIComponent(boardId)}`, { cache: 'no-store' })
+      const existingData = await existingResponse.json().catch(() => ({}))
+      const rules = Array.isArray(existingData?.rules) ? existingData.rules : []
+      const alreadyExists = rules.some((rule: {
+        enabled?: boolean
+        trigger?: { type?: string }
+        actions?: Array<{ type?: string }>
+      }) => {
+        return rule.enabled !== false
+          && rule.trigger?.type === 'card_created'
+          && Array.isArray(rule.actions)
+          && rule.actions.some((action) => action.type === 'auto_tag')
+      })
+
+      if (alreadyExists) {
+        toastWarning('已存在“创建时自动匹配标签”规则')
+        return
+      }
+
+      const response = await fetch('/api/automation/rules', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: '创建时自动匹配标签',
+          description: '新创建卡片时，根据标题和描述自动匹配现有标签',
+          enabled: true,
+          boardId,
+          trigger: { type: 'card_created', conditions: [] },
+          actions: [{ type: 'auto_tag', params: {} }],
+        }),
+      })
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.error || '创建自动化规则失败')
+      }
+      toastSuccess('已启用：新卡片自动匹配标签')
+    } catch (error) {
+      toastError(error instanceof Error ? error.message : '创建自动化规则失败')
+    }
+  }
+
   const getStatusIcon = (status: OperationLogEntry['status']) => {
     switch (status) {
       case 'pending':
@@ -164,6 +212,7 @@ export function OperationLogPanel({ logs, boardId, onClose, onUndone }: Operatio
       update_card: '更新卡片',
       move_card: '移动卡片',
       batch_update_card_tags: '批量更新标签',
+      automation_rule: '自动化规则',
       delete_card: '删除卡片',
       create_lane: '创建列表',
       delete_lane: '删除列表',
@@ -226,6 +275,16 @@ export function OperationLogPanel({ logs, boardId, onClose, onUndone }: Operatio
           <Badge variant="secondary">{logs.length}</Badge>
         </div>
         <div className="flex items-center gap-1.5">
+          {boardId && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 rounded-lg px-2.5 text-[11px]"
+              onClick={() => void handleEnableAutoTagRule()}
+            >
+              以后自动标签
+            </Button>
+          )}
           {latestUndoablePlanId && (
             <Button
               variant="outline"

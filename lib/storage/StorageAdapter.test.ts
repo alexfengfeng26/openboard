@@ -212,7 +212,7 @@ describe('StorageAdapter', () => {
     const log: OperationLogEntry = {
       id: 'log-1',
       toolName: 'create_card',
-      status: 'success',
+      status: 'executed',
       params: { title: 'Test' },
       timestamp: new Date().toISOString(),
     }
@@ -227,5 +227,37 @@ describe('StorageAdapter', () => {
 
     const emptyLogs = await storage.getOperationLogs(board.id)
     expect(emptyLogs.length).toBe(0)
+  })
+
+  it('addOperationLog removes undefined values before writing markdown', async () => {
+    const board = await storage.createBoard('Log Undefined Test')
+
+    const log: OperationLogEntry = {
+      id: 'log-undefined',
+      toolName: 'automation_rule',
+      status: 'executed',
+      params: {
+        boardId: board.id,
+        cardId: undefined,
+        nested: {
+          laneId: undefined,
+          triggerType: 'card_created',
+        },
+      },
+      error: undefined,
+      timestamp: new Date().toISOString(),
+    }
+
+    await storage.addOperationLog(board.id, log)
+    const logs = await storage.getOperationLogs(board.id)
+
+    expect(logs.length).toBe(1)
+    expect(logs[0].params).toEqual({
+      boardId: board.id,
+      nested: {
+        triggerType: 'card_created',
+      },
+    })
+    expect('error' in logs[0]).toBe(false)
   })
 })

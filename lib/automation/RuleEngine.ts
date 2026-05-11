@@ -13,6 +13,7 @@ import type {
 } from '@/types/automation.types'
 import { getStorage } from '@/lib/storage/StorageAdapter'
 import { getSettingsStorage } from '@/lib/storage/SettingsStorage'
+import { suggestTagsByKeyword, suggestTagsForContent } from '@/lib/ai/tag-suggestions'
 
 export class RuleEngineError extends Error {
   constructor(message: string, cause?: Error) {
@@ -251,13 +252,30 @@ async function executeAction(
         console.log(`[RuleEngine] 看板标签为空，使用全局标签池 (${globalTags.length} 个)`)
       }
 
-      const searchText = ((card.title || '') + ' ' + (card.description || '')).toLowerCase()
       const currentTagIds = new Set((card.tags || []).map((t) => t.id))
-      const matchedTags = boardTags.filter((tag) => {
-        if (currentTagIds.has(tag.id)) return false
-        const tagName = (tag.name || '').toLowerCase().trim()
-        return tagName && searchText.includes(tagName)
-      })
+      let matchedTags = suggestTagsByKeyword(
+        card.title || '',
+        card.description || '',
+        boardTags,
+        currentTagIds
+      )
+
+      if (matchedTags.length === 0) {
+        try {
+          const aiMatches = await suggestTagsForContent({
+            title: card.title || '',
+            description: card.description || '',
+            availableTags: boardTags.filter((tag) => !currentTagIds.has(tag.id)),
+            maxTags: 3,
+            aiOnly: true,
+            requireApiKey: false,
+            timeoutMs: 20000,
+          })
+          matchedTags = aiMatches.filter((tag) => !currentTagIds.has(tag.id))
+        } catch (error) {
+          console.warn('[RuleEngine] auto_tag AI 匹配失败，已回退为空结果:', error)
+        }
+      }
 
       if (matchedTags.length > 0) {
         const newTags = [...(card.tags || []), ...matchedTags]

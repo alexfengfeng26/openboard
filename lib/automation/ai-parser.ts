@@ -4,12 +4,7 @@
  */
 
 import { z } from 'zod'
-import type {
-  AutomationRule,
-  AutomationTriggerType,
-  AutomationOperator,
-  AutomationActionType,
-} from '@/types/automation.types'
+import type { AutomationRule } from '@/types/automation.types'
 import { PRESET_TEMPLATES } from './templates'
 
 const TriggerTypeSchema = z.enum([
@@ -105,13 +100,18 @@ function buildSystemPrompt(): string {
 - boardId: 看板ID
 
 ## 可用动作类型
-- move_card: 移动卡片 (params: { targetLaneId: string, position?: number })
-- add_tag: 添加标签 (params: { tagId: string })
-- remove_tag: 移除标签 (params: { tagId: string })
+- move_card: 移动卡片 (params: { targetLaneId: string, position?: number })，只有用户明确给出真实列表 ID 时使用
+- add_tag: 添加标签 (params: { tagId: string })，只有用户明确给出真实标签 ID 时使用
+- remove_tag: 移除标签 (params: { tagId: string })，只有用户明确给出真实标签 ID 时使用
 - update_card: 更新卡片 (params: 任意字段)
 - archive_card: 归档卡片 (params: {})
 - notify: 发送通知 (params: { message: string })
 - auto_tag: 智能标签匹配 (params: {}) — 自动根据卡片标题和描述内容匹配看板现有标签并添加
+
+## 重要限制
+- 如果用户说“自动打标签”“自动分类”“根据内容加标签”，优先生成 auto_tag，不要生成 add_tag。
+- 不允许使用 testing、done、bug、in-progress 这类占位 ID。
+- 如果缺少真实列表 ID 或标签 ID，不要生成 move_card/add_tag/remove_tag，改用 auto_tag 或 notify。
 
 ## 预设模板
 ${PRESET_TEMPLATES.map((t) => `- ${t.name}: ${t.description}`).join('\n')}

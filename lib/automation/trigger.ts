@@ -5,6 +5,7 @@
 
 import { getRuleStorage } from './RuleStorage'
 import { RuleEngine } from './RuleEngine'
+import { dbHelpers } from '@/lib/db'
 import type { AutomationTriggerType, TriggerContext } from '@/types/automation.types'
 
 /**
@@ -28,6 +29,28 @@ export async function triggerAutomation(
       if (result.errors.length > 0) {
         console.error('[Automation] 执行错误:', result.errors)
       }
+
+      await dbHelpers.addOperationLog(context.boardId, {
+        id: `automation-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        timestamp: new Date().toISOString(),
+        status: result.errors.length === 0 ? 'executed' : 'failed',
+        toolName: 'automation_rule',
+        params: {
+          triggerType,
+          boardId: context.boardId,
+          cardId: context.cardId,
+          laneId: context.laneId,
+          fromLaneId: context.fromLaneId,
+          toLaneId: context.toLaneId,
+        },
+        result: {
+          matched: result.matched,
+          executed: result.executed,
+          errors: result.errors,
+        },
+        error: result.errors.length > 0 ? result.errors.join('; ') : undefined,
+        confirmedBy: 'auto',
+      })
     }
   } catch (error) {
     // 自动化触发失败不应影响主流程

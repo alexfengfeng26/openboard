@@ -6,6 +6,12 @@ import { useState, useCallback, useEffect } from 'react'
 import { toast } from 'sonner'
 import type { AutomationRule, RuleTemplate } from '@/types/automation.types'
 
+export interface AutomationDryRunResult {
+  executable: boolean
+  matchedCards: number
+  missingMappings: string[]
+}
+
 export function useAutomation(boardId?: string) {
   const [rules, setRules] = useState<AutomationRule[]>([])
   const [templates, setTemplates] = useState<RuleTemplate[]>([])
@@ -171,6 +177,29 @@ export function useAutomation(boardId?: string) {
     [boardId]
   )
 
+  const dryRunRule = useCallback(
+    async (rule: Omit<AutomationRule, 'id' | 'createdAt' | 'updatedAt'> | AutomationRule) => {
+      if (!boardId) return null
+      try {
+        const response = await fetch('/api/automation/rules/dry-run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ boardId, rule }),
+        })
+        const data = await response.json()
+        if (data.success) {
+          return data.data as AutomationDryRunResult
+        }
+        toast.error(data.error || '规则预览失败')
+        return null
+      } catch {
+        toast.error('规则预览失败')
+        return null
+      }
+    },
+    [boardId]
+  )
+
   // 从模板创建规则
   const createFromTemplate = useCallback(
     async (template: RuleTemplate) => {
@@ -202,6 +231,7 @@ export function useAutomation(boardId?: string) {
     deleteRule,
     toggleRule,
     parseRule,
+    dryRunRule,
     createFromTemplate,
   }
 }

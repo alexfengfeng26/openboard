@@ -8,7 +8,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import {
   Workflow,
@@ -20,11 +19,10 @@ import {
   Wand2,
   ChevronDown,
   ChevronUp,
-  Play,
   AlertCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useAutomation } from '@/lib/hooks/useAutomation'
+import { useAutomation, type AutomationDryRunResult } from '@/lib/hooks/useAutomation'
 import type { AutomationRule, RuleTemplate } from '@/types/automation.types'
 
 interface AutomationPanelProps {
@@ -43,6 +41,7 @@ export function AutomationPanel({ boardId, open, onOpenChange }: AutomationPanel
     deleteRule,
     toggleRule,
     parseRule,
+    dryRunRule,
     createFromTemplate,
   } = useAutomation(boardId)
 
@@ -51,14 +50,21 @@ export function AutomationPanel({ boardId, open, onOpenChange }: AutomationPanel
   const [naturalLanguageInput, setNaturalLanguageInput] = useState('')
   const [parsedRule, setParsedRule] = useState<Partial<AutomationRule> | null>(null)
   const [parseExplanation, setParseExplanation] = useState('')
+  const [dryRunResult, setDryRunResult] = useState<AutomationDryRunResult | null>(null)
+  const [dryRunLoading, setDryRunLoading] = useState(false)
   const [expandedRuleId, setExpandedRuleId] = useState<string | null>(null)
 
   const handleParse = async () => {
     if (!naturalLanguageInput.trim()) return
+    setDryRunResult(null)
     const result = await parseRule(naturalLanguageInput)
     if (result?.rule) {
       setParsedRule(result.rule)
       setParseExplanation(result.explanation || '')
+      setDryRunLoading(true)
+      const preview = await dryRunRule(result.rule)
+      setDryRunResult(preview)
+      setDryRunLoading(false)
     }
   }
 
@@ -70,6 +76,7 @@ export function AutomationPanel({ boardId, open, onOpenChange }: AutomationPanel
       setNaturalLanguageInput('')
       setParsedRule(null)
       setParseExplanation('')
+      setDryRunResult(null)
     }
   }
 
@@ -104,6 +111,7 @@ export function AutomationPanel({ boardId, open, onOpenChange }: AutomationPanel
                 setShowCreate(!showCreate)
                 setShowTemplates(false)
                 setParsedRule(null)
+                setDryRunResult(null)
               }}
             >
               <Sparkles className="h-3.5 w-3.5" />
@@ -175,7 +183,32 @@ export function AutomationPanel({ boardId, open, onOpenChange }: AutomationPanel
                       <p className="text-muted-foreground text-xs">{parseExplanation}</p>
                     )}
                   </div>
-                  <Button size="sm" onClick={handleCreateFromParsed} className="gap-1.5">
+                  <div
+                    className={cn(
+                      'rounded-md border px-2.5 py-2 text-xs',
+                      dryRunResult?.executable === false
+                        ? 'border-amber-200 bg-amber-50 text-amber-800'
+                        : 'border-border bg-muted/40 text-muted-foreground'
+                    )}
+                  >
+                    {dryRunLoading ? (
+                      '正在预览这条规则会影响哪些卡片...'
+                    ) : dryRunResult ? (
+                      dryRunResult.executable ? (
+                        `预览：当前会命中 ${dryRunResult.matchedCards} 张卡片，创建后将在对应事件发生时自动执行。`
+                      ) : (
+                        `预览：缺少 ${dryRunResult.missingMappings.join('、')}，这条规则暂不可执行。建议改成“自动匹配标签”或指定真实 ID。`
+                      )
+                    ) : (
+                      '预览：创建前会检查规则是否缺少列表或标签映射。'
+                    )}
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={handleCreateFromParsed}
+                    disabled={dryRunLoading || dryRunResult?.executable === false}
+                    className="gap-1.5"
+                  >
                     <Plus className="h-3.5 w-3.5" />
                     创建此规则
                   </Button>
