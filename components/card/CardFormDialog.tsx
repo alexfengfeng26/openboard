@@ -262,7 +262,14 @@ export function CardFormDialog({
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-foreground">标签</label>
-                  <TagSelector selectedTags={tags} onTagsChange={setTags} disabled={isSubmitting} />
+                  <TagSelector
+                    selectedTags={tags}
+                    onTagsChange={setTags}
+                    disabled={isSubmitting}
+                    enableAiTagging
+                    aiTitle={title}
+                    aiDescription={description}
+                  />
                 </div>
 
                 {/* 附件区域 */}
