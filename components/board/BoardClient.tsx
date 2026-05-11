@@ -290,7 +290,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
 
     async function loadAssistantStatus() {
       try {
-        const response = await fetch(`/api/boards/${encodeURIComponent(board.id)}/logs`)
+        const response = await fetch(`/api/boards/${encodeURIComponent(board.id)}/logs`, { cache: 'no-store' })
         if (!response.ok) return
         const result = await response.json()
         if (!cancelled && result.success) {
@@ -992,6 +992,10 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
   const activeLane = activeId && activeType === 'LANE' ? board.lanes.find((l) => l.id === activeId) : null
 
   const totalSelected = selectedCardIds.size
+  const openAiAssistant = useCallback(() => {
+    dispatch({ type: 'SET_SHOW_CHAT', payload: true })
+    setChatMinimized(false)
+  }, [])
 
   return (
     <BoardTagsProvider tags={boardTags}>
@@ -1014,16 +1018,14 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
             onBoardFavorite={handleBoardFavorite}
             onCreateBoard={() => setShowCreateBoard(true)}
             onOpenSettings={() => {
-              dispatch({ type: 'SET_SHOW_CHAT', payload: true })
-              setChatMinimized(false)
+              openAiAssistant()
               setAiSettingsOpen(true)
             }}
             onToggleAI={() => {
               if (showChat) {
                 dispatch({ type: 'SET_SHOW_CHAT', payload: false })
               } else {
-                dispatch({ type: 'SET_SHOW_CHAT', payload: true })
-                setChatMinimized(false)
+                openAiAssistant()
               }
             }}
             aiOpen={showChat}
@@ -1159,7 +1161,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                   variant="outline"
                   size="sm"
                   className="h-8 gap-1.5"
-                  onClick={() => dispatch({ type: 'SET_SHOW_CHAT', payload: true })}
+                  onClick={openAiAssistant}
                 >
                   <PanelRightOpen className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline">AI</span>

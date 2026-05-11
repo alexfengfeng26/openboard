@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { buildSystemContext, findTaggedCardCandidates, looksLikeNoMatchResponse, looksLikeToolIntent, parseLegacyCardActionToolCalls } from './chat-helpers'
+import {
+  buildSystemContext,
+  findTaggedCardCandidates,
+  inferBatchTagToolCalls,
+  inferDeleteCardToolCalls,
+  looksLikeNoMatchResponse,
+  looksLikeToolIntent,
+  parseLegacyCardActionToolCalls,
+} from './chat-helpers'
 import { PromptBuilder } from '@/lib/ai-tools'
 
 describe('chat helpers', () => {
@@ -217,6 +225,103 @@ describe('chat helpers', () => {
           removeTagIds: [],
         },
       },
+    ])
+  })
+
+  it('infers batch tag tool calls for lane-wide tagging command', () => {
+    const calls = inferBatchTagToolCalls(
+      '将确认中列表的卡片都打上bug标签',
+      'board-1',
+      [
+        {
+          id: 'lane-1',
+          boardId: 'board-1',
+          title: '确认中',
+          position: 0,
+          createdAt: '2026-05-11T00:00:00.000Z',
+          updatedAt: '2026-05-11T00:00:00.000Z',
+          cards: [
+            {
+              id: 'card-1',
+              laneId: 'lane-1',
+              title: '实现拖拽',
+              position: 0,
+              createdAt: '2026-05-11T00:00:00.000Z',
+              updatedAt: '2026-05-11T00:00:00.000Z',
+              tags: [{ id: 'tag-fn', name: '功能', color: '#3b82f6' }],
+            },
+          ],
+        } as any,
+      ],
+      [{ id: 'tag-bug', name: 'Bug', color: '#f59e0b' }]
+    )
+
+    expect(calls).toEqual([
+      {
+        toolName: 'batch_update_card_tags',
+        params: {
+          boardId: 'board-1',
+          cardIds: ['card-1'],
+          addTags: [{ id: 'tag-bug', name: 'Bug', color: '#f59e0b' }],
+          removeTagIds: [],
+        },
+      },
+    ])
+  })
+
+  it('infers delete card tool calls by lane + keyword + count', () => {
+    const calls = inferDeleteCardToolCalls(
+      '在新提交列表中删除关于点赞小程序的三个卡片',
+      'board-1',
+      [
+        {
+          id: 'lane-1',
+          boardId: 'board-1',
+          title: '新提交',
+          position: 0,
+          createdAt: '2026-05-11T00:00:00.000Z',
+          updatedAt: '2026-05-11T00:00:00.000Z',
+          cards: [
+            { id: 'c1', laneId: 'lane-1', title: '点赞小程序-入口', position: 0, createdAt: '', updatedAt: '' },
+            { id: 'c2', laneId: 'lane-1', title: '修复点赞小程序计数', position: 1, createdAt: '', updatedAt: '' },
+            { id: 'c3', laneId: 'lane-1', title: '点赞小程序分享', position: 2, createdAt: '', updatedAt: '' },
+            { id: 'c4', laneId: 'lane-1', title: '登录功能优化', position: 3, createdAt: '', updatedAt: '' },
+          ],
+        } as any,
+      ]
+    )
+
+    expect(calls).toEqual([
+      { toolName: 'delete_card', params: { boardId: 'board-1', cardId: 'c1' } },
+      { toolName: 'delete_card', params: { boardId: 'board-1', cardId: 'c2' } },
+      { toolName: 'delete_card', params: { boardId: 'board-1', cardId: 'c3' } },
+    ])
+  })
+
+  it('infers delete card tool calls for phrase: 标题包含点赞的卡片', () => {
+    const calls = inferDeleteCardToolCalls(
+      '在新提交列表中删除标题包含点赞的卡片',
+      'board-1',
+      [
+        {
+          id: 'lane-1',
+          boardId: 'board-1',
+          title: '新提交',
+          position: 0,
+          createdAt: '2026-05-11T00:00:00.000Z',
+          updatedAt: '2026-05-11T00:00:00.000Z',
+          cards: [
+            { id: 'c1', laneId: 'lane-1', title: '点赞小程序-入口', position: 0, createdAt: '', updatedAt: '' },
+            { id: 'c2', laneId: 'lane-1', title: '修复点赞计数', position: 1, createdAt: '', updatedAt: '' },
+            { id: 'c3', laneId: 'lane-1', title: '登录功能优化', position: 2, createdAt: '', updatedAt: '' },
+          ],
+        } as any,
+      ]
+    )
+
+    expect(calls).toEqual([
+      { toolName: 'delete_card', params: { boardId: 'board-1', cardId: 'c1' } },
+      { toolName: 'delete_card', params: { boardId: 'board-1', cardId: 'c2' } },
     ])
   })
 })

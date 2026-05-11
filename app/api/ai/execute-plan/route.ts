@@ -144,6 +144,7 @@ export async function POST(request: Request) {
   try {
     const body = (await request.json().catch(() => ({}))) as {
       plan?: AiExecutionPlan
+      boardId?: string
       confirmedBy?: 'user' | 'auto'
       undoWindowSeconds?: number
     }
@@ -153,6 +154,17 @@ export async function POST(request: Request) {
     }
 
     const confirmedBy = body.confirmedBy ?? 'user'
+    const bodyBoardId = typeof body.boardId === 'string' && body.boardId.trim().length > 0
+      ? body.boardId.trim()
+      : undefined
+    const inferredBoardId = bodyBoardId
+      ?? plan.steps
+        .map((step) => {
+          const params = getSafeParams(step?.toolCall?.params)
+          return typeof params.boardId === 'string' ? params.boardId : undefined
+        })
+        .find((id): id is string => typeof id === 'string' && id.trim().length > 0)
+
     const undoWindowSeconds = Math.max(5, Math.min(300, body.undoWindowSeconds ?? DEFAULT_UNDO_WINDOW_SECONDS))
     const now = Date.now()
     const undoDeadline = new Date(now + undoWindowSeconds * 1000).toISOString()
@@ -190,7 +202,12 @@ export async function POST(request: Request) {
         ...step,
         toolCall: {
           ...step.toolCall,
-          params: getSafeParams(step.toolCall.params),
+          params: (() => {
+            const params = getSafeParams(step.toolCall.params)
+            if (!inferredBoardId) return params
+            if (typeof params.boardId === 'string' && params.boardId.trim().length > 0) return params
+            return { ...params, boardId: inferredBoardId }
+          })(),
         },
       }
       const t0 = Date.now()

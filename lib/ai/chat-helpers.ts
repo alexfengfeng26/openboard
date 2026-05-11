@@ -291,6 +291,145 @@ export function findTaggedCardCandidates(
   return candidates
 }
 
+export function inferBatchTagToolCalls(
+  query: string,
+  boardId: string | undefined,
+  lanes: Lane[],
+  tags?: Tag[]
+): ToolCallRequest[] {
+  if (!boardId) return []
+
+  const normalizedQuery = normalizeForMatch(query)
+  const wantsBatch = /(都|全部|所有)/i.test(query)
+  const wantsTagging = /(打上|加上|添加|标记|标签|tag)/i.test(query)
+  if (!wantsBatch || !wantsTagging) return []
+
+  const matchedLane = [...lanes]
+    .sort((a, b) => b.title.length - a.title.length)
+    .find((lane) => matchesQueryToken(query, lane.title))
+  if (!matchedLane || (matchedLane.cards || []).length === 0) return []
+
+  const tagPool = tags && tags.length > 0
+    ? tags
+    : Array.from(
+        new Map(
+          lanes
+            .flatMap((lane) => (lane.cards || []).flatMap((card) => card.tags || []))
+            .map((tag) => [tag.id, tag] as const)
+        ).values()
+      )
+
+  let matchedTag = tagPool.find((tag) => {
+    if (matchesQueryToken(query, tag.name)) return true
+    return getTagAliases(tag.name).some((alias) => matchesQueryToken(query, alias))
+  })
+
+  if (!matchedTag && normalizedQuery.includes('bug')) {
+    matchedTag = tagPool.find((tag) => normalizeForMatch(tag.name) === 'bug')
+      || { id: 'tag-bug', name: 'Bug', color: '#f59e0b' }
+  }
+
+  if (!matchedTag) return []
+
+  return [
+    {
+      toolName: 'batch_update_card_tags',
+      params: {
+        boardId,
+        cardIds: (matchedLane.cards || []).map((card) => card.id),
+        addTags: [matchedTag],
+        removeTagIds: [],
+      },
+    },
+  ]
+}
+
+function parseRequestedCount(query: string): number | undefined {
+  const arabic = query.match(/(\d+)\s*(个|张)?\s*卡片/i)
+  if (arabic) {
+    const value = Number.parseInt(arabic[1], 10)
+    if (Number.isFinite(value) && value > 0) return value
+  }
+
+  const chineseMap: Record<string, number> = {
+    一: 1,
+    二: 2,
+    两: 2,
+    三: 3,
+    四: 4,
+    五: 5,
+    六: 6,
+    七: 7,
+    八: 8,
+    九: 9,
+    十: 10,
+  }
+  const chinese = query.match(/([一二两三四五六七八九十])\s*个?\s*卡片/)
+  if (chinese) return chineseMap[chinese[1]]
+
+  return undefined
+}
+
+function extractDeleteKeyword(query: string): string | undefined {
+  const normalizeKeyword = (raw: string): string => {
+    return raw
+      .replace(/的\s*(\d+|[一二两三四五六七八九十]+)\s*个?\s*卡片.*$/i, '')
+      .replace(/的?\s*卡片.*$/i, '')
+      .trim()
+  }
+
+  const aboutMatch = query.match(/关于\s*["“”']?([^"“”'，。,.]+)["“”']?/)
+  if (aboutMatch && aboutMatch[1].trim()) return normalizeKeyword(aboutMatch[1])
+
+  const containMatch = query.match(/(?:包含|含有|标题含|标题包含)\s*["“”']?([^"“”'，。,.]+)["“”']?/)
+  if (containMatch && containMatch[1].trim()) return normalizeKeyword(containMatch[1])
+
+  const quotedMatch = query.match(/["“”']([^"“”']+)["“”']/)
+  if (quotedMatch && quotedMatch[1].trim()) return normalizeKeyword(quotedMatch[1])
+
+  return undefined
+}
+
+export function inferDeleteCardToolCalls(
+  query: string,
+  boardId: string | undefined,
+  lanes: Lane[]
+): ToolCallRequest[] {
+  if (!boardId) return []
+  if (!/(删除|移除)/i.test(query) || !/(卡片|任务)/i.test(query)) return []
+
+  const lane = [...lanes]
+    .sort((a, b) => b.title.length - a.title.length)
+    .find((candidate) => matchesQueryToken(query, candidate.title))
+  if (!lane) return []
+
+  const keyword = extractDeleteKeyword(query)
+  const requestedCount = parseRequestedCount(query)
+  const cards = lane.cards || []
+  if (cards.length === 0) return []
+
+  const matchedCards = keyword
+    ? cards.filter((card) => {
+        const title = normalizeForMatch(card.title || '')
+        const description = normalizeForMatch(card.description || '')
+        const normalizedKeyword = normalizeForMatch(keyword)
+        return title.includes(normalizedKeyword) || description.includes(normalizedKeyword)
+      })
+    : cards
+
+  if (matchedCards.length === 0) return []
+  const limitedCards = typeof requestedCount === 'number' ? matchedCards.slice(0, requestedCount) : matchedCards
+  if (limitedCards.length === 0) return []
+
+  return limitedCards.map((card) => ({
+    toolName: 'delete_card',
+    params: {
+      boardId,
+      cardId: card.id,
+    },
+  }))
+}
+
 export function createChatId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`
 }

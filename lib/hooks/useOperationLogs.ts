@@ -29,7 +29,7 @@ export function useOperationLogs(boardId?: string) {
     let cancelled = false
     setLoading(true)
 
-    fetch(`/api/boards/${encodeURIComponent(boardId)}/logs`)
+    fetch(`/api/boards/${encodeURIComponent(boardId)}/logs`, { cache: 'no-store' })
       .then((res) => res.json())
       .then((result) => {
         if (!cancelled && result.success) {

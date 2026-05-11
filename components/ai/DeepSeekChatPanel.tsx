@@ -29,6 +29,8 @@ import {
   buildSystemContext,
   sanitizeToolCalls,
   findTaggedCardCandidates,
+  inferBatchTagToolCalls,
+  inferDeleteCardToolCalls,
   looksLikeNoMatchResponse,
   looksLikeToolIntent,
   parseLegacyCardActionToolCalls,
@@ -76,7 +78,7 @@ export function DeepSeekChatPanel({
   const model = aiSettings?.defaultModel ?? 'deepseek-v4-flash'
 
   const { messages, setMessages, input, setInput, isSending, setIsSending } = useChatMessages(boardId)
-  const { logs: operationLogs, setLogs: setOperationLogs, showLogPanel, setShowLogPanel } = useOperationLogs(boardId)
+  const { logs: operationLogs, setLogs: setOperationLogs, addLog, showLogPanel, setShowLogPanel } = useOperationLogs(boardId)
 
   const [slashMenuDismissed, setSlashMenuDismissed] = useState(false)
   const [slashActiveIndex, setSlashActiveIndex] = useState(0)
@@ -313,6 +315,27 @@ export function DeepSeekChatPanel({
     requestAnimationFrame(() => inputRef.current?.focus())
   }
 
+  function ensureBoardIdForToolCalls(calls: ToolCallRequest[]): ToolCallRequest[] {
+    if (!boardId) return calls
+    return calls.map((call) => {
+      const rawParams = call.params
+      const params =
+        rawParams && typeof rawParams === 'object' && !Array.isArray(rawParams)
+          ? (rawParams as Record<string, unknown>)
+          : {}
+      if (typeof params.boardId === 'string' && params.boardId.trim().length > 0) {
+        return call
+      }
+      return {
+        ...call,
+        params: {
+          ...params,
+          boardId,
+        },
+      }
+    })
+  }
+
   async function callChatApi(payload: unknown): Promise<string> {
     const endpoint = '/api/ai/chat'
     const response = await fetch(endpoint, {
@@ -504,6 +527,22 @@ export function DeepSeekChatPanel({
         }
       }
 
+      if (!parsedToolCalls) {
+        const inferred = inferBatchTagToolCalls(content, boardId, lanes, tags)
+        if (inferred.length > 0) {
+          parsedToolCalls = inferred
+          toastInfo('已按本地规则解析为批量打标签操作')
+        }
+      }
+
+      if (!parsedToolCalls) {
+        const inferred = inferDeleteCardToolCalls(content, boardId, lanes)
+        if (inferred.length > 0) {
+          parsedToolCalls = inferred
+          toastInfo(`已按本地规则解析为删除操作（${inferred.length} 项）`)
+        }
+      }
+
       if (!parsedToolCalls && looksLikeNoMatchResponse(aiContent)) {
         const fallbackCandidates = findTaggedCardCandidates(lanes, tags, content)
         if (fallbackCandidates.length > 0) {
@@ -533,8 +572,33 @@ export function DeepSeekChatPanel({
       if (parsedToolCalls && parsedToolCalls.length > 0) {
         const allowed = getAllowedToolNames(trigger.scope)
         const sanitized = sanitizeToolCalls(parsedToolCalls, existingCardTitles, cardById)
-        const toolCalls = allowed && allowed.length > 0 ? sanitized.filter((c) => allowed.includes(c.toolName)) : sanitized
+        const filteredCalls = allowed && allowed.length > 0 ? sanitized.filter((c) => allowed.includes(c.toolName)) : sanitized
+        const toolCalls = ensureBoardIdForToolCalls(filteredCalls)
         const removedCount = parsedToolCalls.length - toolCalls.length
+
+        const wantsDeleteCards = /(删除|移除)/i.test(content) && /(卡片|任务)/i.test(content)
+        const hasDeleteToolCall = toolCalls.some((call) => call.toolName === 'delete_card')
+        if (wantsDeleteCards && !hasDeleteToolCall) {
+          addLog({
+            id: createChatId(),
+            timestamp: new Date().toISOString(),
+            status: 'failed',
+            toolName: 'tool_parse',
+            params: { input: content, toolCalls: toolCalls.map((call) => call.toolName) },
+            error: '识别到删除意图，但模型未返回 delete_card 操作，已阻止执行',
+          })
+          const id = createChatId()
+          setMessages((prev) => [
+            ...prev,
+            {
+              id,
+              role: 'assistant',
+              content: '我识别到你要删除卡片，但当前返回的操作不包含删除动作，已阻止执行。请重试或补充更明确关键词。',
+            },
+          ])
+          setActionableAssistantMessageIds((prev) => (prev.includes(id) ? prev : [...prev, id]))
+          return
+        }
 
         if (toolCalls.length === 0) {
           if (removedCount > 0) toastWarning(`已忽略 ${removedCount} 个可疑/重复操作`)
@@ -581,8 +645,39 @@ export function DeepSeekChatPanel({
           toastInfo(`已生成 ${plan.steps.length} 个操作，${summary}，等待确认`)
         }
       } else if (parseResult.type === 'draft' && parseResult.data.length > 0) {
-        await drafts.handleDraftsFromSend(parseResult.data as CardDraft[])
+        if (trigger.scope !== 'none') {
+          addLog({
+            id: createChatId(),
+            timestamp: new Date().toISOString(),
+            status: 'failed',
+            toolName: 'tool_parse',
+            params: { input: content, parserType: 'draft' },
+            error: '当前是工具操作模式，但模型返回了卡片草稿格式；请重试或使用更明确的删除条件',
+          })
+          const id = createChatId()
+          setMessages((prev) => [
+            ...prev,
+            {
+              id,
+              role: 'assistant',
+              content: '我识别到你在执行看板操作，但模型返回了卡片草稿格式，未执行任何删除。请重试指令，或补充更明确关键词。',
+            },
+          ])
+          setActionableAssistantMessageIds((prev) => (prev.includes(id) ? prev : [...prev, id]))
+        } else {
+          await drafts.handleDraftsFromSend(parseResult.data as CardDraft[])
+        }
       } else {
+        if (trigger.scope !== 'none') {
+          addLog({
+            id: createChatId(),
+            timestamp: new Date().toISOString(),
+            status: 'failed',
+            toolName: 'tool_parse',
+            params: { input: content },
+            error: '未解析到可执行操作（tool_calls）',
+          })
+        }
         const id = createChatId()
         setMessages((prev) => [...prev, { id, role: 'assistant', content: assistantReplyContent }])
         setActionableAssistantMessageIds((prev) => (prev.includes(id) ? prev : [...prev, id]))

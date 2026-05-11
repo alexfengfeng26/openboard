@@ -21,18 +21,42 @@ export function OperationLogPanel({ logs, boardId, onClose, onUndone }: Operatio
   const [undoingLogId, setUndoingLogId] = useState<string | null>(null)
   const [nowTs, setNowTs] = useState(() => Date.now())
 
+  const likelyUndoableTools = useMemo(
+    () =>
+      new Set([
+        'create_card',
+        'update_card',
+        'move_card',
+        'batch_update_card_tags',
+        'create_lane',
+        'update_lane',
+        'create_board',
+        'update_board',
+      ]),
+    []
+  )
+
   useEffect(() => {
     const timer = window.setInterval(() => setNowTs(Date.now()), 1000)
     return () => window.clearInterval(timer)
   }, [])
 
+  const hasUndoCapability = useCallback((log: OperationLogEntry) => {
+    if (log.status !== 'executed') return false
+    if (log.undoable === false) return false
+    if (log.undoPayload) return true
+    if (!boardId || !log.id) return false
+    return likelyUndoableTools.has(log.toolName)
+  }, [boardId, likelyUndoableTools])
+
   const canUndo = useCallback((log: OperationLogEntry) => {
-    if (!log.undoable || !log.undoPayload) return false
+    if (!hasUndoCapability(log)) return false
     if (!log.undoDeadline) return true
     return nowTs <= new Date(log.undoDeadline).getTime()
-  }, [nowTs])
+  }, [hasUndoCapability, nowTs])
 
   const formatUndoCountdown = (log: OperationLogEntry) => {
+    if (!hasUndoCapability(log)) return '不可撤销'
     if (!log.undoDeadline) return '可撤销'
     const left = Math.floor((new Date(log.undoDeadline).getTime() - nowTs) / 1000)
     if (left <= 0) return '撤销已过期'
@@ -54,6 +78,10 @@ export function OperationLogPanel({ logs, boardId, onClose, onUndone }: Operatio
   }, [logs, latestUndoablePlanId, canUndo])
 
   async function handleUndo(log: OperationLogEntry) {
+    if (!hasUndoCapability(log)) {
+      toastWarning('该操作不支持撤销')
+      return
+    }
     if (!canUndo(log)) {
       toastWarning('撤销窗口已过期')
       return
@@ -270,15 +298,19 @@ export function OperationLogPanel({ logs, boardId, onClose, onUndone }: Operatio
                     <span className="text-[11px] text-muted-foreground">
                       {formatUndoCountdown(log)}
                     </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-6 px-2 text-[11px]"
-                      onClick={() => void handleUndo(log)}
-                      disabled={!canUndo(log) || undoingLogId === log.id}
-                    >
-                      {undoingLogId === log.id ? '撤销中...' : '撤销'}
-                    </Button>
+                    {hasUndoCapability(log) ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-6 px-2 text-[11px]"
+                        onClick={() => void handleUndo(log)}
+                        disabled={!canUndo(log) || undoingLogId === log.id}
+                      >
+                        {undoingLogId === log.id ? '撤销中...' : '撤销'}
+                      </Button>
+                    ) : (
+                      <span className="text-[11px] text-muted-foreground/70">-</span>
+                    )}
                   </div>
                 )}
               </div>

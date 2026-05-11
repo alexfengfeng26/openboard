@@ -120,7 +120,7 @@ export function ChatMessageList({
 
   return (
     <div className="claude-ai-message-list relative flex-1 overflow-hidden bg-background">
-      <div className="h-full overflow-y-auto pl-3 pr-14 py-3 pb-20 md:pr-16">
+      <div className="h-full overflow-y-auto pl-3 pr-6 py-3 pb-20 md:pr-8">
         <div className="space-y-3.5">
           {messages.map((m, index) => {
           const isUser = m.role === 'user'
@@ -206,7 +206,7 @@ export function ChatMessageList({
               {!isUser && !isFirstInGroup && <div className="w-8 shrink-0" />}
 
               {/* 消息内容区域 */}
-              <div className={cn('group flex max-w-[86%] flex-col gap-1', isUser ? 'items-end' : 'items-start')}>
+              <div className={cn('group flex max-w-[92%] flex-col gap-1 md:max-w-[90%]', isUser ? 'items-end' : 'items-start')}>
                 {/* 消息气泡 */}
                 <div
                   className={cn(
