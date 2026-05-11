@@ -479,11 +479,23 @@
         "id": "pixel_cat-1778461900778.svg",
         "name": "pixel_cat",
         "url": "/icon/pixel_cat-1778461900778.svg"
+      },
+      {
+        "id": "pixel_cat-1778475905900.svg",
+        "name": "pixel_cat",
+        "url": "/icon/pixel_cat-1778475905900.svg"
+      },
+      {
+        "id": "pixel_alex-1778475913197.svg",
+        "name": "pixel_alex",
+        "url": "/icon/pixel_alex-1778475913197.svg"
       }
-    ]
+    ],
+    "userAvatar": "/icon/pixel_cat-1778475905900.svg",
+    "aiAvatar": "/icon/pixel_alex-1778475913197.svg"
   },
   "appearance": {
     "theme": "claude"
   },
-  "updatedAt": "2026-05-11T01:12:09.597Z"
+  "updatedAt": "2026-05-11T05:10:02.898Z"
 }

@@ -2,7 +2,7 @@
 id: default-board
 title: 我的看板
 createdAt: '2026-02-11T07:06:35.423Z'
-updatedAt: '2026-05-10T10:22:45.782Z'
+updatedAt: '2026-05-11T05:12:07.144Z'
 tags:
   - id: tag-0
     name: 紧急
@@ -249,6 +249,5 @@ lanes:
         createdAt: '2026-02-11T08:50:44.291Z'
         updatedAt: '2026-05-10T10:22:45.782Z'
         description: 检查并统一项目中各接口的请求/响应参数命名风格（如驼峰/下划线）、必填项规则和错误码格式，提升前后端协作效率。
-favoritedAt: '2026-05-08T11:11:33.958Z'
 ---
 

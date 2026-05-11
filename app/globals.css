@@ -1407,3 +1407,22 @@ body {
 .animate-menu-pop {
   animation: menu-pop 0.15s ease-out forwards;
 }
+
+@keyframes avatar-float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(-1deg);
+  }
+}
+
+.animate-avatar-float {
+  animation: avatar-float 3.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-avatar-float {
+    animation: none;
+  }
+}

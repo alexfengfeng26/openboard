@@ -57,6 +57,39 @@ function TypingIndicator({ aiAvatar, avatarRevision }: { aiAvatar?: string; avat
   )
 }
 
+function FloatingUserAvatar({
+  userAvatar,
+  avatarRevision,
+}: {
+  userAvatar?: string
+  avatarRevision?: number
+}) {
+  if (!userAvatar) return null
+
+  return (
+    <div
+      className={cn(
+        'pointer-events-none absolute bottom-4 right-4 z-20',
+        'flex items-end gap-2'
+      )}
+      aria-hidden="true"
+    >
+      <div className="relative flex h-10 w-10 animate-avatar-float items-center justify-center overflow-hidden rounded-2xl border border-border/80 bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)] ring-2 ring-background md:h-12 md:w-12">
+        <AvatarImage
+          src={userAvatar}
+          alt="A 角色头像"
+          cacheKey={avatarRevision}
+          className="h-full w-full object-cover"
+          fallback={<User className="h-4 w-4 text-muted-foreground" />}
+        />
+        <span className="absolute -left-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full border border-border/70 bg-primary px-1 text-[9px] font-semibold leading-none text-primary-foreground shadow-sm">
+          A
+        </span>
+      </div>
+    </div>
+  )
+}
+
 export function ChatMessageList({
   messages,
   isSending,
@@ -85,9 +118,10 @@ export function ChatMessageList({
   }, [])
 
   return (
-    <div className="claude-ai-message-list flex-1 overflow-y-auto bg-background px-3 py-4">
-      <div className="space-y-4">
-        {messages.map((m, index) => {
+    <div className="claude-ai-message-list relative flex-1 overflow-hidden bg-background">
+      <div className="h-full overflow-y-auto px-3 py-4 pb-20 [scrollbar-gutter:stable]">
+        <div className="space-y-4">
+          {messages.map((m, index) => {
           const isUser = m.role === 'user'
           const isAssistant = m.role === 'assistant'
           const showActions = isAssistant && shouldShowAssistantActions(m.id)
@@ -281,15 +315,17 @@ export function ChatMessageList({
               {isUser && !isFirstInGroup && <div className="w-8 shrink-0" />}
             </div>
           )
-        })}
+          })}
 
-        {/* Loading 状态 */}
-        {isSending && messages[messages.length - 1]?.role === 'user' && (
-          <TypingIndicator aiAvatar={aiAvatar} avatarRevision={avatarRevision} />
-        )}
+          {/* Loading 状态 */}
+          {isSending && messages[messages.length - 1]?.role === 'user' && (
+            <TypingIndicator aiAvatar={aiAvatar} avatarRevision={avatarRevision} />
+          )}
 
-        <div ref={bottomRef} />
+          <div ref={bottomRef} />
+        </div>
       </div>
+      <FloatingUserAvatar userAvatar={userAvatar} avatarRevision={avatarRevision} />
     </div>
   )
 }
