@@ -1370,7 +1370,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
           </div>
         ) : showChat && chatMinimized ? (
           <button
-            className="fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-transform hover:scale-105"
+            className="fixed bottom-4 right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-transform hover:scale-105"
             onClick={() => setChatMinimized(false)}
             title="打开 AI 助手"
           >

@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const updateIconSettings = vi.fn()
+const getIconSettings = vi.fn()
 
 vi.mock('@/lib/storage/SettingsStorage', () => ({
   getSettingsStorage: vi.fn(async () => ({
+    getIconSettings,
     updateIconSettings,
   })),
 }))
@@ -13,6 +15,15 @@ import { PUT } from './route'
 describe('PUT /api/settings/icons', () => {
   beforeEach(() => {
     updateIconSettings.mockReset()
+    getIconSettings.mockReset()
+    getIconSettings.mockResolvedValue({
+      icons: [
+        { id: 'user.png', name: 'user', url: '/icon/user.png' },
+        { id: 'ai.png', name: 'ai', url: '/icon/ai.png' },
+      ],
+      userAvatar: '/icon/user.png',
+      aiAvatar: '/icon/ai.png',
+    })
   })
 
   it('updates avatar URLs as part of icon settings', async () => {
@@ -100,5 +111,22 @@ describe('PUT /api/settings/icons', () => {
     expect(updateIconSettings).not.toHaveBeenCalledWith(
       expect.objectContaining({ aiAvatar: undefined })
     )
+  })
+
+  it('rejects avatar URL that is not registered in icon library', async () => {
+    const req = new Request('http://localhost/api/settings/icons', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        aiAvatar: '/external/not-registered.png',
+      }),
+    })
+
+    const res = await PUT(req as never)
+
+    expect(res.status).toBe(400)
+    expect(updateIconSettings).not.toHaveBeenCalled()
+    const json = await res.json()
+    expect(json.success).toBe(false)
   })
 })

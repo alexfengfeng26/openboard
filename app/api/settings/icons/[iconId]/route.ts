@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { promises as fs } from 'fs'
 import path from 'path'
 import { getSettingsStorage } from '@/lib/storage/SettingsStorage'
+import { getStorage } from '@/lib/storage/StorageAdapter'
 
 const ICON_DIR = path.join(process.cwd(), 'public', 'icon')
 
@@ -45,6 +46,29 @@ export async function DELETE(
       return NextResponse.json(
         { success: false, error: '图标不存在' },
         { status: 404 }
+      )
+    }
+
+    const referencedBy: string[] = []
+    if (existing.userAvatar === icon.url) referencedBy.push('用户头像')
+    if (existing.aiAvatar === icon.url) referencedBy.push('AI 头像')
+
+    const boardStorage = await getStorage()
+    const boards = await boardStorage.getBoards(true)
+    for (const boardMeta of boards) {
+      const board = await boardStorage.getBoard(boardMeta.id)
+      if (board?.icon === icon.url) {
+        referencedBy.push(`看板「${board.title}」`)
+      }
+    }
+
+    if (referencedBy.length > 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `该图标仍被引用：${referencedBy.join('、')}`,
+        },
+        { status: 409 }
       )
     }
 

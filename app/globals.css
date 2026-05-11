@@ -471,16 +471,19 @@ body {
 }
 
 :root:not(.notion-theme) .claude-ai-status-float {
+  --ai-float-right-gap: 14px;
+  --ai-float-bottom-gap: 14px;
+  --ai-float-max-width: 320px;
   position: fixed;
-  right: 18px;
-  bottom: 18px;
+  right: var(--ai-float-right-gap);
+  bottom: var(--ai-float-bottom-gap);
   z-index: 39;
-  width: min(360px, calc(100vw - 24px));
+  width: min(var(--ai-float-max-width), calc(100vw - 20px));
   pointer-events: none;
 }
 
 :root:not(.notion-theme) .claude-ai-status-float.is-raised {
-  bottom: 96px;
+  bottom: calc(var(--ai-float-bottom-gap) + 78px);
 }
 
 :root:not(.notion-theme) .claude-ai-status-float .claude-ai-status-card {

@@ -69,12 +69,13 @@ function FloatingUserAvatar({
   return (
     <div
       className={cn(
-        'pointer-events-none absolute bottom-4 right-4 z-20',
+        'pointer-events-none absolute right-3 top-3 z-20',
         'flex items-end gap-2'
       )}
       aria-hidden="true"
     >
-      <div className="relative flex h-10 w-10 animate-avatar-float items-center justify-center overflow-hidden rounded-2xl border border-border/80 bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)] ring-2 ring-background md:h-12 md:w-12">
+      <div className="relative flex h-9 w-9 animate-avatar-float items-center justify-center overflow-hidden rounded-2xl border border-border/80 bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)] ring-2 ring-background md:h-10 md:w-10">
+        <span className="animate-pulse-ring absolute inset-0 rounded-2xl border border-primary/35" />
         <AvatarImage
           src={userAvatar}
           alt="A 角色头像"
@@ -119,7 +120,7 @@ export function ChatMessageList({
 
   return (
     <div className="claude-ai-message-list relative flex-1 overflow-hidden bg-background">
-      <div className="h-full overflow-y-auto px-3 py-4 pb-20 [scrollbar-gutter:stable]">
+      <div className="h-full overflow-y-auto pl-3 pr-14 py-4 pb-20 md:pr-16">
         <div className="space-y-4">
           {messages.map((m, index) => {
           const isUser = m.role === 'user'
