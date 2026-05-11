@@ -76,15 +76,15 @@ export function OperationLogPanel({ logs, onClose }: OperationLogPanelProps) {
   }
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between border-b px-4 py-3">
+    <div className="flex h-full flex-col rounded-[20px] border border-border/90 bg-white/92 shadow-[0_18px_40px_rgba(26,20,14,0.12)] backdrop-blur-xl">
+      <div className="flex items-center justify-between border-b border-border/80 px-4 py-3">
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4" />
-          <span className="text-sm font-semibold">操作日志</span>
+          <span className="text-[13px] font-semibold">操作日志</span>
           <Badge variant="secondary">{logs.length}</Badge>
         </div>
         {onClose && (
-          <Button variant="ghost" size="sm" onClick={onClose}>
+          <Button variant="ghost" size="sm" className="h-7 rounded-lg px-2.5 text-[11px]" onClick={onClose}>
             关闭
           </Button>
         )}
@@ -96,19 +96,19 @@ export function OperationLogPanel({ logs, onClose }: OperationLogPanelProps) {
             暂无操作记录
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {logs.map((log) => (
               <div
                 key={log.id}
-                className="rounded-lg border bg-card p-3"
+                className="rounded-xl border border-border/85 bg-card/95 p-3 shadow-[0_4px_12px_rgba(26,20,14,0.05)]"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2">
                     {getStatusIcon(log.status)}
-                    <span className="text-sm font-medium">{getToolDisplayName(log.toolName)}</span>
+                    <span className="text-[13px] font-medium">{getToolDisplayName(log.toolName)}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-[11px] text-muted-foreground">
                       {formatTimestamp(log.timestamp)}
                     </span>
                     {getStatusBadge(log.status)}
@@ -117,10 +117,10 @@ export function OperationLogPanel({ logs, onClose }: OperationLogPanelProps) {
 
                 {/* 参数详情 */}
                 <details className="mt-2">
-                  <summary className="cursor-pointer text-xs text-muted-foreground">
+                  <summary className="cursor-pointer text-[11px] text-muted-foreground">
                     参数详情
                   </summary>
-                  <pre className="mt-1 rounded bg-muted p-2 text-xs">
+                  <pre className="mt-1 rounded-lg bg-muted/75 p-2 text-[11px]">
                     {JSON.stringify(log.params, null, 2)}
                   </pre>
                 </details>

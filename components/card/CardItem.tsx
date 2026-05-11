@@ -73,7 +73,7 @@ export const CardItem = memo(function CardItem({
   return (
     <div
       className={cn(
-        'pixel-office-card group relative rounded-lg border border-border bg-card p-2.5 shadow-sm transition-all duration-150 hover:border-ring/25 hover:shadow-md hover:-translate-y-px',
+        'pixel-office-card group relative rounded-xl border border-border/90 bg-card p-3 shadow-[0_4px_14px_rgba(22,18,13,0.05)] transition-all duration-200 hover:-translate-y-[1px] hover:scale-[1.01] hover:border-primary/25 hover:shadow-[0_10px_24px_rgba(22,18,13,0.09)]',
         isDragging && 'opacity-50',
         overdue && 'border-l-2 border-l-red-500',
         selected && 'border-primary ring-2 ring-primary/10',
@@ -141,7 +141,7 @@ export const CardItem = memo(function CardItem({
             <Badge
               key={tag.id}
               variant="secondary"
-              className="h-4 rounded-sm border-0 px-1.5 py-0 text-[10px] font-medium"
+              className="h-4 rounded-sm border-0 px-1.5 py-0 text-[9px] font-medium tracking-[0.02em]"
               style={{
                 backgroundColor: tag.color + '16',
                 color: tag.color,
@@ -154,7 +154,7 @@ export const CardItem = memo(function CardItem({
       )}
 
       {/* 标题 */}
-      <h3 className={cn('mb-1.5 pr-4 text-sm font-medium leading-snug text-foreground', selectionMode && 'pl-6')}>
+      <h3 className={cn('mb-1.5 pr-4 text-[13px] font-semibold leading-snug text-foreground', selectionMode && 'pl-6')}>
         {card.title}
       </h3>
 
@@ -162,7 +162,7 @@ export const CardItem = memo(function CardItem({
       {card.description && (
         <p
           className={cn(
-            'mb-2 text-xs leading-relaxed text-muted-foreground',
+            'mb-2 text-[11px] leading-relaxed text-muted-foreground',
             !isExpanded && 'line-clamp-3'
           )}
         >
@@ -205,7 +205,7 @@ export const CardItem = memo(function CardItem({
       )}
 
       {/* 底部信息 */}
-      <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+      <div className="flex items-center justify-between text-[9px] text-muted-foreground">
         <div className="flex items-center gap-2">
           <time dateTime={card.createdAt}>{formatRelativeTime(new Date(card.createdAt))}</time>
           {card.dueDate && (

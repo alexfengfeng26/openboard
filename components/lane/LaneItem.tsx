@@ -10,8 +10,8 @@ import { CreateCardDialog } from '@/components/card/CreateCardDialog'
 import { EditLaneDialog } from '@/components/lane/EditLaneDialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Plus, Edit2, GripVertical, Sparkles, Wand2 } from 'lucide-react'
-import { useState, memo, useRef } from 'react'
+import { Plus, Edit2, GripVertical, Sparkles, Wand2, MoreHorizontal } from 'lucide-react'
+import { useState, memo, useRef, useEffect } from 'react'
 
 interface LaneItemProps {
   lane: Lane
@@ -60,6 +60,17 @@ const LaneContent = memo(function LaneContent({
   const [aiQuery, setAiQuery] = useState('')
   const [isAIGenerating, setIsAIGenerating] = useState(false)
   const aiInputRef = useRef<HTMLInputElement>(null)
+  const [showLaneActionsMenu, setShowLaneActionsMenu] = useState(false)
+
+  useEffect(() => {
+    function handleWindowClick() {
+      setShowLaneActionsMenu(false)
+    }
+    if (showLaneActionsMenu) {
+      window.addEventListener('click', handleWindowClick)
+    }
+    return () => window.removeEventListener('click', handleWindowClick)
+  }, [showLaneActionsMenu])
 
   async function handleAIGenerate() {
     if (!aiQuery.trim() || isAIGenerating) return
@@ -134,7 +145,7 @@ const LaneContent = memo(function LaneContent({
   }
 
   return (
-    <div className={cn('pixel-office-lane group flex h-full w-60 shrink-0 flex-col rounded-xl border border-border bg-muted px-2.5 py-2.5 shadow-sm', isHovered && 'border-ring/30 bg-muted/80')}>
+    <div className={cn('pixel-office-lane group flex h-full w-60 shrink-0 flex-col rounded-2xl border border-border/90 bg-muted px-3 py-3 shadow-[0_6px_18px_rgba(22,18,13,0.05)]', isHovered && 'border-primary/30 bg-muted/85')}>
       <div className="pixel-lane-animation" aria-hidden="true">
         <span className="pixel-lane-board-sign">{lane.title.slice(0, 4)}</span>
         <span className="pixel-lane-screen" />
@@ -152,37 +163,53 @@ const LaneContent = memo(function LaneContent({
         <span className="pixel-lane-spark pixel-lane-spark-b" />
       </div>
       {/* 列表头部 */}
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mb-2.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <GripVertical className="h-3.5 w-3.5 text-muted-foreground/70 cursor-grab" />
           <h2
-            className="cursor-pointer text-sm font-medium text-foreground hover:text-primary"
+            className="cursor-pointer text-[13px] font-semibold text-foreground hover:text-primary"
             onDoubleClick={() => setShowEditLane(true)}
           >
             {lane.title}
           </h2>
-          <span className="rounded bg-background px-1.5 py-0.5 text-[11px] text-muted-foreground">{lane.cards.length}</span>
+          <span className="rounded-md bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground">{lane.cards.length}</span>
         </div>
-        <div className="flex items-center gap-0.5">
+        <div className="relative flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
           <Button
             variant="ghost"
             size="icon"
-            className="h-6 w-6 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-primary"
-            onClick={() => onOpenAI?.(lane.id, lane.title)}
-            aria-label="用 AI 生成卡片"
-            title="用 AI 生成卡片"
+            className="h-6 w-6 opacity-0 text-muted-foreground group-hover:opacity-100 hover:text-foreground"
+            onClick={() => setShowLaneActionsMenu((v) => !v)}
+            aria-label="更多列表操作"
           >
-            <Wand2 className="h-3 w-3" />
+            <MoreHorizontal className="h-3 w-3" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 opacity-0 group-hover:opacity-100"
-            onClick={() => setShowEditLane(true)}
-            aria-label="编辑列表"
-          >
-            <Edit2 className="h-3 w-3" />
-          </Button>
+          {showLaneActionsMenu && (
+            <div className="absolute right-0 top-7 z-20 w-36 rounded-xl border border-border/90 bg-white/95 p-1.5 shadow-[0_12px_28px_rgba(26,20,14,0.12)] backdrop-blur-sm">
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs text-foreground transition-colors hover:bg-secondary"
+                onClick={() => {
+                  setShowLaneActionsMenu(false)
+                  onOpenAI?.(lane.id, lane.title)
+                }}
+              >
+                <Wand2 className="h-3 w-3 text-muted-foreground" />
+                AI 生成卡片
+              </button>
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs text-foreground transition-colors hover:bg-secondary"
+                onClick={() => {
+                  setShowLaneActionsMenu(false)
+                  setShowEditLane(true)
+                }}
+              >
+                <Edit2 className="h-3 w-3 text-muted-foreground" />
+                编辑列表
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

@@ -40,6 +40,7 @@ import {
   Keyboard,
   PanelRightOpen,
   Workflow,
+  MoreHorizontal,
 } from 'lucide-react'
 import { CreateLaneDialog } from '@/components/lane/CreateLaneDialog'
 import { Button } from '@/components/ui/button'
@@ -492,6 +493,17 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
 
   // 编辑看板对话框
   const [editingBoard, setEditingBoard] = useState<Board | null>(null)
+  const [showTopActionsMenu, setShowTopActionsMenu] = useState(false)
+
+  useEffect(() => {
+    function handleWindowClick() {
+      setShowTopActionsMenu(false)
+    }
+    if (showTopActionsMenu) {
+      window.addEventListener('click', handleWindowClick)
+    }
+    return () => window.removeEventListener('click', handleWindowClick)
+  }, [showTopActionsMenu])
 
   useEffect(() => {
     async function fetchTags() {
@@ -1023,8 +1035,8 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
         {/* 中间看板主内容区 */}
         <main className="flex min-h-0 min-w-0 flex-1 flex-col">
           {/* 顶部导航栏 */}
-          <header className="relative z-50 border-b border-border bg-background px-4 py-2.5">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <header className="relative z-50 border-b border-border/80 bg-background/95 px-4 py-2 backdrop-blur-sm">
+            <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
               {/* 左侧：看板标题或 BoardSelector */}
               <div className="flex items-center gap-3">
                 {!sidebarExpanded ? (
@@ -1147,28 +1159,10 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                   variant="outline"
                   size="sm"
                   className="h-8 gap-1.5"
-                  onClick={() => setShowAutomation(true)}
-                >
-                  <Workflow className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">自动化</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 gap-1.5"
                   onClick={() => dispatch({ type: 'SET_SHOW_CHAT', payload: true })}
                 >
                   <PanelRightOpen className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline">AI</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 gap-1.5"
-                  onClick={() => setShowHelp(true)}
-                  aria-label="快捷键帮助"
-                >
-                  <Keyboard className="h-3.5 w-3.5" />
                 </Button>
                 <Button
                   size="sm"
@@ -1178,12 +1172,49 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                   <Plus className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline">添加列表</span>
                 </Button>
+                <div className="relative" onClick={(e) => e.stopPropagation()}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 w-8 px-0"
+                    onClick={() => setShowTopActionsMenu((v) => !v)}
+                    aria-label="更多操作"
+                  >
+                    <MoreHorizontal className="h-3.5 w-3.5" />
+                  </Button>
+                  {showTopActionsMenu && (
+                    <div className="absolute right-0 top-9 z-[70] w-36 rounded-xl border border-border/90 bg-white/95 p-1.5 shadow-[0_12px_28px_rgba(26,20,14,0.12)] backdrop-blur-sm">
+                      <button
+                        type="button"
+                        className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs text-foreground transition-colors hover:bg-secondary"
+                        onClick={() => {
+                          setShowTopActionsMenu(false)
+                          setShowAutomation(true)
+                        }}
+                      >
+                        <Workflow className="h-3.5 w-3.5 text-muted-foreground" />
+                        自动化
+                      </button>
+                      <button
+                        type="button"
+                        className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs text-foreground transition-colors hover:bg-secondary"
+                        onClick={() => {
+                          setShowTopActionsMenu(false)
+                          setShowHelp(true)
+                        }}
+                      >
+                        <Keyboard className="h-3.5 w-3.5 text-muted-foreground" />
+                        快捷键帮助
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </header>
 
           {/* AI 洞察面板 */}
-          <div className="px-4 py-2">
+          <div className="px-4 py-3">
             <AiInsightsPanel
               board={board}
               onCardClick={(cardId) => {
@@ -1203,7 +1234,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
           </div>
 
           {/* 看板主体区域 */}
-          <div className="pixel-office-board relative min-h-0 min-w-0 flex-1 overflow-x-auto overflow-y-hidden p-3">
+          <div className="pixel-office-board relative min-h-0 min-w-0 flex-1 overflow-x-auto overflow-y-hidden p-4">
             <PixelOfficeScene />
             <DndContext
               sensors={sensors}
@@ -1216,7 +1247,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                 items={board.lanes.map((l) => l.id)}
                 strategy={isMobile ? verticalListSortingStrategy : horizontalListSortingStrategy}
               >
-                <div className={cn('relative z-10 flex h-full items-stretch gap-2', isMobile ? 'flex-col' : 'flex-row')}>
+                <div className={cn('relative z-10 flex h-full items-stretch gap-3', isMobile ? 'flex-col' : 'flex-row')}>
                   {filteredBoard.lanes.map((lane) => (
                     <LaneItem
                       key={lane.id}
@@ -1325,7 +1356,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
         ) : showChat && !chatMinimized ? (
           <div
             ref={chatPanelRef}
-            className="fixed z-50 flex flex-col overflow-visible rounded-xl border bg-white/95 shadow-xl backdrop-blur-md"
+            className="fixed z-50 flex flex-col overflow-visible rounded-[20px] border border-border/80 bg-white/72 shadow-[0_22px_60px_rgba(33,27,21,0.2)] backdrop-blur-xl"
             style={{
               left: `${chatPosition.x}px`,
               top: `${chatPosition.y}px`,

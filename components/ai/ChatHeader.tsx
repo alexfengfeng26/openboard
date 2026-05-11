@@ -33,10 +33,10 @@ export function ChatHeader({
   const { aiAvatar, avatarRevision } = useIconSettings()
 
   return (
-    <div className="pixel-ai-header flex items-center justify-between gap-2 border-b border-white/20 bg-white/40 px-3 py-2 backdrop-blur-lg shadow-sm">
+    <div className="pixel-ai-header flex items-center justify-between gap-1.5 border-b border-white/20 bg-white/35 px-2.5 py-1.5 backdrop-blur-xl shadow-sm">
       {/* 左侧：AI 品牌标识 */}
-      <div className="flex items-center gap-2">
-        <div className="relative flex h-7 w-7 items-center justify-center rounded-lg shadow-sm overflow-hidden">
+      <div className="flex items-center gap-1.5">
+        <div className="relative flex h-6 w-6 items-center justify-center overflow-hidden rounded-md shadow-sm">
           <AvatarImage
             src={aiAvatar}
             alt="AI"
@@ -49,17 +49,17 @@ export function ChatHeader({
             <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
           </span>
         </div>
-        <span className="text-sm font-semibold text-foreground">AI 助手</span>
+        <span className="text-[13px] font-semibold text-foreground">AI 助手</span>
       </div>
 
       {/* 右侧：模型选择 + 操作按钮 + 窗口控制 */}
       <div className="flex items-center gap-0.5">
         {/* 模型分段控制器 */}
-        <div className="flex items-center rounded-md bg-muted p-0.5 mr-1">
+        <div className="mr-1 flex items-center rounded-md bg-muted/80 p-0.5">
           <button
             onClick={() => onModelChange('deepseek-v4-flash')}
             className={cn(
-              'flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[11px] font-medium transition-all duration-200',
+              'flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10px] font-medium transition-all duration-200',
               model === 'deepseek-v4-flash'
                 ? 'bg-white text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
@@ -73,7 +73,7 @@ export function ChatHeader({
           <button
             onClick={() => onModelChange('deepseek-v4-pro')}
             className={cn(
-              'flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[11px] font-medium transition-all duration-200',
+              'flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10px] font-medium transition-all duration-200',
               model === 'deepseek-v4-pro'
                 ? 'bg-white text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
@@ -91,7 +91,7 @@ export function ChatHeader({
           variant={showLogPanel ? 'secondary' : 'ghost'}
           size="icon"
           className={cn(
-            'h-7 w-7 relative',
+            'relative h-6 w-6',
             showLogPanel ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
           )}
           onClick={onToggleLogPanel}
@@ -111,7 +111,7 @@ export function ChatHeader({
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-muted-foreground hover:text-destructive"
+            className="h-6 w-6 text-muted-foreground hover:text-destructive"
             onClick={() => setShowClearConfirm(true)}
             aria-label="清空对话"
             title="清空对话"
@@ -146,14 +146,14 @@ export function ChatHeader({
         </div>
 
         {/* 分隔线 */}
-        <div className="mx-0.5 h-4 w-px bg-border" />
+        <div className="mx-0.5 h-3.5 w-px bg-border" />
 
         {/* 最小化 */}
         {onRequestMinimize && (
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+            className="h-6 w-6 text-muted-foreground hover:text-foreground"
             onClick={onRequestMinimize}
             aria-label="最小化"
             title="最小化"
@@ -167,7 +167,7 @@ export function ChatHeader({
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-muted-foreground hover:text-destructive"
+            className="h-6 w-6 text-muted-foreground hover:text-destructive"
             onClick={onRequestClose}
             aria-label="关闭"
             title="关闭"

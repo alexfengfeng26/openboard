@@ -120,8 +120,8 @@ export function ChatMessageList({
 
   return (
     <div className="claude-ai-message-list relative flex-1 overflow-hidden bg-background">
-      <div className="h-full overflow-y-auto pl-3 pr-14 py-4 pb-20 md:pr-16">
-        <div className="space-y-4">
+      <div className="h-full overflow-y-auto pl-3 pr-14 py-3 pb-20 md:pr-16">
+        <div className="space-y-3.5">
           {messages.map((m, index) => {
           const isUser = m.role === 'user'
           const isAssistant = m.role === 'assistant'
@@ -206,16 +206,16 @@ export function ChatMessageList({
               {!isUser && !isFirstInGroup && <div className="w-8 shrink-0" />}
 
               {/* 消息内容区域 */}
-              <div className={cn('group flex max-w-[85%] flex-col gap-1', isUser ? 'items-end' : 'items-start')}>
+              <div className={cn('group flex max-w-[86%] flex-col gap-1', isUser ? 'items-end' : 'items-start')}>
                 {/* 消息气泡 */}
                 <div
                   className={cn(
                     'claude-ai-bubble relative',
                     isUser
-                      ? 'rounded-2xl rounded-tr-sm bg-gradient-to-br from-primary to-primary/85 px-4 py-2.5 text-primary-foreground shadow-sm'
+                      ? 'rounded-2xl rounded-tr-sm bg-gradient-to-br from-primary to-primary/85 px-3.5 py-2 text-primary-foreground shadow-[0_6px_16px_rgba(242,140,56,0.22)]'
                       : isGuide
-                        ? 'rounded-2xl rounded-tl-sm border border-amber-200/60 bg-gradient-to-br from-amber-50/80 to-orange-50/60 px-4 py-3 shadow-sm'
-                        : 'rounded-2xl rounded-tl-sm border border-border bg-white px-4 py-2.5 shadow-sm'
+                        ? 'rounded-2xl rounded-tl-sm border border-amber-200/60 bg-gradient-to-br from-amber-50/80 to-orange-50/60 px-3.5 py-2.5 shadow-[0_6px_16px_rgba(30,24,18,0.06)]'
+                        : 'rounded-2xl rounded-tl-sm border border-border/90 bg-white px-3.5 py-2 shadow-[0_4px_14px_rgba(30,24,18,0.05)]'
                   )}
                 >
                   {/* 复制按钮（仅 AI 消息） */}
@@ -223,7 +223,7 @@ export function ChatMessageList({
                     <button
                       onClick={() => handleCopy(m.content, m.id)}
                       className={cn(
-                        'absolute -right-1 -top-2 flex h-6 w-6 items-center justify-center rounded-full border border-border bg-white shadow-sm transition-all duration-200',
+                        'absolute -right-1 -top-2 flex h-5 w-5 items-center justify-center rounded-full border border-border/90 bg-white shadow-sm transition-all duration-200',
                         'opacity-0 group-hover:opacity-100 hover:bg-muted hover:scale-110',
                         copiedId === m.id && 'opacity-100 bg-emerald-50 border-emerald-200'
                       )}
@@ -240,7 +240,7 @@ export function ChatMessageList({
                   {/* 消息内容 */}
                   <div
                     className={cn(
-                      'whitespace-pre-wrap text-sm leading-relaxed',
+                      'whitespace-pre-wrap text-[13px] leading-relaxed',
                       isUser ? 'text-primary-foreground' : 'text-foreground'
                     )}
                   >
@@ -249,11 +249,11 @@ export function ChatMessageList({
 
                   {/* 操作按钮 */}
                   {showActions && (
-                    <div className="mt-2.5 flex items-center gap-1 border-t border-border/60 pt-2">
+                    <div className="mt-2 flex items-center gap-1 border-t border-border/55 pt-1.5">
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-7 gap-1 rounded-md px-2 text-xs text-muted-foreground hover:text-foreground hover:bg-accent"
+                        className="h-6 gap-1 rounded-lg px-2 text-[11px] text-muted-foreground hover:text-foreground hover:bg-secondary"
                         onClick={() => onQuickCreate(m)}
                         disabled={draftSubmitting}
                       >
@@ -273,7 +273,7 @@ export function ChatMessageList({
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-7 gap-1 rounded-md px-2 text-xs text-muted-foreground hover:text-foreground hover:bg-accent"
+                        className="h-6 gap-1 rounded-lg px-2 text-[11px] text-muted-foreground hover:text-foreground hover:bg-secondary"
                         onClick={() => onGenerateDraft(m)}
                         disabled={draftSubmitting}
                       >
@@ -295,7 +295,7 @@ export function ChatMessageList({
 
                 {/* 时间戳 */}
                 {isLastInGroup && (
-                  <span className="px-1 text-[10px] text-muted-foreground/70 opacity-0 transition-opacity duration-200 group-hover:opacity-100 will-change-opacity">
+                  <span className="px-1 text-[9px] text-muted-foreground/65 opacity-0 transition-opacity duration-200 group-hover:opacity-100 will-change-opacity">
                     {formatMessageTime(new Date())}
                   </span>
                 )}

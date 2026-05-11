@@ -630,8 +630,8 @@ export function DeepSeekChatPanel({
         />
       )}
       {showLogPanel && (
-        <div className="fixed inset-0 z-40 bg-black/10">
-          <div className="fixed right-0 top-0 h-full w-80 border-l border-border bg-background shadow-lg shadow-black/5">
+        <div className="fixed inset-0 z-40 bg-black/12 backdrop-blur-[1px]">
+          <div className="fixed right-3 top-3 h-[calc(100%-24px)] w-[min(360px,calc(100vw-24px))]">
             <OperationLogPanel logs={operationLogs} onClose={() => setShowLogPanel(false)} />
           </div>
         </div>

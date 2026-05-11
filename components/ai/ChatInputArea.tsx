@@ -39,7 +39,7 @@ export function ChatInputArea({
   onStop,
 }: ChatInputAreaProps) {
   return (
-    <div className="claude-ai-input-area border-t border-border bg-card">
+    <div className="claude-ai-input-area border-t border-border/80 bg-card/90">
       {/* 顶部 subtle 渐变分隔 */}
       <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
@@ -93,14 +93,14 @@ export function ChatInputArea({
           </div>
 
           {isSending && onStop ? (
-            <Button
-              onClick={onStop}
-              variant="destructive"
-              size="icon"
-              className="h-10 w-10 shrink-0 rounded-xl shadow-sm transition-transform duration-200 hover:scale-105 active:scale-95"
-              aria-label="停止生成"
-              title="停止生成"
-            >
+              <Button
+                onClick={onStop}
+                variant="destructive"
+                size="icon"
+                className="h-9 w-9 shrink-0 rounded-xl shadow-sm transition-transform duration-200 hover:scale-105 active:scale-95"
+                aria-label="停止生成"
+                title="停止生成"
+              >
               <Square className="h-4 w-4 fill-current" />
             </Button>
           ) : (
@@ -109,7 +109,7 @@ export function ChatInputArea({
               disabled={!input.trim() || isSending}
               size="icon"
               className={cn(
-                'h-10 w-10 shrink-0 rounded-xl bg-primary shadow-sm transition-all duration-200',
+                'h-9 w-9 shrink-0 rounded-xl bg-primary shadow-sm transition-all duration-200',
                 'hover:bg-primary/90 hover:scale-105 hover:shadow-md',
                 'active:scale-95 disabled:opacity-40 disabled:hover:scale-100'
               )}
