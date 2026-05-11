@@ -1,32 +1,5 @@
 [
   {
-    "id": "rule-1746751234567-abc123def",
-    "name": "Bug 卡片自动分类",
-    "description": "当新创建的卡片标题包含 \"Bug\" 或 \"bug\" 时，自动添加 \"Bug\" 标签",
-    "enabled": true,
-    "trigger": {
-      "type": "card_created",
-      "conditions": [
-        {
-          "field": "card.title",
-          "operator": "contains",
-          "value": "Bug"
-        }
-      ]
-    },
-    "actions": [
-      {
-        "type": "add_tag",
-        "params": {
-          "tagId": "bug"
-        }
-      }
-    ],
-    "createdAt": "2025-05-09T10:00:00.000Z",
-    "updatedAt": "2025-05-09T10:00:00.000Z",
-    "boardId": ""
-  },
-  {
     "id": "rule-1746751234568-ghi456jkl",
     "name": "完成时移除进行中标签",
     "description": "当卡片移动到标题包含 \"已完成\" 或 \"Done\" 的列表时，自动移除 \"进行中\" 标签",
@@ -46,33 +19,6 @@
         "type": "remove_tag",
         "params": {
           "tagId": "in-progress"
-        }
-      }
-    ],
-    "createdAt": "2025-05-09T10:00:00.000Z",
-    "updatedAt": "2025-05-09T10:00:00.000Z",
-    "boardId": ""
-  },
-  {
-    "id": "rule-1746751234569-mno789pqr",
-    "name": "紧急任务标红",
-    "description": "当卡片标题包含 \"紧急\" 或 \"urgent\" 时，自动更新卡片优先级为高",
-    "enabled": true,
-    "trigger": {
-      "type": "card_created",
-      "conditions": [
-        {
-          "field": "card.title",
-          "operator": "contains",
-          "value": "紧急"
-        }
-      ]
-    },
-    "actions": [
-      {
-        "type": "update_card",
-        "params": {
-          "priority": "high"
         }
       }
     ],
