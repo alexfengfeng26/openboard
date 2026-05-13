@@ -41,6 +41,7 @@ import {
   PanelRightOpen,
   Workflow,
   MoreHorizontal,
+  LayoutTemplate,
 } from 'lucide-react'
 import { CreateLaneDialog } from '@/components/lane/CreateLaneDialog'
 import { Button } from '@/components/ui/button'
@@ -52,6 +53,7 @@ import { DeepSeekChatPanel } from '@/components/ai/DeepSeekChatPanel'
 import { ClaudeAssistantStatusFloat } from '@/components/ai/ClaudeAssistantStatusFloat'
 import { AiInsightsPanel } from '@/components/ai/AiInsightsPanel'
 import { AutomationPanel } from '@/components/automation/AutomationPanel'
+import { TemplateManager } from '@/components/template/TemplateManager'
 import { AppSidebar } from '@/components/layout/AppSidebar'
 import { BoardTagsProvider } from './BoardTagsContext'
 import { CreateBoardDialog } from './CreateBoardDialog'
@@ -65,6 +67,7 @@ import { TagSelector } from '@/components/card/TagSelector'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { useRouter, usePathname } from 'next/navigation'
 import type { OperationLogEntry } from '@/types/ai-tools.types'
+import type { CardTemplateContent } from '@/types/template.types'
 
 interface BoardClientProps {
   initialBoard: Board
@@ -494,6 +497,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
   // 编辑看板对话框
   const [editingBoard, setEditingBoard] = useState<Board | null>(null)
   const [showTopActionsMenu, setShowTopActionsMenu] = useState(false)
+  const [showTemplateLibrary, setShowTemplateLibrary] = useState(false)
 
   useEffect(() => {
     function handleWindowClick() {
@@ -506,19 +510,26 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
   }, [showTopActionsMenu])
 
   useEffect(() => {
+    const mergeTags = (globalTags: Tag[], localTags: Tag[]) => {
+      const byId = new Map<string, Tag>()
+      for (const tag of globalTags) byId.set(tag.id, tag)
+      for (const tag of localTags) byId.set(tag.id, tag)
+      return Array.from(byId.values())
+    }
+
     async function fetchTags() {
       try {
         const response = await fetch('/api/tags')
         const result = await response.json()
         if (result.success) {
-          setBoardTags(result.data)
+          setBoardTags(mergeTags(result.data || [], board.tags || []))
         }
       } catch {
-        // 静默失败
+        setBoardTags(board.tags || [])
       }
     }
     fetchTags()
-  }, [])
+  }, [board.id, board.tags])
 
   // 搜索
   const {
@@ -769,7 +780,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
   }, [])
 
   // 添加列表
-  const handleAddLane = useCallback(async (title: string) => {
+  const handleAddLane = useCallback(async (title: string, templateCards?: CardTemplateContent[]) => {
     try {
       const response = await fetch('/api/lanes', {
         method: 'POST',
@@ -784,13 +795,40 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
       const result = await response.json()
 
       if (result.success) {
-        dispatch({ type: 'ADD_LANE', payload: result.data })
+        const lane = result.data as Lane
+        dispatch({ type: 'ADD_LANE', payload: lane })
+        const cardTagNames = new Set((templateCards || []).flatMap((card) => card.tags || []))
+        const tagsByName = new Map(boardTags.map((tag) => [tag.name, tag] as const))
+        const missingTagNames = Array.from(cardTagNames).filter((name) => !tagsByName.has(name))
+
+        for (const templateCard of templateCards || []) {
+          const cardResponse = await fetch('/api/cards', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              boardId: board.id,
+              laneId: lane.id,
+              title: templateCard.title,
+              description: templateCard.description,
+              tags: (templateCard.tags || []).map((name) => tagsByName.get(name)).filter(Boolean),
+            }),
+          })
+          if (!cardResponse.ok) throw new Error('Failed to create template card')
+          const cardResult = await cardResponse.json()
+          if (cardResult.success) {
+            dispatch({ type: 'ADD_CARD_TO_LANE', payload: { laneId: lane.id, card: cardResult.data } })
+          }
+        }
+
+        if (missingTagNames.length > 0) {
+          toastError(`模板中的标签未匹配：${missingTagNames.join('、')}`)
+        }
         dispatch({ type: 'SET_SHOW_CREATE_LANE', payload: false })
       }
     } catch (error) {
       toastError('创建列表失败')
     }
-  }, [board.id])
+  }, [board.id, boardTags])
 
   // 编辑卡片
   const handleCardEdit = useCallback((card: Card) => {
@@ -1202,6 +1240,17 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                         className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs text-foreground transition-colors hover:bg-secondary"
                         onClick={() => {
                           setShowTopActionsMenu(false)
+                          setShowTemplateLibrary(true)
+                        }}
+                      >
+                        <LayoutTemplate className="h-3.5 w-3.5 text-muted-foreground" />
+                        模板管理
+                      </button>
+                      <button
+                        type="button"
+                        className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs text-foreground transition-colors hover:bg-secondary"
+                        onClick={() => {
+                          setShowTopActionsMenu(false)
                           setShowHelp(true)
                         }}
                       >
@@ -1449,6 +1498,17 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
           onOpenChange={setShowAutomation}
         />
 
+        <Dialog open={showTemplateLibrary} onOpenChange={setShowTemplateLibrary}>
+          <DialogContent className="h-[min(760px,88vh)] max-w-5xl p-0">
+            <DialogHeader className="border-b border-border px-4 py-3">
+              <DialogTitle className="text-base">模板管理</DialogTitle>
+            </DialogHeader>
+            <DialogBody className="min-h-0 p-0">
+              <TemplateManager />
+            </DialogBody>
+          </DialogContent>
+        </Dialog>
+
         {/* 批量删除确认对话框 */}
         <ConfirmDialog
           open={showBatchDeleteConfirm}
@@ -1551,6 +1611,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
         <CreateBoardDialog
           open={showCreateBoard}
           onOpenChange={setShowCreateBoard}
+          sourceBoard={board}
           onBoardCreated={(newBoard) => {
             refreshBoards()
             handleBoardSelect(newBoard.id)

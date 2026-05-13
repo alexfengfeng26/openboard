@@ -1,0 +1,23 @@
+{
+  "meta": {
+    "type": "card",
+    "name": "需求申请",
+    "description": "新功能需求申请模板",
+    "tags": [
+      "开发"
+    ],
+    "icon": "Lightbulb",
+    "scope": "global",
+    "builtin": true,
+    "id": "card-feature-request",
+    "createdAt": "2026-05-12T09:41:50.323Z",
+    "updatedAt": "2026-05-12T09:41:50.323Z"
+  },
+  "content": {
+    "title": "【需求】",
+    "description": "**需求背景**：\n\n**功能描述**：\n\n**预期效果**：\n\n**优先级**：高/中/低",
+    "tags": [
+      "功能"
+    ]
+  }
+}

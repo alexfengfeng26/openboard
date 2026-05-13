@@ -1,0 +1,28 @@
+{
+  "meta": {
+    "type": "automation",
+    "name": "更新时自动匹配标签",
+    "description": "卡片标题或描述更新后，根据内容自动补充现有标签",
+    "tags": [
+      "自动化"
+    ],
+    "icon": "Tag",
+    "scope": "global",
+    "builtin": true,
+    "id": "automation-auto-tag-update",
+    "createdAt": "2026-05-12T09:41:50.421Z",
+    "updatedAt": "2026-05-12T09:41:50.421Z"
+  },
+  "content": {
+    "trigger": {
+      "type": "card_updated",
+      "conditions": []
+    },
+    "actions": [
+      {
+        "type": "auto_tag",
+        "params": {}
+      }
+    ]
+  }
+}

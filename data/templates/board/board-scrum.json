@@ -1,0 +1,35 @@
+{
+  "meta": {
+    "type": "board",
+    "name": "Scrum Sprint",
+    "description": "敏捷开发 Sprint 看板，包含 Backlog 和 Review 环节",
+    "tags": [
+      "通用"
+    ],
+    "icon": "Rocket",
+    "scope": "global",
+    "builtin": true,
+    "id": "board-scrum",
+    "createdAt": "2026-05-12T09:41:50.279Z",
+    "updatedAt": "2026-05-12T09:41:50.279Z"
+  },
+  "content": {
+    "lanes": [
+      {
+        "title": "Backlog"
+      },
+      {
+        "title": "Todo"
+      },
+      {
+        "title": "In Progress"
+      },
+      {
+        "title": "Review"
+      },
+      {
+        "title": "Done"
+      }
+    ]
+  }
+}

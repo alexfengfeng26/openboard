@@ -1,0 +1,19 @@
+{
+  "meta": {
+    "type": "lane",
+    "name": "Review",
+    "description": "用于代码审查、内容审核或验收环节",
+    "tags": [
+      "通用"
+    ],
+    "icon": "Bug",
+    "scope": "global",
+    "builtin": true,
+    "id": "lane-review",
+    "createdAt": "2026-05-12T09:41:50.404Z",
+    "updatedAt": "2026-05-12T09:41:50.404Z"
+  },
+  "content": {
+    "title": "Review"
+  }
+}

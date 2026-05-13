@@ -613,4 +613,83 @@ const { showHelp, setShowHelp } = useKeyboardShortcuts({
 
 ---
 
-*最后更新: 2025-02-13*
+## 模板系统
+
+### 架构概述
+
+应用使用**统一的模板管理层**替代原有的 3 套独立模板系统（看板模板、AI 聊天模板、自动化规则模板）。
+
+### 核心组件
+
+| 组件 | 路径 | 职责 |
+|------|------|------|
+| `TemplateManager` | `lib/template/TemplateManager.ts` | 统一入口：list/get/create/update/delete/apply/export/import |
+| `TemplateStorage` | `lib/storage/TemplateStorage.ts` | 文件存储适配器：data/templates/ 目录 + JSON 索引 |
+| `variable-resolver` | `lib/template/variable-resolver.ts` | 模板变量解析：{{board.title}}、{{date.today}} 等 |
+| `init-templates` | `lib/template/init-templates.ts` | 首次启动时将旧硬编码模板导入为新系统的 builtin 模板 |
+
+### 模板类型
+
+| 类型 | 用途 | 存储路径 |
+|------|------|----------|
+| `board` | 看板模板（预置列表） | `data/templates/board/` |
+| `card` | 卡片模板（预置标题/描述/标签） | `data/templates/card/` |
+| `lane` | 列表模板（预置标题） | `data/templates/lane/` |
+| `automation` | 自动化规则模板 | `data/templates/automation/` |
+| `prompt` | AI 提示词模板（支持变量） | `data/templates/prompt/` |
+
+### API 路由
+
+| 路由 | 方法 | 描述 |
+|------|------|------|
+| `/api/templates` | GET/POST | 模板列表/创建 |
+| `/api/templates/[id]` | GET/PUT/DELETE | 单模板操作（builtin 禁止修改删除） |
+| `/api/templates/[id]/apply` | POST | 应用模板（解析变量） |
+| `/api/templates/[id]/clone` | POST | 克隆内置模板为自定义模板 |
+| `/api/templates/export` | POST | 批量导出 JSON |
+| `/api/templates/import` | POST | 导入 JSON bundle |
+
+### 前端组件
+
+| 组件 | 路径 | 职责 |
+|------|------|------|
+| `TemplateManager` | `components/template/TemplateManager.tsx` | 模板管理主面板 |
+| `TemplateSelector` | `components/template/TemplateSelector.tsx` | 模板选择弹窗（各业务场景通用） |
+| `TemplateEditor` | `components/template/TemplateEditor.tsx` | 模板编辑器 |
+| `TemplateCard` | `components/template/TemplateCard.tsx` | 模板卡片展示 |
+| `TemplateVariablePicker` | `components/template/TemplateVariablePicker.tsx` | 变量选择器 |
+| `PromptTemplatePreview` | `components/template/PromptTemplatePreview.tsx` | 提示词实时预览 |
+
+### 前端 Hook
+
+```typescript
+import { useTemplates, useTemplateActions } from '@/lib/hooks/useTemplates'
+
+// 获取模板列表
+const { templates, loading, fetchTemplates } = useTemplates({ type: 'board' })
+
+// 模板操作
+const { createTemplate, deleteTemplate, applyTemplate, exportTemplates, importTemplates } = useTemplateActions()
+```
+
+### 内置变量清单
+
+| 变量 | 说明 |
+|------|------|
+| `{{board.title}}` | 当前看板标题 |
+| `{{lane.title}}` | 当前列表标题 |
+| `{{card.title}}` | 当前卡片标题 |
+| `{{date.today}}` | 今日日期 |
+| `{{date.tomorrow}}` | 明日日期 |
+| `{{user.name}}` | 当前用户名称 |
+
+### 业务接入点
+
+- **创建看板**：`CreateBoardDialog` 已接入 `TemplateSelector(type='board')`
+- **创建卡片**：`CardFormDialog` 已接入 `TemplateSelector(type='card')`
+- **创建列表**：`CreateLaneDialog` 已接入 `TemplateSelector(type='lane')`
+- **AI 聊天**：`DeepSeekChatPanel` 自动加载 prompt 模板到快捷命令
+
+---
+
+*最后更新: 2026-05-12*

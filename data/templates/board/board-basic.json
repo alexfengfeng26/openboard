@@ -1,0 +1,29 @@
+{
+  "meta": {
+    "type": "board",
+    "name": "基础看板",
+    "description": "经典的待办/进行中/已完成三列看板，适合个人任务管理",
+    "tags": [
+      "通用"
+    ],
+    "icon": "Layout",
+    "scope": "global",
+    "builtin": true,
+    "id": "board-basic",
+    "createdAt": "2026-05-12T09:41:50.271Z",
+    "updatedAt": "2026-05-12T09:41:50.271Z"
+  },
+  "content": {
+    "lanes": [
+      {
+        "title": "待办"
+      },
+      {
+        "title": "进行中"
+      },
+      {
+        "title": "已完成"
+      }
+    ]
+  }
+}

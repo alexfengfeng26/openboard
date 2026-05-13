@@ -1,0 +1,19 @@
+{
+  "meta": {
+    "type": "lane",
+    "name": "待办列表",
+    "description": "用于收集尚未开始的任务",
+    "tags": [
+      "通用"
+    ],
+    "icon": "Layout",
+    "scope": "global",
+    "builtin": true,
+    "id": "lane-todo",
+    "createdAt": "2026-05-12T09:41:50.331Z",
+    "updatedAt": "2026-05-12T09:41:50.331Z"
+  },
+  "content": {
+    "title": "待办"
+  }
+}

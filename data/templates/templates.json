@@ -1,0 +1,239 @@
+{
+  "version": 1,
+  "updatedAt": "2026-05-13T05:01:31.112Z",
+  "templates": [
+    {
+      "id": "board-basic",
+      "type": "board",
+      "name": "基础看板",
+      "description": "经典的待办/进行中/已完成三列看板，适合个人任务管理",
+      "tags": [
+        "通用"
+      ],
+      "icon": "Layout",
+      "scope": "global",
+      "builtin": true,
+      "path": "board/board-basic.json"
+    },
+    {
+      "id": "board-bug-track",
+      "type": "board",
+      "name": "Bug 跟踪",
+      "description": "缺陷管理专用看板，覆盖从提交到关闭的完整生命周期",
+      "tags": [
+        "通用"
+      ],
+      "icon": "Bug",
+      "scope": "global",
+      "builtin": true,
+      "path": "board/board-bug-track.json"
+    },
+    {
+      "id": "board-content",
+      "type": "board",
+      "name": "内容运营",
+      "description": "内容创作全流程管理，从选题到发布归档",
+      "tags": [
+        "通用"
+      ],
+      "icon": "FileText",
+      "scope": "global",
+      "builtin": true,
+      "path": "board/board-content.json"
+    },
+    {
+      "id": "board-scrum",
+      "type": "board",
+      "name": "Scrum Sprint",
+      "description": "敏捷开发 Sprint 看板，包含 Backlog 和 Review 环节",
+      "tags": [
+        "通用"
+      ],
+      "icon": "Rocket",
+      "scope": "global",
+      "builtin": true,
+      "path": "board/board-scrum.json"
+    },
+    {
+      "id": "card-bug-report",
+      "type": "card",
+      "name": "Bug 报告",
+      "description": "标准 Bug 报告卡片模板",
+      "tags": [
+        "开发"
+      ],
+      "icon": "Bug",
+      "scope": "global",
+      "builtin": true,
+      "path": "card/card-bug-report.json"
+    },
+    {
+      "id": "card-feature-request",
+      "type": "card",
+      "name": "需求申请",
+      "description": "新功能需求申请模板",
+      "tags": [
+        "开发"
+      ],
+      "icon": "Lightbulb",
+      "scope": "global",
+      "builtin": true,
+      "path": "card/card-feature-request.json"
+    },
+    {
+      "id": "lane-backlog",
+      "type": "lane",
+      "name": "Backlog",
+      "description": "用于沉淀待排期的需求和想法",
+      "tags": [
+        "通用"
+      ],
+      "icon": "FileText",
+      "scope": "global",
+      "builtin": true,
+      "path": "lane/lane-backlog.json"
+    },
+    {
+      "id": "lane-doing",
+      "type": "lane",
+      "name": "进行中列表",
+      "description": "用于跟踪正在处理的任务",
+      "tags": [
+        "通用"
+      ],
+      "icon": "Rocket",
+      "scope": "global",
+      "builtin": true,
+      "path": "lane/lane-doing.json"
+    },
+    {
+      "id": "lane-done",
+      "type": "lane",
+      "name": "已完成列表",
+      "description": "用于归档已完成的任务",
+      "tags": [
+        "通用"
+      ],
+      "icon": "Check",
+      "scope": "global",
+      "builtin": true,
+      "path": "lane/lane-done.json"
+    },
+    {
+      "id": "lane-review",
+      "type": "lane",
+      "name": "Review",
+      "description": "用于代码审查、内容审核或验收环节",
+      "tags": [
+        "通用"
+      ],
+      "icon": "Bug",
+      "scope": "global",
+      "builtin": true,
+      "path": "lane/lane-review.json"
+    },
+    {
+      "id": "lane-todo",
+      "type": "lane",
+      "name": "待办列表",
+      "description": "用于收集尚未开始的任务",
+      "tags": [
+        "通用"
+      ],
+      "icon": "Layout",
+      "scope": "global",
+      "builtin": true,
+      "path": "lane/lane-todo.json"
+    },
+    {
+      "id": "automation-auto-tag-create",
+      "type": "automation",
+      "name": "创建时自动匹配标签",
+      "description": "新创建卡片时，根据标题和描述内容自动匹配并添加现有标签",
+      "tags": [
+        "自动化"
+      ],
+      "icon": "Tag",
+      "scope": "global",
+      "builtin": true,
+      "path": "automation/automation-auto-tag-create.json"
+    },
+    {
+      "id": "automation-auto-tag-move",
+      "type": "automation",
+      "name": "移动后自动匹配标签",
+      "description": "卡片移动到任意列表后，根据内容自动补充现有标签",
+      "tags": [
+        "自动化"
+      ],
+      "icon": "Tag",
+      "scope": "global",
+      "builtin": true,
+      "path": "automation/automation-auto-tag-move.json"
+    },
+    {
+      "id": "automation-auto-tag-update",
+      "type": "automation",
+      "name": "更新时自动匹配标签",
+      "description": "卡片标题或描述更新后，根据内容自动补充现有标签",
+      "tags": [
+        "自动化"
+      ],
+      "icon": "Tag",
+      "scope": "global",
+      "builtin": true,
+      "path": "automation/automation-auto-tag-update.json"
+    },
+    {
+      "id": "prompt-code-review",
+      "type": "prompt",
+      "name": "代码审查",
+      "description": "生成代码审查相关的检查清单卡片",
+      "tags": [
+        "AI"
+      ],
+      "icon": "Code",
+      "scope": "global",
+      "builtin": true,
+      "path": "prompt/prompt-code-review.json"
+    },
+    {
+      "id": "prompt-daily-standup",
+      "type": "prompt",
+      "name": "每日站会",
+      "description": "生成每日站会三张卡片：昨日完成 / 今日计划 / 阻塞项",
+      "tags": [
+        "AI"
+      ],
+      "icon": "Users",
+      "scope": "global",
+      "builtin": true,
+      "path": "prompt/prompt-daily-standup.json"
+    },
+    {
+      "id": "prompt-sprint-planning",
+      "type": "prompt",
+      "name": "Sprint 规划",
+      "description": "生成本 Sprint 的规划卡片",
+      "tags": [
+        "AI"
+      ],
+      "icon": "Rocket",
+      "scope": "global",
+      "builtin": true,
+      "path": "prompt/prompt-sprint-planning.json"
+    },
+    {
+      "id": "user-1778648344451-2dv23c",
+      "type": "board",
+      "name": "小红书运营 简洁",
+      "description": "简单三个列表",
+      "tags": [
+        "看板"
+      ],
+      "scope": "global",
+      "builtin": false,
+      "path": "board/user-1778648344451-2dv23c.json"
+    }
+  ]
+}

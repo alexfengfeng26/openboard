@@ -1,0 +1,57 @@
+{
+  "meta": {
+    "type": "board",
+    "name": "Bug 跟踪",
+    "description": "缺陷管理专用看板，覆盖从提交到关闭的完整生命周期",
+    "tags": [
+      "通用"
+    ],
+    "icon": "Bug",
+    "scope": "global",
+    "builtin": true,
+    "id": "board-bug-track",
+    "createdAt": "2026-05-12T09:41:50.303Z",
+    "updatedAt": "2026-05-12T09:41:50.303Z"
+  },
+  "content": {
+    "lanes": [
+      {
+        "title": "新提交"
+      },
+      {
+        "title": "确认中"
+      },
+      {
+        "title": "修复中"
+      },
+      {
+        "title": "待验证"
+      },
+      {
+        "title": "已关闭"
+      }
+    ],
+    "tags": [
+      {
+        "id": "tag-critical",
+        "name": "严重",
+        "color": "#ef4444"
+      },
+      {
+        "id": "tag-high",
+        "name": "高",
+        "color": "#f59e0b"
+      },
+      {
+        "id": "tag-medium",
+        "name": "中",
+        "color": "#3b82f6"
+      },
+      {
+        "id": "tag-low",
+        "name": "低",
+        "color": "#10b981"
+      }
+    ]
+  }
+}

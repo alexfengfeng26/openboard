@@ -1,0 +1,19 @@
+{
+  "meta": {
+    "type": "lane",
+    "name": "进行中列表",
+    "description": "用于跟踪正在处理的任务",
+    "tags": [
+      "通用"
+    ],
+    "icon": "Rocket",
+    "scope": "global",
+    "builtin": true,
+    "id": "lane-doing",
+    "createdAt": "2026-05-12T09:41:50.372Z",
+    "updatedAt": "2026-05-12T09:41:50.372Z"
+  },
+  "content": {
+    "title": "进行中"
+  }
+}

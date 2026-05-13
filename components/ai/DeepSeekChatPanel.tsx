@@ -164,6 +164,67 @@ export function DeepSeekChatPanel({
     }
   }, [aiSettings?.commands, aiSettings?.toolTrigger, commandsLoaded])
 
+  // 加载新模板系统的 prompt 模板
+  useEffect(() => {
+    if (!commandsLoaded) return
+    async function loadPromptTemplates() {
+      try {
+        const response = await fetch('/api/templates?type=prompt', { cache: 'no-store' })
+        const result = await response.json()
+        if (!response.ok || !result.success) return
+
+        const templates = result.templates as { meta: { id: string; name: string; description?: string }; content: { text: string } }[]
+        if (!templates || templates.length === 0) return
+
+        const promptCommands: AiCommand[] = await Promise.all(templates.map(async (t) => {
+          let insertText = t.content.text
+          try {
+            const applyResponse = await fetch(`/api/templates/${encodeURIComponent(t.meta.id)}/apply`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                context: {
+                  board: boardId && boardTitle ? { id: boardId, title: boardTitle } : undefined,
+                  date: {
+                    now: new Date().toISOString(),
+                    today: new Date().toISOString().slice(0, 10),
+                    tomorrow: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+                  },
+                },
+              }),
+            })
+            const applied = await applyResponse.json().catch(() => ({}))
+            if (applyResponse.ok && applied?.success && applied.resolved?.text) {
+              insertText = applied.resolved.text
+            }
+          } catch {
+            // 模板变量解析失败时使用原始文本
+          }
+
+          return {
+            id: t.meta.id,
+            trigger: `/${t.meta.name}`,
+            kind: 'snippet',
+            label: `/${t.meta.name}`,
+            description: t.meta.description || '提示词模板',
+            insertText,
+            enabled: true,
+            placement: 'both',
+          }
+        }))
+
+        setAiCommands((prev) => {
+          const existingIds = new Set(prev.map((c) => c.id))
+          const newCommands = promptCommands.filter((c) => !existingIds.has(c.id))
+          return [...prev, ...newCommands]
+        })
+      } catch {
+        // 静默失败，继续使用现有命令
+      }
+    }
+    loadPromptTemplates()
+  }, [commandsLoaded, boardId, boardTitle])
+
   // 监听外部打开 AI 面板的事件（如 LaneItem 的 AI 按钮）
   useEffect(() => {
     function handleOpenAI(e: CustomEvent<{ laneId?: string; prefix?: string }>) {

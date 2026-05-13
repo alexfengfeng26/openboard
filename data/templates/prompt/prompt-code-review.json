@@ -1,0 +1,19 @@
+{
+  "meta": {
+    "type": "prompt",
+    "name": "代码审查",
+    "description": "生成代码审查相关的检查清单卡片",
+    "tags": [
+      "AI"
+    ],
+    "icon": "Code",
+    "scope": "global",
+    "builtin": true,
+    "id": "prompt-code-review",
+    "createdAt": "2026-05-12T09:41:50.443Z",
+    "updatedAt": "2026-05-12T09:41:50.443Z"
+  },
+  "content": {
+    "text": "帮我生成代码审查的检查清单卡片，包含：\n1. 代码规范性检查\n2. 逻辑正确性检查\n3. 性能影响评估\n4. 测试覆盖检查\n每张卡片给出标题和关键检查点。"
+  }
+}

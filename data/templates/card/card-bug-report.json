@@ -1,0 +1,23 @@
+{
+  "meta": {
+    "type": "card",
+    "name": "Bug 报告",
+    "description": "标准 Bug 报告卡片模板",
+    "tags": [
+      "开发"
+    ],
+    "icon": "Bug",
+    "scope": "global",
+    "builtin": true,
+    "id": "card-bug-report",
+    "createdAt": "2026-05-12T09:41:50.317Z",
+    "updatedAt": "2026-05-12T09:41:50.317Z"
+  },
+  "content": {
+    "title": "【Bug】",
+    "description": "**问题描述**：\n\n**复现步骤**：\n1. \n2. \n3. \n\n**期望结果**：\n\n**实际结果**：\n\n**环境信息**：",
+    "tags": [
+      "Bug"
+    ]
+  }
+}

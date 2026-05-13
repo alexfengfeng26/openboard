@@ -1,0 +1,19 @@
+{
+  "meta": {
+    "type": "lane",
+    "name": "已完成列表",
+    "description": "用于归档已完成的任务",
+    "tags": [
+      "通用"
+    ],
+    "icon": "Check",
+    "scope": "global",
+    "builtin": true,
+    "id": "lane-done",
+    "createdAt": "2026-05-12T09:41:50.376Z",
+    "updatedAt": "2026-05-12T09:41:50.376Z"
+  },
+  "content": {
+    "title": "已完成"
+  }
+}

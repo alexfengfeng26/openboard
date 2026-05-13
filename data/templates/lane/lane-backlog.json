@@ -1,0 +1,19 @@
+{
+  "meta": {
+    "type": "lane",
+    "name": "Backlog",
+    "description": "用于沉淀待排期的需求和想法",
+    "tags": [
+      "通用"
+    ],
+    "icon": "FileText",
+    "scope": "global",
+    "builtin": true,
+    "id": "lane-backlog",
+    "createdAt": "2026-05-12T09:41:50.391Z",
+    "updatedAt": "2026-05-12T09:41:50.391Z"
+  },
+  "content": {
+    "title": "Backlog"
+  }
+}

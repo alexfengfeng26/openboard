@@ -5,11 +5,14 @@ import { Dialog, DialogContent, DialogBody, DialogFooter, DialogHeader, DialogTi
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Trash2, Paperclip, X } from 'lucide-react'
+import { Trash2, Paperclip, X, LayoutTemplate } from 'lucide-react'
 import { TagSelector } from '@/components/card/TagSelector'
 import { toastSuccess, toastError } from '@/components/ui/toast'
 import type { Card, Tag, Attachment } from '@/lib/db'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { TemplateSelector } from '@/components/template/TemplateSelector'
+import type { Template } from '@/types/template.types'
+import { useBoardTags } from '@/components/board/BoardTagsContext'
 
 export type CardFormMode = 'create' | 'edit'
 
@@ -43,6 +46,8 @@ export function CardFormDialog({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDraggingOver, setIsDraggingOver] = useState(false)
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false)
+  const availableBoardTags = useBoardTags()
 
   useEffect(() => {
     if (mode === 'edit' && card) {
@@ -209,6 +214,22 @@ export function CardFormDialog({
     }
   }
 
+  function handleSelectTemplate(template: Template) {
+    const content = template.content as { title?: string; description?: string; tags?: string[] }
+    if (content.title) setTitle(content.title)
+    if (content.description) setDescription(content.description)
+    if (content.tags && content.tags.length > 0) {
+      const tagsByName = new Map(availableBoardTags.map((tag) => [tag.name, tag] as const))
+      const matchedTags = content.tags.map((name) => tagsByName.get(name)).filter(Boolean) as Tag[]
+      const missingTags = content.tags.filter((name) => !tagsByName.has(name))
+      setTags(matchedTags)
+      if (missingTags.length > 0) {
+        toastError(`模板中的标签未匹配：${missingTags.join('、')}`)
+      }
+    }
+    setShowTemplateSelector(false)
+  }
+
   const isEditMode = mode === 'edit'
   const dialogTitle = isEditMode ? '编辑卡片' : '创建卡片'
   const submitButtonText = isSubmitting ? (isEditMode ? '保存中...' : '创建中...') : (isEditMode ? '保存' : '创建')
@@ -230,6 +251,18 @@ export function CardFormDialog({
 
             <DialogBody>
               <div className="space-y-4">
+                {!isEditMode && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full gap-1 text-xs"
+                    onClick={() => setShowTemplateSelector(true)}
+                  >
+                    <LayoutTemplate className="h-3.5 w-3.5" />
+                    选择卡片模板
+                  </Button>
+                )}
                 <div className="space-y-1.5">
                   <label htmlFor={inputId} className="text-xs font-medium text-foreground">
                     标题 <span className="text-rose-500">*</span>
@@ -388,6 +421,13 @@ export function CardFormDialog({
           onConfirm={handleDelete}
         />
       )}
+
+      <TemplateSelector
+        open={showTemplateSelector}
+        type="card"
+        onSelect={handleSelectTemplate}
+        onCancel={() => setShowTemplateSelector(false)}
+      />
     </>
   )
 }

@@ -16,6 +16,14 @@ import { BoardCache } from './BoardCache'
 import { FileLock } from './FileLock'
 import { SettingsStorage } from './SettingsStorage'
 
+type BoardTemplateLaneInput = Pick<Lane, 'title'> & {
+  cards?: Array<{
+    title: string
+    description?: string
+    tags?: string[]
+  }>
+}
+
 /**
  * 数据目录路径
  */
@@ -184,7 +192,7 @@ export class StorageAdapter {
   /**
    * 创建新看板
    */
-  async createBoard(title: string, lanes?: Pick<Lane, 'title'>[], icon?: string): Promise<Board> {
+  async createBoard(title: string, lanes?: BoardTemplateLaneInput[], icon?: string, tags?: Tag[]): Promise<Board> {
     const now = new Date().toISOString()
     const boardId = this.createBoardId()
 
@@ -212,22 +220,38 @@ export class StorageAdapter {
           { title: '已完成' },
         ]
 
+    const boardTags = tags || []
+    const tagByName = new Map(boardTags.map((tag) => [tag.name, tag] as const))
+
     const newBoard: Board = {
       id: boardId,
       title,
       createdAt: now,
       updatedAt: now,
-      tags: [],
+      tags: boardTags,
       icon: selectedIcon,
-      lanes: defaultLanes.map((l, index) => ({
-        id: this.createLaneId(boardId, index),
-        boardId,
-        title: l.title,
-        position: index,
-        createdAt: now,
-        updatedAt: now,
-        cards: [],
-      })),
+      lanes: defaultLanes.map((l, index) => {
+        const laneId = this.createLaneId(boardId, index)
+        return {
+          id: laneId,
+          boardId,
+          title: l.title,
+          position: index,
+          createdAt: now,
+          updatedAt: now,
+          cards: (l.cards || []).map((card, cardIndex) => ({
+            id: this.createCardId(),
+            laneId,
+            title: card.title,
+            description: card.description,
+            position: cardIndex,
+            createdAt: now,
+            updatedAt: now,
+            tags: (card.tags || []).map((tagName) => tagByName.get(tagName)).filter(Boolean) as Tag[],
+            attachments: [],
+          })),
+        }
+      }),
     }
 
     await MarkdownBoard.write(newBoard)
@@ -240,7 +264,7 @@ export class StorageAdapter {
   /**
    * 更新看板
    */
-  async updateBoard(boardId: string, data: { title?: string; lanes?: Lane[]; archivedAt?: string | null; favoritedAt?: string | null; icon?: string | null }): Promise<Board | null> {
+  async updateBoard(boardId: string, data: { title?: string; lanes?: Lane[]; tags?: Tag[]; archivedAt?: string | null; favoritedAt?: string | null; icon?: string | null }): Promise<Board | null> {
     const board = await this.getBoard(boardId)
     if (!board) return null
 
@@ -953,8 +977,8 @@ export async function dbHelpersWrapper() {
     // 看板操作
     getBoards: (includeArchived?: boolean) => getStorage().then(s => s.getBoards(includeArchived)),
     getBoard: (boardId: string) => getStorage().then(s => s.getBoard(boardId)),
-    createBoard: (title: string, lanes?: Pick<Lane, 'title'>[], icon?: string) => getStorage().then(s => s.createBoard(title, lanes, icon)),
-    updateBoard: (boardId: string, data: { title?: string; lanes?: Lane[]; archivedAt?: string | null; icon?: string | null }) => getStorage().then(s => s.updateBoard(boardId, data)),
+    createBoard: (title: string, lanes?: BoardTemplateLaneInput[], icon?: string, tags?: Tag[]) => getStorage().then(s => s.createBoard(title, lanes, icon, tags)),
+    updateBoard: (boardId: string, data: { title?: string; lanes?: Lane[]; tags?: Tag[]; archivedAt?: string | null; icon?: string | null }) => getStorage().then(s => s.updateBoard(boardId, data)),
     deleteBoard: (boardId: string) => getStorage().then(s => s.deleteBoard(boardId)),
     getDefaultBoard: () => getStorage().then(s => s.getDefaultBoard()),
     getTags: () => getStorage().then(s => s.getTags()),
@@ -967,6 +991,7 @@ export async function dbHelpersWrapper() {
     addOperationLog: (boardId: string, log: OperationLogEntry) => getStorage().then(s => s.addOperationLog(boardId, log)),
     getOperationLogs: (boardId: string) => getStorage().then(s => s.getOperationLogs(boardId)),
     clearOperationLogs: (boardId: string) => getStorage().then(s => s.clearOperationLogs(boardId)),
+    createLane: (boardId: string, title: string) => getStorage().then(s => s.createLane(boardId, title)),
     updateLane: (boardId: string, laneId: string, data: { title?: string }) =>
       getStorage().then(s => s.updateLane(boardId, laneId, data)),
     deleteLane: (boardId: string, laneId: string) => getStorage().then(s => s.deleteLane(boardId, laneId)),

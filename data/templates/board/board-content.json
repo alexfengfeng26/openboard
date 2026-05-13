@@ -1,0 +1,35 @@
+{
+  "meta": {
+    "type": "board",
+    "name": "内容运营",
+    "description": "内容创作全流程管理，从选题到发布归档",
+    "tags": [
+      "通用"
+    ],
+    "icon": "FileText",
+    "scope": "global",
+    "builtin": true,
+    "id": "board-content",
+    "createdAt": "2026-05-12T09:41:50.296Z",
+    "updatedAt": "2026-05-12T09:41:50.296Z"
+  },
+  "content": {
+    "lanes": [
+      {
+        "title": "选题池"
+      },
+      {
+        "title": "撰写中"
+      },
+      {
+        "title": "审核中"
+      },
+      {
+        "title": "已发布"
+      },
+      {
+        "title": "归档"
+      }
+    ]
+  }
+}

@@ -59,11 +59,19 @@ export function resetDb() {
 /**
  * 数据库操作辅助函数接口
  */
+type BoardTemplateLaneInput = Pick<import('@/types').Lane, 'title'> & {
+  cards?: Array<{
+    title: string
+    description?: string
+    tags?: string[]
+  }>
+}
+
 export interface DbHelpers {
   getBoards: (includeArchived?: boolean) => Promise<Array<{ id: string; title: string; createdAt: string; updatedAt: string; archivedAt?: string; favoritedAt?: string }>>
   getBoard: (boardId: string) => Promise<import('@/types').Board | null>
-  createBoard: (title: string, lanes?: Pick<import('@/types').Lane, 'title'>[], icon?: string) => Promise<import('@/types').Board>
-  updateBoard: (boardId: string, data: { title?: string; lanes?: import('@/types').Lane[]; archivedAt?: string | null; icon?: string | null }) => Promise<import('@/types').Board | null>
+  createBoard: (title: string, lanes?: BoardTemplateLaneInput[], icon?: string, tags?: import('@/types').Tag[]) => Promise<import('@/types').Board>
+  updateBoard: (boardId: string, data: { title?: string; lanes?: import('@/types').Lane[]; tags?: import('@/types').Tag[]; archivedAt?: string | null; icon?: string | null }) => Promise<import('@/types').Board | null>
   deleteBoard: (boardId: string) => Promise<boolean>
   archiveBoard: (boardId: string) => Promise<import('@/types').Board | null>
   unarchiveBoard: (boardId: string) => Promise<import('@/types').Board | null>

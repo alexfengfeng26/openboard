@@ -1,0 +1,19 @@
+{
+  "meta": {
+    "type": "prompt",
+    "name": "每日站会",
+    "description": "生成每日站会三张卡片：昨日完成 / 今日计划 / 阻塞项",
+    "tags": [
+      "AI"
+    ],
+    "icon": "Users",
+    "scope": "global",
+    "builtin": true,
+    "id": "prompt-daily-standup",
+    "createdAt": "2026-05-12T09:41:50.432Z",
+    "updatedAt": "2026-05-12T09:41:50.432Z"
+  },
+  "content": {
+    "text": "帮我生成每日站会的 3 张卡片：\n1. 昨日完成的工作\n2. 今日计划\n3. 当前的阻塞或风险\n每张卡片包含标题和简短描述。"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "meta": {
+    "type": "prompt",
+    "name": "Sprint 规划",
+    "description": "生成本 Sprint 的规划卡片",
+    "tags": [
+      "AI"
+    ],
+    "icon": "Rocket",
+    "scope": "global",
+    "builtin": true,
+    "id": "prompt-sprint-planning",
+    "createdAt": "2026-05-12T09:41:50.438Z",
+    "updatedAt": "2026-05-12T09:41:50.438Z"
+  },
+  "content": {
+    "text": "帮我生成本 Sprint 的规划卡片，包含：\n1. Sprint 目标\n2. 关键任务（3-5 张）\n3. 验收标准\n每张卡片给出标题和描述。"
+  }
+}
