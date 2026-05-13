@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-13T05:06:16.670Z",
+  "updatedAt": "2026-05-13T05:31:10.196Z",
   "templates": [
     {
       "id": "board-basic",
@@ -222,30 +222,6 @@
       "scope": "global",
       "builtin": true,
       "path": "prompt/prompt-sprint-planning.json"
-    },
-    {
-      "id": "user-1778648344451-2dv23c",
-      "type": "board",
-      "name": "小红书运营 简洁",
-      "description": "简单三个列表",
-      "tags": [
-        "看板"
-      ],
-      "scope": "global",
-      "builtin": false,
-      "path": "board/user-1778648344451-2dv23c.json"
-    },
-    {
-      "id": "user-1778648776670-ern7kv",
-      "type": "board",
-      "name": "AI洞察",
-      "description": "来自看板「我的看板」",
-      "tags": [
-        "看板"
-      ],
-      "scope": "global",
-      "builtin": false,
-      "path": "board/user-1778648776670-ern7kv.json"
     }
   ]
 }

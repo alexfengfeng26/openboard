@@ -4,7 +4,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { toast } from 'sonner'
-import type { AutomationRule, RuleTemplate } from '@/types/automation.types'
+import type { AutomationRule } from '@/types/automation.types'
 
 export interface AutomationDryRunResult {
   executable: boolean
@@ -14,7 +14,6 @@ export interface AutomationDryRunResult {
 
 export function useAutomation(boardId?: string) {
   const [rules, setRules] = useState<AutomationRule[]>([])
-  const [templates, setTemplates] = useState<RuleTemplate[]>([])
   const [loading, setLoading] = useState(false)
   const [parsing, setParsing] = useState(false)
 
@@ -38,19 +37,6 @@ export function useAutomation(boardId?: string) {
       setLoading(false)
     }
   }, [boardId])
-
-  // 获取模板列表
-  const fetchTemplates = useCallback(async () => {
-    try {
-      const response = await fetch('/api/automation/templates')
-      const data = await response.json()
-      if (data.success) {
-        setTemplates(data.templates || [])
-      }
-    } catch {
-      // 静默失败
-    }
-  }, [])
 
   // 创建规则
   const createRule = useCallback(
@@ -200,29 +186,12 @@ export function useAutomation(boardId?: string) {
     [boardId]
   )
 
-  // 从模板创建规则
-  const createFromTemplate = useCallback(
-    async (template: RuleTemplate) => {
-      return createRule({
-        name: template.name,
-        description: template.description,
-        enabled: true,
-        trigger: template.trigger,
-        actions: template.actions,
-        boardId,
-      })
-    },
-    [createRule, boardId]
-  )
-
   useEffect(() => {
     fetchRules()
-    fetchTemplates()
-  }, [fetchRules, fetchTemplates])
+  }, [fetchRules])
 
   return {
     rules,
-    templates,
     loading,
     parsing,
     fetchRules,
@@ -232,6 +201,5 @@ export function useAutomation(boardId?: string) {
     toggleRule,
     parseRule,
     dryRunRule,
-    createFromTemplate,
   }
 }

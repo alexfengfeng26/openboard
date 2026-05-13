@@ -16,6 +16,7 @@ import {
   Archive,
   Star,
   ArchiveRestore,
+  LayoutTemplate,
 } from 'lucide-react'
 
 export interface BoardItem {
@@ -38,6 +39,7 @@ export interface AppSidebarProps {
   onCreateBoard?: () => void
   onOpenSettings?: () => void
   onToggleAI?: () => void
+  onOpenTemplateLibrary?: () => void
   aiOpen?: boolean
   expanded?: boolean
   onExpandedChange?: (expanded: boolean) => void
@@ -58,6 +60,7 @@ export function AppSidebar({
   onCreateBoard,
   onOpenSettings,
   onToggleAI,
+  onOpenTemplateLibrary,
   aiOpen,
   expanded: controlledExpanded,
   onExpandedChange,
@@ -170,6 +173,15 @@ export function AppSidebar({
             aria-label="创建看板"
           >
             <Plus className="h-4 w-4" />
+          </button>
+          {/* 模板库 */}
+          <button
+            onClick={onOpenTemplateLibrary}
+            className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-sidebar-accent text-sidebar-foreground/60"
+            title="模板库"
+            aria-label="模板库"
+          >
+            <LayoutTemplate className="h-4 w-4" />
           </button>
           {/* 设置 */}
           <button
@@ -315,6 +327,12 @@ export function AppSidebar({
             label={aiOpen ? '关闭 AI 助手' : '打开 AI 助手'}
             active={aiOpen}
             onClick={onToggleAI}
+          />
+          {/* 模板库 */}
+          <SidebarActionButton
+            icon={<LayoutTemplate className="h-4 w-4" />}
+            label="模板库"
+            onClick={onOpenTemplateLibrary}
           />
           {/* 创建看板 */}
           <SidebarActionButton

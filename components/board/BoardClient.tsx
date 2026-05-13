@@ -38,10 +38,7 @@ import {
   Trash2,
   Tag as TagIcon,
   Keyboard,
-  PanelRightOpen,
-  Workflow,
   MoreHorizontal,
-  LayoutTemplate,
 } from 'lucide-react'
 import { CreateLaneDialog } from '@/components/lane/CreateLaneDialog'
 import { Button } from '@/components/ui/button'
@@ -1066,6 +1063,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                 openAiAssistant()
               }
             }}
+            onOpenTemplateLibrary={() => setShowTemplateLibrary(true)}
             aiOpen={showChat}
             expanded={sidebarExpanded}
             onExpandedChange={setSidebarExpanded}
@@ -1196,15 +1194,6 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                   <span className="hidden sm:inline">{selectionMode ? '退出选择' : '选择'}</span>
                 </Button>
                 <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 gap-1.5"
-                  onClick={openAiAssistant}
-                >
-                  <PanelRightOpen className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">AI</span>
-                </Button>
-                <Button
                   size="sm"
                   className="h-8 gap-1.5"
                   onClick={() => dispatch({ type: 'SET_SHOW_CREATE_LANE', payload: true })}
@@ -1224,28 +1213,6 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                   </Button>
                   {showTopActionsMenu && (
                     <div className="absolute right-0 top-9 z-[70] w-36 rounded-xl border border-border/90 bg-white/95 p-1.5 shadow-[0_12px_28px_rgba(26,20,14,0.12)] backdrop-blur-sm">
-                      <button
-                        type="button"
-                        className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs text-foreground transition-colors hover:bg-secondary"
-                        onClick={() => {
-                          setShowTopActionsMenu(false)
-                          setShowAutomation(true)
-                        }}
-                      >
-                        <Workflow className="h-3.5 w-3.5 text-muted-foreground" />
-                        自动化
-                      </button>
-                      <button
-                        type="button"
-                        className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs text-foreground transition-colors hover:bg-secondary"
-                        onClick={() => {
-                          setShowTopActionsMenu(false)
-                          setShowTemplateLibrary(true)
-                        }}
-                      >
-                        <LayoutTemplate className="h-3.5 w-3.5 text-muted-foreground" />
-                        模板管理
-                      </button>
                       <button
                         type="button"
                         className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs text-foreground transition-colors hover:bg-secondary"

@@ -23,7 +23,9 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAutomation, type AutomationDryRunResult } from '@/lib/hooks/useAutomation'
-import type { AutomationRule, RuleTemplate } from '@/types/automation.types'
+import { useTemplates } from '@/lib/hooks/useTemplates'
+import type { AutomationRule } from '@/types/automation.types'
+import type { AutomationTemplateContent } from '@/types/template.types'
 
 interface AutomationPanelProps {
   boardId: string
@@ -34,7 +36,6 @@ interface AutomationPanelProps {
 export function AutomationPanel({ boardId, open, onOpenChange }: AutomationPanelProps) {
   const {
     rules,
-    templates,
     loading,
     parsing,
     createRule,
@@ -42,8 +43,9 @@ export function AutomationPanel({ boardId, open, onOpenChange }: AutomationPanel
     toggleRule,
     parseRule,
     dryRunRule,
-    createFromTemplate,
   } = useAutomation(boardId)
+
+  const { templates } = useTemplates({ type: 'automation' })
 
   const [showCreate, setShowCreate] = useState(false)
   const [showTemplates, setShowTemplates] = useState(false)
@@ -80,8 +82,16 @@ export function AutomationPanel({ boardId, open, onOpenChange }: AutomationPanel
     }
   }
 
-  const handleCreateFromTemplate = async (template: RuleTemplate) => {
-    const success = await createFromTemplate(template)
+  const handleCreateFromTemplate = async (template: { meta: { name: string; description?: string }; content: unknown }) => {
+    const content = template.content as AutomationTemplateContent
+    const success = await createRule({
+      name: template.meta.name,
+      description: template.meta.description || '',
+      enabled: true,
+      trigger: content.trigger,
+      actions: content.actions,
+      boardId,
+    })
     if (success) {
       setShowTemplates(false)
     }
@@ -224,12 +234,12 @@ export function AutomationPanel({ boardId, open, onOpenChange }: AutomationPanel
               <div className="grid gap-2">
                 {templates.map((template) => (
                   <div
-                    key={template.name}
+                    key={template.meta.id}
                     className="flex items-center justify-between rounded-md border bg-background p-3"
                   >
                     <div>
-                      <p className="text-sm font-medium">{template.name}</p>
-                      <p className="text-xs text-muted-foreground">{template.description}</p>
+                      <p className="text-sm font-medium">{template.meta.name}</p>
+                      <p className="text-xs text-muted-foreground">{template.meta.description}</p>
                     </div>
                     <Button
                       size="sm"
