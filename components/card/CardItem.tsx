@@ -73,7 +73,7 @@ export const CardItem = memo(function CardItem({
   return (
     <div
       className={cn(
-        'pixel-office-card group relative rounded-xl border border-border/90 bg-card px-2.5 py-2 shadow-[0_4px_14px_rgba(22,18,13,0.05)] transition-all duration-200 hover:-translate-y-[1px] hover:scale-[1.01] hover:border-primary/25 hover:shadow-[0_10px_24px_rgba(22,18,13,0.09)]',
+        'pixel-office-card group relative rounded-lg border border-border/80 bg-card px-1.5 py-2 shadow-[0_2px_8px_rgba(22,18,13,0.04)] transition-all duration-150 hover:-translate-y-[1px] hover:border-primary/20 hover:shadow-[0_6px_16px_rgba(22,18,13,0.07)]',
         isDragging && 'opacity-50',
         overdue && 'border-l-2 border-l-red-500',
         selected && 'border-primary ring-2 ring-primary/10',

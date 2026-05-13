@@ -214,25 +214,25 @@ export function AppSidebar({
       </button>
 
       {/* Logo & Title */}
-      <div className="flex items-center gap-2.5 px-3 py-3">
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/90">
-          <Sparkles className="h-3.5 w-3.5 text-white" />
+      <div className="flex items-center gap-2.5 px-3 py-2.5">
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary">
+          <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
         </div>
         <div className="min-w-0 flex-1">
-          <h2 className="text-[13px] font-semibold text-sidebar-foreground">
+          <h2 className="text-[13px] font-semibold tracking-tight text-sidebar-foreground">
             我的看板
           </h2>
         </div>
       </div>
 
       {/* Divider */}
-      <div className="mx-2.5 h-px bg-sidebar-border" />
+      <div className="mx-3 h-px bg-sidebar-border/80" />
 
       {/* 看板列表 */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden py-2">
         <button
           onClick={toggleBoards}
-          className="flex w-full items-center justify-between px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.12em] transition-colors text-sidebar-foreground/60 hover:text-primary"
+          className="flex w-full items-center justify-between px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] transition-colors text-sidebar-foreground/55 hover:text-primary"
         >
           <span>看板</span>
           <span className="flex items-center gap-1">
@@ -298,7 +298,7 @@ export function AppSidebar({
         {/* 最近访问 — 过滤掉已归档的 */}
         {recentBoards && recentBoards.filter((b) => !b.archivedAt).length > 0 && (
           <>
-            <div className="mt-4 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-sidebar-foreground/80">
+            <div className="mt-3 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-sidebar-foreground/60">
               最近访问
             </div>
             <nav className="space-y-0.5 px-1.5">

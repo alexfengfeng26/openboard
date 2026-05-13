@@ -145,7 +145,7 @@ const LaneContent = memo(function LaneContent({
   }
 
   return (
-    <div className={cn('kanban-lane pixel-office-lane group flex h-full w-64 shrink-0 flex-col rounded-2xl border border-border/90 bg-muted px-3 py-3 shadow-[0_6px_18px_rgba(22,18,13,0.05)]', isHovered && 'border-primary/30 bg-muted/85')}>
+    <div className={cn('kanban-lane pixel-office-lane group flex h-full w-64 shrink-0 flex-col rounded-xl border border-border/80 bg-muted px-2 py-2.5 shadow-[0_4px_16px_rgba(22,18,13,0.04)]', isHovered && 'border-primary/25 bg-muted/80')}>
       <div className="pixel-lane-animation" aria-hidden="true">
         <span className="pixel-lane-board-sign">{lane.title.slice(0, 4)}</span>
         <span className="pixel-lane-screen" />
@@ -163,7 +163,7 @@ const LaneContent = memo(function LaneContent({
         <span className="pixel-lane-spark pixel-lane-spark-b" />
       </div>
       {/* 列表头部 */}
-      <div className="mb-2.5 flex items-center justify-between">
+      <div className="mb-2 flex items-center justify-between px-0.5">
         <div className="flex items-center gap-2">
           <GripVertical className="h-3.5 w-3.5 text-muted-foreground/70 cursor-grab" />
           <h2
@@ -172,7 +172,7 @@ const LaneContent = memo(function LaneContent({
           >
             {lane.title}
           </h2>
-          <span className="rounded-md bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground">{lane.cards.length}</span>
+          <span className="rounded-md bg-background/80 px-1.5 py-0 text-[10px] text-muted-foreground font-medium">{lane.cards.length}</span>
         </div>
         <div className="relative flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
           <Button
@@ -217,8 +217,8 @@ const LaneContent = memo(function LaneContent({
       <div
         ref={setNodeRef}
         className={cn(
-          'kanban-card-list relative z-[2] flex-1 overflow-y-auto rounded-lg bg-background/85 min-h-[100px] space-y-2 py-2',
-          isHovered && 'bg-background/70'
+          'kanban-card-list relative z-[2] flex-1 overflow-y-auto rounded-lg bg-background/70 min-h-[80px] space-y-1 py-1.5',
+          isHovered && 'bg-background/60'
         )}
       >
         <SortableContext items={cardIds} strategy={verticalListSortingStrategy}>
@@ -235,7 +235,7 @@ const LaneContent = memo(function LaneContent({
           ))}
 
           {lane.cards.length === 0 && (
-            <div className="flex h-20 items-center justify-center rounded-lg border border-dashed border-border bg-muted/40 text-xs text-muted-foreground">
+            <div className="flex h-16 items-center justify-center rounded-lg border border-dashed border-border/60 bg-muted/30 text-xs text-muted-foreground/70">
               暂无卡片
             </div>
           )}

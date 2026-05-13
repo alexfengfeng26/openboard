@@ -227,19 +227,19 @@ export function AiInsightsPanel({ board, onCardClick, onExecuteTool }: AiInsight
   const hasInsights = visibleInsights.length > 0
 
   return (
-    <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
+    <div className="rounded-lg border border-border/70 bg-card/80 shadow-sm overflow-hidden">
       {/* 头部 */}
       <div
         className={cn(
-          'flex items-center gap-3 px-4 py-2.5 cursor-pointer select-none',
-          'hover:bg-accent/50 transition-colors'
+          'flex items-center gap-3 px-3.5 py-2 cursor-pointer select-none',
+          'hover:bg-accent/40 transition-colors'
         )}
         onClick={() => setExpanded(!expanded)}
       >
         {/* 左侧固定：标题 + 数量 */}
         <div className="flex items-center gap-2 shrink-0">
-          <Lightbulb className="h-4 w-4 text-amber-500" />
-          <span className="text-sm font-medium">AI 洞察</span>
+          <Lightbulb className="h-3.5 w-3.5 text-amber-500" />
+          <span className="text-sm font-semibold">AI 洞察</span>
           {hasInsights && (
             <Badge variant="secondary" className="text-xs">
               {visibleInsights.length}
@@ -285,7 +285,7 @@ export function AiInsightsPanel({ board, onCardClick, onExecuteTool }: AiInsight
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7"
+            className="h-6 w-6"
             onClick={(e) => {
               e.stopPropagation()
               if (enabled) fetchInsights()
@@ -293,7 +293,7 @@ export function AiInsightsPanel({ board, onCardClick, onExecuteTool }: AiInsight
             disabled={loading || !enabled}
             title="刷新洞察"
           >
-            <RefreshCw className={cn('h-3.5 w-3.5', loading && 'animate-spin')} />
+            <RefreshCw className={cn('h-3 w-3', loading && 'animate-spin')} />
           </Button>
           {expanded ? (
             <ChevronUp className="h-4 w-4 text-muted-foreground" />

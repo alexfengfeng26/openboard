@@ -1073,8 +1073,8 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
         {/* 中间看板主内容区 */}
         <main className="flex min-h-0 min-w-0 flex-1 flex-col">
           {/* 顶部导航栏 */}
-          <header className="relative z-50 border-b border-border/80 bg-background/95 px-4 py-2 backdrop-blur-sm">
-            <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
+          <header className="relative z-50 border-b border-border/70 bg-background/95 px-4 py-1.5 backdrop-blur-sm">
+            <div className="flex flex-col justify-between gap-2 md:flex-row md:items-center">
               {/* 左侧：看板标题或 BoardSelector */}
               <div className="flex items-center gap-3">
                 {!sidebarExpanded ? (
@@ -1232,7 +1232,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
           </header>
 
           {/* AI 洞察面板 */}
-          <div className="ai-insights-wrapper px-4 py-3">
+          <div className="ai-insights-wrapper px-4 py-2">
             <AiInsightsPanel
               board={board}
               onCardClick={(cardId) => {
@@ -1252,7 +1252,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
           </div>
 
           {/* 看板主体区域 */}
-          <div className="pixel-office-board relative min-h-0 min-w-0 flex-1 overflow-x-auto overflow-y-hidden p-4">
+          <div className="pixel-office-board relative min-h-0 min-w-0 flex-1 overflow-x-auto overflow-y-hidden p-3 pt-2">
             <PixelOfficeScene />
             <DndContext
               sensors={sensors}
@@ -1265,7 +1265,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                 items={board.lanes.map((l) => l.id)}
                 strategy={isMobile ? verticalListSortingStrategy : horizontalListSortingStrategy}
               >
-                <div className={cn('relative z-10 flex h-full items-stretch gap-3', isMobile ? 'flex-col' : 'flex-row')}>
+                <div className={cn('kanban-lanes-container relative z-10 flex h-full items-stretch gap-3', isMobile ? 'flex-col' : 'flex-row')}>
                   {filteredBoard.lanes.map((lane) => (
                     <LaneItem
                       key={lane.id}
@@ -1292,16 +1292,16 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
                   <button
                     onClick={() => dispatch({ type: 'SET_SHOW_CREATE_LANE', payload: true })}
                     className={cn(
-                      'flex shrink-0 flex-col items-center justify-center rounded-md',
-                      'border border-dashed border-border',
-                      'bg-muted/25 text-muted-foreground',
+                      'flex shrink-0 flex-col items-center justify-center rounded-xl',
+                      'border border-dashed border-border/70',
+                      'bg-muted/20 text-muted-foreground',
                       'transition-colors duration-150',
-                      'hover:border-ring/30 hover:bg-muted hover:text-foreground',
+                      'hover:border-primary/30 hover:bg-muted/40 hover:text-foreground',
                       'group',
                       isMobile ? 'w-full h-20' : 'h-full w-60'
                     )}
                   >
-                    <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-md bg-background transition-colors group-hover:bg-white">
+                    <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-background/80 transition-colors group-hover:bg-card">
                       <Plus className="h-4 w-4" />
                     </div>
                     <span className="text-sm font-medium">添加列表</span>
