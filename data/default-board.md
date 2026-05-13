@@ -2,7 +2,7 @@
 id: default-board
 title: 我的看板
 createdAt: '2026-02-11T07:06:35.423Z'
-updatedAt: '2026-05-11T06:25:03.073Z'
+updatedAt: '2026-05-13T06:40:03.035Z'
 tags:
   - id: tag-0
     name: 紧急
@@ -56,7 +56,7 @@ lanes:
     title: 待办
     position: 0
     createdAt: '2026-02-11T07:06:35.423Z'
-    updatedAt: '2026-05-11T06:25:03.073Z'
+    updatedAt: '2026-05-13T06:40:03.035Z'
     cards:
       - id: card-3
         laneId: lane-todo
@@ -77,7 +77,7 @@ lanes:
         title: 搭建管理后台，支持商品上架与订单处理
         position: 10
         createdAt: '2026-02-11T10:49:22.038Z'
-        updatedAt: '2026-05-11T06:25:03.073Z'
+        updatedAt: '2026-05-13T06:40:03.035Z'
         description: |-
           1. 创建管理员后台登录与主界面。
           2. 开发商品管理模块，支持增删改查商品信息。
@@ -89,6 +89,15 @@ lanes:
           - id: tag-urgent
             name: 紧急
             color: '#ef4444'
+          - id: tag-docs
+            name: 文档
+            color: '#8b5cf6'
+          - id: tag-shoot
+            name: 拍摄
+            color: '#84cc16'
+          - id: tag-topic
+            name: 选题
+            color: '#f97316'
       - id: card-1770891446534-sh5p25
         laneId: lane-todo
         title: 看板系统功能介绍与协助引导
@@ -130,7 +139,7 @@ lanes:
     title: 进行中
     position: 1
     createdAt: '2026-02-11T07:06:35.423Z'
-    updatedAt: '2026-05-10T04:19:36.200Z'
+    updatedAt: '2026-05-13T06:39:54.267Z'
     cards:
       - id: card-1770799321983
         laneId: lane-inprogress
@@ -158,26 +167,6 @@ lanes:
           7. 应用案例：实际使用场景和效果展示
 
           交付物：一份结构清晰、内容完整、包含实际案例的介绍文档
-      - id: card-1770802146058
-        laneId: lane-inprogress
-        title: '66'
-        position: 3
-        createdAt: '2026-02-11T09:29:06.058Z'
-        updatedAt: '2026-02-11T09:29:06.058Z'
-        description: '6666'
-        tags:
-          - id: tag-0
-            name: 紧急
-            color: '#ef4444'
-          - id: tag-1
-            name: 功能
-            color: '#3b82f6'
-          - id: tag-3
-            name: 优化
-            color: '#10b981'
-          - id: tag-4
-            name: 文档
-            color: '#8b5cf6'
   - id: lane-done
     title: 已完成
     position: 2

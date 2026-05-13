@@ -298,7 +298,7 @@ export function AppSidebar({
         {/* 最近访问 — 过滤掉已归档的 */}
         {recentBoards && recentBoards.filter((b) => !b.archivedAt).length > 0 && (
           <>
-            <div className="mt-4 px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.12em] text-sidebar-foreground/60">
+            <div className="mt-4 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-sidebar-foreground/80">
               最近访问
             </div>
             <nav className="space-y-0.5 px-1.5">
@@ -375,8 +375,8 @@ function BoardMenuItem({
       className={cn(
         'group relative flex w-full items-center rounded-md text-sm transition-all duration-150 hover:scale-[1.01]',
         active
-          ? 'font-medium'
-          : 'font-normal hover:bg-sidebar-accent'
+          ? 'font-semibold'
+          : 'font-medium hover:bg-sidebar-accent'
       )}
       style={
         active
@@ -399,10 +399,10 @@ function BoardMenuItem({
           ) : board.icon ? (
             <img src={board.icon} alt="" className="h-4 w-4 object-contain" />
           ) : (
-            <LayoutDashboard className={cn("h-4 w-4", active ? "text-primary" : "text-sidebar-foreground/60")} />
+            <LayoutDashboard className={cn("h-4 w-4", active ? "text-primary" : "text-sidebar-foreground/80")} />
           )}
         </span>
-        <span className={cn("min-w-0 flex-1 truncate text-left", isArchived && "line-through opacity-50")}>
+        <span className={cn("min-w-0 flex-1 truncate text-left text-[13px]", isArchived && "line-through opacity-50")}>
           {board.title}
         </span>
         {board.count !== undefined && (
@@ -410,7 +410,7 @@ function BoardMenuItem({
             className="shrink-0 rounded-full px-1.5 py-0 text-[10px]"
             style={{
               backgroundColor: active ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--sidebar-accent))',
-              color: active ? 'hsl(var(--primary))' : 'hsl(var(--sidebar-foreground) / 0.6)',
+              color: active ? 'hsl(var(--primary))' : 'hsl(var(--sidebar-foreground) / 0.75)',
             }}
           >
             {board.count}
@@ -491,7 +491,7 @@ function SidebarActionButton({
               backgroundColor: 'hsl(var(--primary) / 0.1)',
               color: 'hsl(var(--primary))',
             }
-          : { color: 'hsl(var(--sidebar-foreground))' }
+          : { color: 'hsl(var(--sidebar-foreground) / 0.92)' }
       }
     >
       <span className={cn("flex h-5 w-5 shrink-0 items-center justify-center", active ? "text-primary" : "text-sidebar-foreground/60")}>

@@ -384,7 +384,6 @@ body {
     linear-gradient(180deg, hsl(40 44% 97%) 0%, hsl(37 34% 95%) 52%, hsl(33 20% 92%) 100%),
     hsl(var(--sidebar));
   box-shadow: inset -1px 0 0 hsl(31 20% 76% / 0.2);
-  opacity: 0.58;
 }
 
 :root:not(.notion-theme) .pixel-sidebar [class*="rounded-md"],
@@ -678,6 +677,144 @@ body {
   border-radius: 8px;
   background: hsl(18 8% 63%);
   color: #fff;
+}
+
+/* ============================================
+   Notion Theme — AI 助手面板样式
+   ============================================ */
+
+/* 外层容器 — 去掉毛玻璃和大阴影 */
+.notion-theme .ai-chat-panel {
+  background-color: hsl(var(--background));
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px hsl(var(--border) / 0.6);
+}
+
+/* 内层面板 — 纯色背景 */
+.notion-theme .pixel-ai-panel {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+/* Header — 纯色、去掉毛玻璃 */
+.notion-theme .pixel-ai-header {
+  border-bottom-color: hsl(var(--border));
+  background: hsl(var(--card));
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* 消息列表 */
+.notion-theme .claude-ai-message-list {
+  background: transparent;
+  padding: 12px;
+}
+
+/* Guide / Status 卡片 — 纯色、细边框、无阴影 */
+.notion-theme .claude-ai-guide-card,
+.notion-theme .claude-ai-status-card {
+  margin: 0 0 12px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  background: hsl(var(--card));
+  box-shadow: none;
+}
+
+.notion-theme .claude-ai-guide-card {
+  padding: 14px 12px 10px;
+}
+
+/* 消息气泡 — 纯色、细边框、无阴影 */
+.notion-theme .claude-ai-bubble {
+  border-radius: 8px !important;
+  border-color: hsl(var(--border)) !important;
+  background: hsl(var(--muted)) !important;
+  color: hsl(var(--foreground));
+  box-shadow: none !important;
+}
+
+.notion-theme .claude-ai-message-row.justify-end .claude-ai-bubble {
+  background: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground));
+}
+
+/* 输入区域 — 纯色、细边框 */
+.notion-theme .claude-ai-input-area {
+  border-top: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+}
+
+.notion-theme .claude-ai-input-area > div:last-child {
+  padding: 12px;
+}
+
+.notion-theme .claude-ai-input-area textarea {
+  min-height: 58px;
+  border-radius: 8px;
+  border-color: hsl(var(--border));
+  background: hsl(var(--muted));
+  box-shadow: none;
+  font-size: 13px;
+}
+
+.notion-theme .claude-ai-input-area button[aria-label="发送消息"] {
+  height: 34px;
+  width: 34px;
+  border-radius: 8px;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+/* 按钮统一风格 */
+.notion-theme .claude-ai-card-actions button,
+.notion-theme .claude-ai-bubble button,
+.notion-theme .claude-ai-input-area button {
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+  box-shadow: none;
+}
+
+/* 消息行间距 */
+.notion-theme .claude-ai-message-row {
+  margin-bottom: 10px;
+}
+
+/* 头像 */
+.notion-theme .claude-ai-avatar {
+  border-radius: 6px;
+  background: hsl(var(--primary)) !important;
+  box-shadow: none;
+}
+
+/* 卡片标题 */
+.notion-theme .claude-ai-card-title {
+  border-bottom: 1px solid hsl(var(--border));
+  padding-bottom: 8px;
+  color: hsl(var(--foreground));
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* Guide 内容 */
+.notion-theme .claude-ai-guide-content {
+  padding-top: 10px;
+  color: hsl(var(--foreground));
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+/* 卡片操作区 */
+.notion-theme .claude-ai-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  border-top: 1px solid hsl(var(--border));
+  padding-top: 8px;
 }
 
 @keyframes claude-helper-idle {
@@ -1275,6 +1412,42 @@ body {
   /* 隐藏网格线 */
   .notion-theme .lane-grid-bg {
     background-image: none !important;
+  }
+
+  /* 卡片列表区域 — Notion 风格下去掉白色背景层，让卡片直接铺在 lane 背景上 */
+  .notion-theme .kanban-card-list {
+    background-color: transparent !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin-left: -0.5rem !important;
+    margin-right: -0.5rem !important;
+  }
+
+  /* Notion 风格下卡片间距缩小 */
+  .notion-theme .kanban-card-list > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.25rem !important;
+  }
+
+  .notion-theme .kanban-card-list .pixel-office-card {
+    padding-top: 0.375rem !important;
+    padding-bottom: 0.375rem !important;
+  }
+
+  /* Notion 风格下 lane 容器背景纯白、细边框区分边界 */
+  .notion-theme .kanban-lane {
+    background-color: #ffffff !important;
+    border-color: hsl(var(--border)) !important;
+    box-shadow: none !important;
+  }
+
+  /* AI 洞察面板与主体区域间距缩小 */
+  .notion-theme .ai-insights-wrapper {
+    padding-top: 0.8rem !important;
+    padding-bottom: 0.25rem !important;
+  }
+
+  .notion-theme .pixel-office-board {
+    padding-top: 0.5rem !important;
   }
 
   /* 全局阴影取消 */

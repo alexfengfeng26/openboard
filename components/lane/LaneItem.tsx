@@ -145,7 +145,7 @@ const LaneContent = memo(function LaneContent({
   }
 
   return (
-    <div className={cn('pixel-office-lane group flex h-full w-60 shrink-0 flex-col rounded-2xl border border-border/90 bg-muted px-3 py-3 shadow-[0_6px_18px_rgba(22,18,13,0.05)]', isHovered && 'border-primary/30 bg-muted/85')}>
+    <div className={cn('kanban-lane pixel-office-lane group flex h-full w-64 shrink-0 flex-col rounded-2xl border border-border/90 bg-muted px-3 py-3 shadow-[0_6px_18px_rgba(22,18,13,0.05)]', isHovered && 'border-primary/30 bg-muted/85')}>
       <div className="pixel-lane-animation" aria-hidden="true">
         <span className="pixel-lane-board-sign">{lane.title.slice(0, 4)}</span>
         <span className="pixel-lane-screen" />
@@ -214,28 +214,32 @@ const LaneContent = memo(function LaneContent({
       </div>
 
       {/* 卡片列表（拖放区域） */}
-      <div className="lane-grid-bg flex-1 overflow-y-auto">
-        <div ref={setNodeRef} className={`min-h-[100px] space-y-2 ${isHovered ? 'rounded-xl bg-background/70 p-2 -m-2' : ''}`}>
-          <SortableContext items={cardIds} strategy={verticalListSortingStrategy}>
-            {lane.cards.map((card) => (
-              <DraggableCard
-                key={card.id}
-                card={card}
-                onEdit={onCardEdit}
-                selected={selectedCardIds?.has(card.id)}
-                selectionMode={selectionMode}
-                onSelectToggle={onCardSelectToggle}
-                onSelectRange={onCardSelectRange}
-              />
-            ))}
+      <div
+        ref={setNodeRef}
+        className={cn(
+          'kanban-card-list relative z-[2] flex-1 overflow-y-auto rounded-lg bg-background/85 min-h-[100px] space-y-2 py-2',
+          isHovered && 'bg-background/70'
+        )}
+      >
+        <SortableContext items={cardIds} strategy={verticalListSortingStrategy}>
+          {lane.cards.map((card) => (
+            <DraggableCard
+              key={card.id}
+              card={card}
+              onEdit={onCardEdit}
+              selected={selectedCardIds?.has(card.id)}
+              selectionMode={selectionMode}
+              onSelectToggle={onCardSelectToggle}
+              onSelectRange={onCardSelectRange}
+            />
+          ))}
 
-            {lane.cards.length === 0 && (
-              <div className="flex h-20 items-center justify-center rounded-lg border border-dashed border-border bg-muted/40 text-xs text-muted-foreground">
-                暂无卡片
-              </div>
-            )}
-          </SortableContext>
-        </div>
+          {lane.cards.length === 0 && (
+            <div className="flex h-20 items-center justify-center rounded-lg border border-dashed border-border bg-muted/40 text-xs text-muted-foreground">
+              暂无卡片
+            </div>
+          )}
+        </SortableContext>
       </div>
 
       {/* AI 内联生成 */}

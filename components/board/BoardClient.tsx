@@ -1232,7 +1232,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
           </header>
 
           {/* AI 洞察面板 */}
-          <div className="px-4 py-3">
+          <div className="ai-insights-wrapper px-4 py-3">
             <AiInsightsPanel
               board={board}
               onCardClick={(cardId) => {
@@ -1374,7 +1374,7 @@ export function BoardClient({ initialBoard, initialBoards }: BoardClientProps) {
         ) : showChat && !chatMinimized ? (
           <div
             ref={chatPanelRef}
-            className="fixed z-50 flex flex-col overflow-visible rounded-[20px] border border-border/80 bg-white/72 shadow-[0_22px_60px_rgba(33,27,21,0.2)] backdrop-blur-xl"
+            className="ai-chat-panel fixed z-50 flex flex-col overflow-visible rounded-[20px] border border-border/80 bg-white/72 shadow-[0_22px_60px_rgba(33,27,21,0.2)] backdrop-blur-xl"
             style={{
               left: `${chatPosition.x}px`,
               top: `${chatPosition.y}px`,
