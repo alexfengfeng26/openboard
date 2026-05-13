@@ -10,7 +10,7 @@ import { TemplateCard } from '@/components/template/TemplateCard'
 import { TemplateManager } from '@/components/template/TemplateManager'
 import { useTemplateActions, useTemplates } from '@/lib/hooks/useTemplates'
 import type { Template } from '@/types/template.types'
-import { LayoutTemplate, PlusCircle, Save, Search, Settings2, X } from 'lucide-react'
+import { LayoutTemplate, PlusCircle, Save, Search, Settings2, X, ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface CreateBoardDialogProps {
   open: boolean
@@ -24,7 +24,7 @@ type CreationMode = 'blank' | 'template' | 'save-current'
 
 export function CreateBoardDialog({ open, onOpenChange, onBoardCreated, sourceBoard }: CreateBoardDialogProps) {
   const [step, setStep] = useState<Step>('mode')
-  const [creationMode, setCreationMode] = useState<CreationMode>('blank')
+  const [creationMode, setCreationMode] = useState<CreationMode>('template')
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('')
   const [selectedTemplateName, setSelectedTemplateName] = useState<string>('默认看板')
   const [selectedTemplateLaneCount, setSelectedTemplateLaneCount] = useState<number>(0)
@@ -35,6 +35,8 @@ export function CreateBoardDialog({ open, onOpenChange, onBoardCreated, sourceBo
   const [savingTemplate, setSavingTemplate] = useState(false)
   const [templateSearch, setTemplateSearch] = useState('')
   const [showTemplateManager, setShowTemplateManager] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const PAGE_SIZE = 12
   const { templates, loading, fetchTemplates } = useTemplates({ type: 'board' })
   const { createTemplate } = useTemplateActions()
 
@@ -48,6 +50,16 @@ export function CreateBoardDialog({ open, onOpenChange, onBoardCreated, sourceBo
         template.meta.tags?.some((tag) => tag.toLowerCase().includes(q))
     )
   }, [templates, templateSearch])
+
+  const totalPages = Math.ceil(filteredTemplates.length / PAGE_SIZE)
+  const currentPageTemplates = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE
+    return filteredTemplates.slice(start, start + PAGE_SIZE)
+  }, [filteredTemplates, currentPage])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [templateSearch])
 
   useEffect(() => {
     if (!open || creationMode !== 'template' || selectedTemplateId || templates.length === 0) return
@@ -104,6 +116,7 @@ export function CreateBoardDialog({ open, onOpenChange, onBoardCreated, sourceBo
     setTitle('')
     setTemplateSearch('')
     setShowTemplateManager(false)
+    setCurrentPage(1)
   }
 
   function handleClose() {
@@ -187,90 +200,50 @@ export function CreateBoardDialog({ open, onOpenChange, onBoardCreated, sourceBo
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-5xl">
         {step === 'mode' ? (
           <>
             <DialogHeader>
-              <DialogTitle className="text-base">创建方式</DialogTitle>
+              <DialogTitle className="text-base">创建看板</DialogTitle>
             </DialogHeader>
             <DialogBody>
-              <div className="grid grid-cols-1 gap-2">
-                <button
-                  type="button"
-                  onClick={selectBlankMode}
-                  className={`flex items-center gap-3 rounded-md border px-3 py-2 text-left text-sm ${
-                    creationMode === 'blank' ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/40'
-                  }`}
-                >
-                  <PlusCircle className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <div className="font-medium">空白看板</div>
-                    <div className="text-xs text-muted-foreground">使用默认三列表创建</div>
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  onClick={selectTemplateMode}
-                  className={`flex items-center gap-3 rounded-md border px-3 py-2 text-left text-sm ${
-                    creationMode === 'template' ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/40'
-                  }`}
-                >
-                  <LayoutTemplate className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <div className="font-medium">使用模板</div>
-                    <div className="text-xs text-muted-foreground">从现有模板快速创建看板</div>
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCreationMode('save-current')}
-                  className={`flex items-center gap-3 rounded-md border px-3 py-2 text-left text-sm ${
-                    creationMode === 'save-current' ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/40'
-                  }`}
-                >
-                  <Save className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <div className="font-medium">将当前看板创建模板</div>
-                    <div className="text-xs text-muted-foreground">保存当前结构后用于后续复用</div>
-                  </div>
-                </button>
-              </div>
+              {/* 模板选择区域 - 主体 */}
+              <div className="space-y-3">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={templateSearch}
+                    onChange={(e) => setTemplateSearch(e.target.value)}
+                    placeholder="搜索模板..."
+                    className="h-9 pl-9 pr-8 text-sm"
+                  />
+                  {templateSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setTemplateSearch('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      aria-label="清空模板搜索"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
 
-              {creationMode === 'template' && (
-                <div className="mt-3 space-y-3">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      value={templateSearch}
-                      onChange={(e) => setTemplateSearch(e.target.value)}
-                      placeholder="搜索模板..."
-                      className="h-9 pl-9 pr-8 text-sm"
-                    />
-                    {templateSearch && (
-                      <button
-                        type="button"
-                        onClick={() => setTemplateSearch('')}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        aria-label="清空模板搜索"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    )}
+                {loading ? (
+                  <div className="py-8 text-center text-sm text-muted-foreground">加载模板中...</div>
+                ) : templates.length === 0 ? (
+                  <div className="rounded-md border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">
+                    暂无看板模板，可到模板管理中新建模板
+                    <Button type="button" variant="outline" size="sm" className="mt-3 w-full" onClick={() => fetchTemplates()}>
+                      重新加载
+                    </Button>
                   </div>
-                  {loading ? (
-                    <div className="py-8 text-center text-sm text-muted-foreground">加载模板中...</div>
-                  ) : templates.length === 0 ? (
-                    <div className="rounded-md border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">
-                      暂无看板模板，可到模板管理中新建模板
-                      <Button type="button" variant="outline" size="sm" className="mt-3 w-full" onClick={() => fetchTemplates()}>
-                        重新加载
-                      </Button>
-                    </div>
-                  ) : filteredTemplates.length === 0 ? (
-                    <div className="py-8 text-center text-sm text-muted-foreground">未找到匹配的模板</div>
-                  ) : (
-                    <div className="grid max-h-[30vh] grid-cols-1 gap-2 overflow-y-auto pr-1">
-                      {filteredTemplates.map((template) => (
+                ) : filteredTemplates.length === 0 ? (
+                  <div className="py-8 text-center text-sm text-muted-foreground">未找到匹配的模板</div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-4 gap-3">
+                      {currentPageTemplates.map((template) => (
                         <TemplateCard
                           key={template.meta.id}
                           template={template}
@@ -280,9 +253,70 @@ export function CreateBoardDialog({ open, onOpenChange, onBoardCreated, sourceBo
                         />
                       ))}
                     </div>
-                  )}
+                    {totalPages > 1 && (
+                      <div className="flex items-center justify-center gap-2 pt-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 px-2 text-xs"
+                          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                          disabled={currentPage === 1}
+                        >
+                          <ChevronLeft className="h-3.5 w-3.5" />
+                        </Button>
+                        <span className="text-xs text-muted-foreground">
+                          {currentPage} / {totalPages}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 px-2 text-xs"
+                          onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                          disabled={currentPage === totalPages}
+                        >
+                          <ChevronRight className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {/* 辅助选项 */}
+              <div className="mt-4 border-t pt-4">
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={selectBlankMode}
+                    className={`flex flex-1 items-center gap-3 rounded-md border px-3 py-2.5 text-left text-sm ${
+                      creationMode === 'blank'
+                        ? 'border-primary bg-primary/5'
+                        : 'border-border hover:bg-muted/40'
+                    }`}
+                  >
+                    <PlusCircle className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <div className="font-medium">空白看板</div>
+                      <div className="text-xs text-muted-foreground">使用默认三列表创建</div>
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCreationMode('save-current')}
+                    className={`flex flex-1 items-center gap-3 rounded-md border px-3 py-2.5 text-left text-sm ${
+                      creationMode === 'save-current'
+                        ? 'border-primary bg-primary/5'
+                        : 'border-border hover:bg-muted/40'
+                    }`}
+                  >
+                    <Save className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <div className="font-medium">将当前看板创建模板</div>
+                      <div className="text-xs text-muted-foreground">保存当前结构后用于后续复用</div>
+                    </div>
+                  </button>
                 </div>
-              )}
+              </div>
 
               {creationMode === 'save-current' && (
                 <div className="mt-3 space-y-2 rounded-md border border-border p-3">

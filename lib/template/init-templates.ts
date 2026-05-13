@@ -66,6 +66,139 @@ const BOARD_BUILTIN_TEMPLATES: Array<{ id: string; name: string; description: st
       { id: 'tag-low', name: '低', color: '#10b981' },
     ],
   },
+  {
+    id: 'board-project-mgmt',
+    name: '项目管理',
+    description: '通用项目管理流程，覆盖需求到上线的完整生命周期',
+    icon: 'Briefcase',
+    lanes: [
+      { title: '需求分析' },
+      { title: '设计' },
+      { title: '开发' },
+      { title: '测试' },
+      { title: '上线' },
+    ],
+    tags: [
+      { id: 'tag-p0', name: 'P0', color: '#ef4444' },
+      { id: 'tag-p1', name: 'P1', color: '#f59e0b' },
+      { id: 'tag-p2', name: 'P2', color: '#3b82f6' },
+    ],
+  },
+  {
+    id: 'board-product-design',
+    name: '产品设计',
+    description: '产品设计全流程，从需求调研到最终交付',
+    icon: 'Palette',
+    lanes: [
+      { title: '需求调研' },
+      { title: '原型设计' },
+      { title: '视觉设计' },
+      { title: '评审' },
+      { title: '交付' },
+    ],
+    tags: [
+      { id: 'tag-ux', name: 'UX', color: '#ec4899' },
+      { id: 'tag-ui', name: 'UI', color: '#8b5cf6' },
+    ],
+  },
+  {
+    id: 'board-sales-funnel',
+    name: '销售漏斗',
+    description: '销售客户跟进流程，从潜在线索到最终成交',
+    icon: 'TrendingUp',
+    lanes: [
+      { title: '潜在客户' },
+      { title: '意向确认' },
+      { title: '方案报价' },
+      { title: '合同谈判' },
+      { title: '成交' },
+    ],
+    tags: [
+      { id: 'tag-hot', name: '热客', color: '#ef4444' },
+      { id: 'tag-warm', name: '温客', color: '#f59e0b' },
+      { id: 'tag-cold', name: '冷客', color: '#3b82f6' },
+    ],
+  },
+  {
+    id: 'board-recruitment',
+    name: '招聘流程',
+    description: '候选人招聘管理，从简历筛选到入职跟进',
+    icon: 'Users',
+    lanes: [
+      { title: '简历筛选' },
+      { title: '初面' },
+      { title: '复面' },
+      { title: 'Offer' },
+      { title: '入职' },
+    ],
+    tags: [
+      { id: 'tag-urgent', name: '急招', color: '#ef4444' },
+      { id: 'tag-normal', name: '日常', color: '#3b82f6' },
+    ],
+  },
+  {
+    id: 'board-event-planning',
+    name: '活动策划',
+    description: '市场活动策划执行，从方案到复盘的全流程管理',
+    icon: 'Calendar',
+    lanes: [
+      { title: '方案策划' },
+      { title: '资源筹备' },
+      { title: '执行中' },
+      { title: '复盘总结' },
+    ],
+    tags: [
+      { id: 'tag-online', name: '线上', color: '#8b5cf6' },
+      { id: 'tag-offline', name: '线下', color: '#10b981' },
+    ],
+  },
+  {
+    id: 'board-study-plan',
+    name: '学习计划',
+    description: '个人学习进度跟踪，系统化知识积累管理',
+    icon: 'BookOpen',
+    lanes: [
+      { title: '待学习' },
+      { title: '学习中' },
+      { title: '已掌握' },
+      { title: '复习巩固' },
+    ],
+    tags: [
+      { id: 'tag-tech', name: '技术', color: '#3b82f6' },
+      { id: 'tag-soft', name: '软技能', color: '#ec4899' },
+    ],
+  },
+  {
+    id: 'board-family-tasks',
+    name: '家庭事务',
+    description: '家庭日常事务管理，购物、维修、安排一目了然',
+    icon: 'Home',
+    lanes: [
+      { title: '待办事项' },
+      { title: '采购中' },
+      { title: '已完成' },
+    ],
+    tags: [
+      { id: 'tag-shopping', name: '购物', color: '#f59e0b' },
+      { id: 'tag-repair', name: '维修', color: '#ef4444' },
+    ],
+  },
+  {
+    id: 'board-personal-okr',
+    name: '个人 OKR',
+    description: '个人目标与关键结果管理，聚焦核心目标执行',
+    icon: 'Target',
+    lanes: [
+      { title: '目标设定' },
+      { title: '关键结果' },
+      { title: '本周行动' },
+      { title: '已完成' },
+    ],
+    tags: [
+      { id: 'tag-goal', name: '目标', color: '#ef4444' },
+      { id: 'tag-milestone', name: '里程碑', color: '#10b981' },
+    ],
+  },
 ]
 
 /**

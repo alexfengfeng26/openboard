@@ -1,0 +1,41 @@
+{
+  "meta": {
+    "type": "board",
+    "name": "家庭事务",
+    "description": "家庭日常事务管理，购物、维修、安排一目了然",
+    "tags": [
+      "通用"
+    ],
+    "icon": "Home",
+    "scope": "global",
+    "builtin": true,
+    "id": "board-family-tasks",
+    "createdAt": "2026-05-13T05:57:34.241Z",
+    "updatedAt": "2026-05-13T05:57:34.241Z"
+  },
+  "content": {
+    "lanes": [
+      {
+        "title": "待办事项"
+      },
+      {
+        "title": "采购中"
+      },
+      {
+        "title": "已完成"
+      }
+    ],
+    "tags": [
+      {
+        "id": "tag-shopping",
+        "name": "购物",
+        "color": "#f59e0b"
+      },
+      {
+        "id": "tag-repair",
+        "name": "维修",
+        "color": "#ef4444"
+      }
+    ]
+  }
+}

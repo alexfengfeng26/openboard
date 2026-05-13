@@ -1,0 +1,44 @@
+{
+  "meta": {
+    "type": "board",
+    "name": "学习计划",
+    "description": "个人学习进度跟踪，系统化知识积累管理",
+    "tags": [
+      "通用"
+    ],
+    "icon": "BookOpen",
+    "scope": "global",
+    "builtin": true,
+    "id": "board-study-plan",
+    "createdAt": "2026-05-13T05:57:34.235Z",
+    "updatedAt": "2026-05-13T05:57:34.235Z"
+  },
+  "content": {
+    "lanes": [
+      {
+        "title": "待学习"
+      },
+      {
+        "title": "学习中"
+      },
+      {
+        "title": "已掌握"
+      },
+      {
+        "title": "复习巩固"
+      }
+    ],
+    "tags": [
+      {
+        "id": "tag-tech",
+        "name": "技术",
+        "color": "#3b82f6"
+      },
+      {
+        "id": "tag-soft",
+        "name": "软技能",
+        "color": "#ec4899"
+      }
+    ]
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "meta": {
+    "type": "board",
+    "name": "活动策划",
+    "description": "市场活动策划执行，从方案到复盘的全流程管理",
+    "tags": [
+      "通用"
+    ],
+    "icon": "Calendar",
+    "scope": "global",
+    "builtin": true,
+    "id": "board-event-planning",
+    "createdAt": "2026-05-13T05:57:34.231Z",
+    "updatedAt": "2026-05-13T05:57:34.231Z"
+  },
+  "content": {
+    "lanes": [
+      {
+        "title": "方案策划"
+      },
+      {
+        "title": "资源筹备"
+      },
+      {
+        "title": "执行中"
+      },
+      {
+        "title": "复盘总结"
+      }
+    ],
+    "tags": [
+      {
+        "id": "tag-online",
+        "name": "线上",
+        "color": "#8b5cf6"
+      },
+      {
+        "id": "tag-offline",
+        "name": "线下",
+        "color": "#10b981"
+      }
+    ]
+  }
+}

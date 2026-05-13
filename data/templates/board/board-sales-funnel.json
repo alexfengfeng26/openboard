@@ -1,0 +1,52 @@
+{
+  "meta": {
+    "type": "board",
+    "name": "销售漏斗",
+    "description": "销售客户跟进流程，从潜在线索到最终成交",
+    "tags": [
+      "通用"
+    ],
+    "icon": "TrendingUp",
+    "scope": "global",
+    "builtin": true,
+    "id": "board-sales-funnel",
+    "createdAt": "2026-05-13T05:57:34.462Z",
+    "updatedAt": "2026-05-13T05:57:34.462Z"
+  },
+  "content": {
+    "lanes": [
+      {
+        "title": "潜在客户"
+      },
+      {
+        "title": "意向确认"
+      },
+      {
+        "title": "方案报价"
+      },
+      {
+        "title": "合同谈判"
+      },
+      {
+        "title": "成交"
+      }
+    ],
+    "tags": [
+      {
+        "id": "tag-hot",
+        "name": "热客",
+        "color": "#ef4444"
+      },
+      {
+        "id": "tag-warm",
+        "name": "温客",
+        "color": "#f59e0b"
+      },
+      {
+        "id": "tag-cold",
+        "name": "冷客",
+        "color": "#3b82f6"
+      }
+    ]
+  }
+}

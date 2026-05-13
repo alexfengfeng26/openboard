@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-13T05:31:10.196Z",
+  "updatedAt": "2026-05-13T05:57:34.413Z",
   "templates": [
     {
       "id": "board-basic",
@@ -42,6 +42,97 @@
       "path": "board/board-content.json"
     },
     {
+      "id": "board-event-planning",
+      "type": "board",
+      "name": "活动策划",
+      "description": "市场活动策划执行，从方案到复盘的全流程管理",
+      "tags": [
+        "通用"
+      ],
+      "icon": "Calendar",
+      "scope": "global",
+      "builtin": true,
+      "path": "board/board-event-planning.json"
+    },
+    {
+      "id": "board-family-tasks",
+      "type": "board",
+      "name": "家庭事务",
+      "description": "家庭日常事务管理，购物、维修、安排一目了然",
+      "tags": [
+        "通用"
+      ],
+      "icon": "Home",
+      "scope": "global",
+      "builtin": true,
+      "path": "board/board-family-tasks.json"
+    },
+    {
+      "id": "board-personal-okr",
+      "type": "board",
+      "name": "个人 OKR",
+      "description": "个人目标与关键结果管理，聚焦核心目标执行",
+      "tags": [
+        "通用"
+      ],
+      "icon": "Target",
+      "scope": "global",
+      "builtin": true,
+      "path": "board/board-personal-okr.json"
+    },
+    {
+      "id": "board-product-design",
+      "type": "board",
+      "name": "产品设计",
+      "description": "产品设计全流程，从需求调研到最终交付",
+      "tags": [
+        "通用"
+      ],
+      "icon": "Palette",
+      "scope": "global",
+      "builtin": true,
+      "path": "board/board-product-design.json"
+    },
+    {
+      "id": "board-project-mgmt",
+      "type": "board",
+      "name": "项目管理",
+      "description": "通用项目管理流程，覆盖需求到上线的完整生命周期",
+      "tags": [
+        "通用"
+      ],
+      "icon": "Briefcase",
+      "scope": "global",
+      "builtin": true,
+      "path": "board/board-project-mgmt.json"
+    },
+    {
+      "id": "board-recruitment",
+      "type": "board",
+      "name": "招聘流程",
+      "description": "候选人招聘管理，从简历筛选到入职跟进",
+      "tags": [
+        "通用"
+      ],
+      "icon": "Users",
+      "scope": "global",
+      "builtin": true,
+      "path": "board/board-recruitment.json"
+    },
+    {
+      "id": "board-sales-funnel",
+      "type": "board",
+      "name": "销售漏斗",
+      "description": "销售客户跟进流程，从潜在线索到最终成交",
+      "tags": [
+        "通用"
+      ],
+      "icon": "TrendingUp",
+      "scope": "global",
+      "builtin": true,
+      "path": "board/board-sales-funnel.json"
+    },
+    {
       "id": "board-scrum",
       "type": "board",
       "name": "Scrum Sprint",
@@ -53,6 +144,19 @@
       "scope": "global",
       "builtin": true,
       "path": "board/board-scrum.json"
+    },
+    {
+      "id": "board-study-plan",
+      "type": "board",
+      "name": "学习计划",
+      "description": "个人学习进度跟踪，系统化知识积累管理",
+      "tags": [
+        "通用"
+      ],
+      "icon": "BookOpen",
+      "scope": "global",
+      "builtin": true,
+      "path": "board/board-study-plan.json"
     },
     {
       "id": "card-bug-report",

@@ -1,0 +1,47 @@
+{
+  "meta": {
+    "type": "board",
+    "name": "产品设计",
+    "description": "产品设计全流程，从需求调研到最终交付",
+    "tags": [
+      "通用"
+    ],
+    "icon": "Palette",
+    "scope": "global",
+    "builtin": true,
+    "id": "board-product-design",
+    "createdAt": "2026-05-13T05:57:34.438Z",
+    "updatedAt": "2026-05-13T05:57:34.438Z"
+  },
+  "content": {
+    "lanes": [
+      {
+        "title": "需求调研"
+      },
+      {
+        "title": "原型设计"
+      },
+      {
+        "title": "视觉设计"
+      },
+      {
+        "title": "评审"
+      },
+      {
+        "title": "交付"
+      }
+    ],
+    "tags": [
+      {
+        "id": "tag-ux",
+        "name": "UX",
+        "color": "#ec4899"
+      },
+      {
+        "id": "tag-ui",
+        "name": "UI",
+        "color": "#8b5cf6"
+      }
+    ]
+  }
+}

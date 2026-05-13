@@ -1,0 +1,47 @@
+{
+  "meta": {
+    "type": "board",
+    "name": "招聘流程",
+    "description": "候选人招聘管理，从简历筛选到入职跟进",
+    "tags": [
+      "通用"
+    ],
+    "icon": "Users",
+    "scope": "global",
+    "builtin": true,
+    "id": "board-recruitment",
+    "createdAt": "2026-05-13T05:57:34.474Z",
+    "updatedAt": "2026-05-13T05:57:34.474Z"
+  },
+  "content": {
+    "lanes": [
+      {
+        "title": "简历筛选"
+      },
+      {
+        "title": "初面"
+      },
+      {
+        "title": "复面"
+      },
+      {
+        "title": "Offer"
+      },
+      {
+        "title": "入职"
+      }
+    ],
+    "tags": [
+      {
+        "id": "tag-urgent",
+        "name": "急招",
+        "color": "#ef4444"
+      },
+      {
+        "id": "tag-normal",
+        "name": "日常",
+        "color": "#3b82f6"
+      }
+    ]
+  }
+}

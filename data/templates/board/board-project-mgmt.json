@@ -1,0 +1,52 @@
+{
+  "meta": {
+    "type": "board",
+    "name": "项目管理",
+    "description": "通用项目管理流程，覆盖需求到上线的完整生命周期",
+    "tags": [
+      "通用"
+    ],
+    "icon": "Briefcase",
+    "scope": "global",
+    "builtin": true,
+    "id": "board-project-mgmt",
+    "createdAt": "2026-05-13T05:57:33.654Z",
+    "updatedAt": "2026-05-13T05:57:33.654Z"
+  },
+  "content": {
+    "lanes": [
+      {
+        "title": "需求分析"
+      },
+      {
+        "title": "设计"
+      },
+      {
+        "title": "开发"
+      },
+      {
+        "title": "测试"
+      },
+      {
+        "title": "上线"
+      }
+    ],
+    "tags": [
+      {
+        "id": "tag-p0",
+        "name": "P0",
+        "color": "#ef4444"
+      },
+      {
+        "id": "tag-p1",
+        "name": "P1",
+        "color": "#f59e0b"
+      },
+      {
+        "id": "tag-p2",
+        "name": "P2",
+        "color": "#3b82f6"
+      }
+    ]
+  }
+}

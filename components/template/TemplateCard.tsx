@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import type { Template } from '@/types/template.types'
-import { Layout, FileText, Bug, Rocket, Tag, Zap, Bot, Copy, Pencil, Trash2, Check } from 'lucide-react'
+import { Layout, FileText, Bug, Rocket, Tag, Zap, Bot, Copy, Pencil, Trash2, Check, Briefcase, Palette, TrendingUp, Users, Calendar, BookOpen, Home, Target } from 'lucide-react'
 
 const ICON_MAP: Record<string, React.ReactNode> = {
   Layout: <Layout className="h-5 w-5" />,
@@ -13,9 +13,16 @@ const ICON_MAP: Record<string, React.ReactNode> = {
   Tag: <Tag className="h-5 w-5" />,
   Zap: <Zap className="h-5 w-5" />,
   Bot: <Bot className="h-5 w-5" />,
-  Users: <Layout className="h-5 w-5" />,
+  Users: <Users className="h-5 w-5" />,
   Code: <FileText className="h-5 w-5" />,
   Lightbulb: <Zap className="h-5 w-5" />,
+  Briefcase: <Briefcase className="h-5 w-5" />,
+  Palette: <Palette className="h-5 w-5" />,
+  TrendingUp: <TrendingUp className="h-5 w-5" />,
+  Calendar: <Calendar className="h-5 w-5" />,
+  BookOpen: <BookOpen className="h-5 w-5" />,
+  Home: <Home className="h-5 w-5" />,
+  Target: <Target className="h-5 w-5" />,
 }
 
 interface TemplateCardProps {
