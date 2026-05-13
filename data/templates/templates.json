@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-13T05:01:31.112Z",
+  "updatedAt": "2026-05-13T05:06:16.670Z",
   "templates": [
     {
       "id": "board-basic",
@@ -234,6 +234,18 @@
       "scope": "global",
       "builtin": false,
       "path": "board/user-1778648344451-2dv23c.json"
+    },
+    {
+      "id": "user-1778648776670-ern7kv",
+      "type": "board",
+      "name": "AI洞察",
+      "description": "来自看板「我的看板」",
+      "tags": [
+        "看板"
+      ],
+      "scope": "global",
+      "builtin": false,
+      "path": "board/user-1778648776670-ern7kv.json"
     }
   ]
 }

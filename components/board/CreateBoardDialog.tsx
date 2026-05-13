@@ -176,7 +176,7 @@ export function CreateBoardDialog({ open, onOpenChange, onBoardCreated, sourceBo
         },
       })
       applySelectedTemplate(created)
-      toastSuccess('已从当前看板创建模板')
+      toastSuccess('已将当前看板创建模板')
       await fetchTemplates()
     } catch {
       toastError('创建模板失败')
@@ -230,7 +230,7 @@ export function CreateBoardDialog({ open, onOpenChange, onBoardCreated, sourceBo
                 >
                   <Save className="h-4 w-4 text-muted-foreground" />
                   <div>
-                    <div className="font-medium">从当前看板创建模板</div>
+                    <div className="font-medium">将当前看板创建模板</div>
                     <div className="text-xs text-muted-foreground">保存当前结构后用于后续复用</div>
                   </div>
                 </button>
